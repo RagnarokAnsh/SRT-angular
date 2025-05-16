@@ -1,0 +1,99 @@
+<div class="radial-dial-svg-container">
+  <svg [attr.width]="center * 2" [attr.height]="center * 2" [attr.viewBox]="'0 0 ' + (center * 2) + ' ' + (center * 2)">
+    <!-- Center Circle -->
+    <circle [attr.cx]="center" [attr.cy]="center" [attr.r]="ringWidth - 6" fill="#34495e" />
+    <text
+      [attr.x]="center"
+      [attr.y]="center - 10"
+      text-anchor="middle"
+      alignment-baseline="middle"
+      font-size="22"
+      fill="#fff"
+      font-weight="bold"
+      style="pointer-events:none;"
+    >
+      <tspan x="400" dy="0">School</tspan>
+      <tspan x="400" dy="1.2em">Readiness</tspan>
+    </text>
+
+    <!-- Domain Arc Paths for Text -->
+    <defs>
+      <path *ngFor="let sector of getDomainSectors(); let i = index"
+        [attr.id]="'domain-arc-' + i"
+        [attr.d]="getArcTextPath(sector, 'domain-arc-' + i)"
+        fill="none" />
+      <ng-container *ngIf="expandedLevel === 'competency' && hoveredDomainIdx !== null">
+        <path *ngFor="let sector of getCompetencySectors(hoveredDomainIdx); let k = index"
+          [attr.id]="'competency-arc-' + k"
+          [attr.d]="getArcTextPath(sector, 'competency-arc-' + k)"
+          fill="none" />
+      </ng-container>
+    </defs>
+
+    <!-- Domains -->
+    <g>
+      <g *ngFor="let sector of getDomainSectors(); let i = index">
+        <path
+          [attr.d]="getArcPath(sector)"
+          [attr.fill]="sector.color"
+          [attr.stroke]="'#fff'"
+          stroke-width="2.5"
+          class="dial-sector domain-sector"
+          [class.active]="hoveredDomainIdx === i"
+          (mouseenter)="onDomainHover(i)"
+          (mouseleave)="onDomainLeave()"
+        />
+        <text
+          [attr.font-size]="min(getResponsiveFontSize(sector), 12)"
+          fill="#fff"
+          font-weight="200"
+          style="pointer-events: none;"
+        >
+          <textPath [attr.xlink:href]="'#domain-arc-' + i" startOffset="50%" text-anchor="middle">
+            <title>{{ sector.label }}</title>
+            <ng-container *ngFor="let line of splitLabelToLines(sector.label, getMaxCharsPerLine(sector)); let isFirst = first">
+              <tspan x="0" [attr.dy]="isFirst ? '0' : '1.2em'">{{ line }}</tspan>
+            </ng-container>
+          </textPath>
+        </text>
+      </g>
+    </g>
+
+    <!-- Competencies -->
+    <g *ngIf="expandedLevel === 'competency' && hoveredDomainIdx !== null">
+      <g *ngFor="let sector of getCompetencySectors(hoveredDomainIdx); let k = index">
+        <path
+          [attr.d]="getArcPath(sector)"
+          [attr.fill]="sector.color"
+          [attr.stroke]="'#fff'"
+          stroke-width="2"
+          class="dial-sector competency-sector"
+        />
+        <!-- Render vertical text for competencies, centered in the thick ring -->
+        <g [attr.transform]="'translate(' + getTextPosition(sector).x + ',' + getTextPosition(sector).y + ') rotate(' + (getTextPosition(sector).rotation) + ')'">
+          <text
+            [attr.font-size]="getCompetencyFontSize(sector)"
+            fill="#fff"
+            font-weight="200"
+            style="pointer-events: none; writing-mode: tb;"
+            [attr.text-anchor]="'middle'"
+            [attr.alignment-baseline]="'middle'"
+            [attr.dominant-baseline]="'middle'"
+          >
+            <ng-container *ngFor="let line of splitLabelToLinesVertical(sector.label); let isFirst = first; let i = index">
+              <tspan 
+                x="0" 
+                [attr.dy]="isFirst ? '0' : '1.2em'"
+                text-anchor="middle"
+              >{{ line }}</tspan>
+            </ng-container>
+          </text>
+        </g>
+      </g>
+    </g>
+  </svg>
+</div>
+
+<script>
+function min(a, b) { return Math.min(a, b); }
+</script>

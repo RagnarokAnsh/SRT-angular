@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <!-- Background -->
+  <rect x="0" y="0" width="800" height="600" fill="#ffffff" fill-opacity="0" />
+  
+  <!-- Teacher figure -->
+  <circle cx="200" cy="200" r="50" fill="#3498db" />
+  <path d="M200,250 L200,400 M150,300 L250,300 M200,400 L150,500 M200,400 L250,500" stroke="#3498db" stroke-width="15" stroke-linecap="round" />
+  
+  <!-- Child figure -->
+  <circle cx="350" cy="230" r="35" fill="#e74c3c" />
+  <path d="M350,265 L350,370 M315,310 L385,310 M350,370 L315,440 M350,370 L385,440" stroke="#e74c3c" stroke-width="10" stroke-linecap="round" />
+  
+  <!-- Clipboard -->
+  <rect x="500" y="150" width="200" height="300" rx="10" ry="10" fill="#ecf0f1" stroke="#95a5a6" stroke-width="5" />
+  <rect x="520" y="190" width="160" height="20" rx="5" ry="5" fill="#bdc3c7" />
+  <rect x="520" y="230" width="160" height="20" rx="5" ry="5" fill="#bdc3c7" />
+  <rect x="520" y="270" width="160" height="20" rx="5" ry="5" fill="#bdc3c7" />
+  <rect x="520" y="310" width="160" height="20" rx="5" ry="5" fill="#bdc3c7" />
+  <rect x="520" y="350" width="160" height="20" rx="5" ry="5" fill="#bdc3c7" />
+  <rect x="520" y="390" width="160" height="20" rx="5" ry="5" fill="#bdc3c7" />
+  
+  <!-- Checkmarks -->
+  <path d="M530,190 L540,205 L560,175" stroke="#27ae60" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  <path d="M530,230 L540,245 L560,215" stroke="#27ae60" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  <path d="M530,270 L540,285 L560,255" stroke="#27ae60" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  
+  <!-- Stars -->
+  <path d="M650,120 L655,135 L670,135 L660,145 L665,160 L650,150 L635,160 L640,145 L630,135 L645,135 Z" fill="#f1c40f" />
+  <path d="M700,180 L703,190 L715,190 L705,195 L708,205 L700,200 L692,205 L695,195 L685,190 L697,190 Z" fill="#f1c40f" />
+  <path d="M600,100 L602,108 L610,108 L604,112 L606,120 L600,116 L594,120 L596,112 L590,108 L598,108 Z" fill="#f1c40f" />
+  
+  <!-- Building blocks -->
+  <rect x="100" y="400" width="60" height="60" fill="#3498db" stroke="#2980b9" stroke-width="3" />
+  <rect x="120" y="340" width="60" height="60" fill="#e74c3c" stroke="#c0392b" stroke-width="3" />
+  <rect x="180" y="400" width="60" height="60" fill="#2ecc71" stroke="#27ae60" stroke-width="3" />
+  <rect x="60" y="460" width="60" height="60" fill="#f1c40f" stroke="#f39c12" stroke-width="3" />
+  
+  <!-- Connecting lines -->
+  <path d="M260,250 C300,230 310,230 330,230" stroke="#95a5a6" stroke-width="3" stroke-dasharray="10,5" fill="none" />
+  <path d="M400,300 C450,300 450,300 490,250" stroke="#95a5a6" stroke-width="3" stroke-dasharray="10,5" fill="none" />
+</svg> 

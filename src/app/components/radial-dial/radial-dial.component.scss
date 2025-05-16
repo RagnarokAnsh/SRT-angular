@@ -1,0 +1,299 @@
+@import 'bootstrap/scss/bootstrap';
+
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.radial-dial-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 600px;
+  position: relative;
+}
+
+.main-dial {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  
+  &.open {
+    width: 180px;
+    height: 180px;
+    background: linear-gradient(135deg, #2980b9, #1c6ea4);
+  }
+  
+  .center-text {
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    font-size: 16px;
+    padding: 10px;
+    max-width: 90%;
+    line-height: 1.2;
+  }
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 20;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+  }
+}
+
+.domains-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.domain-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: 0 0;
+  --angle: calc(360deg / var(--total) * var(--index));
+  transform: rotate(var(--angle)) translateX(200px);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 5;
+  
+  &.active {
+    z-index: 6;
+  }
+  
+  &.selected {
+    z-index: 7;
+  }
+  
+  .domain-content {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 20px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 200px;
+    transform: rotate(calc(-1 * var(--angle)));
+    
+    &:hover {
+      transform: scale(1.05) rotate(calc(-1 * var(--angle)));
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+  }
+  
+  .vertical-text {
+    writing-mode: vertical-rl;
+    white-space: nowrap;
+    font-weight: 500;
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.sub-domains-container {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  top: 50%;
+  left: 50%;
+}
+
+.sub-domain-item {
+  position: absolute;
+  transform-origin: 0 0;
+  --angle: calc(60deg / var(--total) * var(--index) - 30deg);
+  transform: rotate(var(--angle)) translateX(100px);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 4;
+  
+  &.active {
+    z-index: 5;
+  }
+  
+  &.selected {
+    z-index: 6;
+  }
+  
+  .sub-domain-content {
+    background: linear-gradient(135deg, #27ae60, #219653);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 15px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 150px;
+    transform: rotate(calc(-1 * var(--angle)));
+    
+    &:hover {
+      transform: scale(1.05) rotate(calc(-1 * var(--angle)));
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+.competencies-container {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  top: 50%;
+  left: 50%;
+}
+
+.competency-item {
+  position: absolute;
+  transform-origin: 0 0;
+  --angle: calc(45deg / var(--total) * var(--index) - 22.5deg);
+  transform: rotate(var(--angle)) translateX(100px);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 3;
+  animation: fadeIn 0.3s forwards;
+  
+  .competency-content {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    max-width: 120px;
+    transform: rotate(calc(-1 * var(--angle)));
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:hover {
+      transform: scale(1.05) rotate(calc(-1 * var(--angle)));
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) rotate(var(--angle)) translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(var(--angle)) translateX(100px);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 767px) {
+  .main-dial {
+    width: 120px;
+    height: 120px;
+    
+    &.open {
+      width: 150px;
+      height: 150px;
+    }
+    
+    .center-text {
+      font-size: 1rem;
+    }
+  }
+  
+  .domain-item {
+    transform: rotate(var(--angle)) translateX(170px);
+    
+    .domain-content {
+      padding: 8px 12px;
+      max-width: 160px;
+    }
+    
+    .vertical-text {
+      font-size: 0.8rem;
+    }
+  }
+  
+  .sub-domain-item {
+    transform: rotate(var(--angle)) translateX(80px);
+    
+    .sub-domain-content {
+      padding: 6px 10px;
+      max-width: 120px;
+    }
+  }
+  
+  .competency-item {
+    transform: rotate(var(--angle)) translateX(80px);
+    
+    .competency-content {
+      padding: 5px 8px;
+      max-width: 100px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .main-dial {
+    width: 100px;
+    height: 100px;
+    
+    &.open {
+      width: 120px;
+      height: 120px;
+    }
+    
+    .center-text {
+      font-size: 0.9rem;
+    }
+  }
+  
+  .domain-item {
+    transform: rotate(var(--angle)) translateX(140px);
+    
+    .domain-content {
+      max-width: 130px;
+    }
+  }
+  
+  .sub-domain-item, .competency-item {
+    transform: rotate(var(--angle)) translateX(70px);
+  }
+}
+
+.radial-dial-svg-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2rem;
+}

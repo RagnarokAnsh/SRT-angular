@@ -1,0 +1,37 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background-color: var(--background-color);
+  background-image: url('/assets/images/landing.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.card {
+  width: 100%;
+  background-color: white;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+
+.btn-toggle-password {
+  background: none;
+  border: none;
+  color: #6b7280;
+  
+  &:hover {
+    color: #374151;
+  }
+}
+
+@media (max-width: 640px) {
+  .card {
+    margin: 1rem;
+  }
+}

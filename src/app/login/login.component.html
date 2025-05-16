@@ -1,0 +1,74 @@
+<div class="min-vh-100 d-flex flex-column align-items-center justify-content-center py-4">
+  <!-- Logo -->
+  <div class="mb-4">
+    <a href="/landing" class="text-decoration-none">
+      <h2 class="heading-heading">
+        School <span class="heading-highlight">Readiness</span> Tool
+      </h2>
+    </a>
+  </div>
+
+  <!-- Login Card -->
+  <div class="card p-4" style="max-width: 28rem;">
+    <form (ngSubmit)="onLogin()">
+      <!--Header -->
+      <div class="text-center mb-4">
+        <h3 class="fw-semibold">Log In</h3>
+      </div>
+
+      <!-- Email Input -->
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input 
+          type="email" 
+          class="form-control"
+          id="email"
+          name="email"
+          [(ngModel)]="email"
+          placeholder="Email"
+          required
+        >
+      </div>
+
+      <!-- Password Input -->
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <div class="position-relative">
+          <input 
+            [type]="showPassword ? 'text' : 'password'"
+            class="form-control"
+            id="password"
+            name="password"
+            [(ngModel)]="password"
+            placeholder="Password"
+            required
+          >
+          <button 
+            type="button" 
+            class="btn position-absolute end-0 top-50 translate-middle-y me-2"
+            (click)="togglePassword()">
+            <i class="fas" [class.fa-eye]="!showPassword" [class.fa-eye-slash]="showPassword"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Remember Me -->
+      <div class="mb-3">
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="remember" name="remember">
+          <label class="form-check-label" for="remember">Remember Me</label>
+        </div>
+      </div>
+
+      <!-- Error Messages -->
+      <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+      <div *ngIf="success" class="alert alert-success">{{ success }}</div>
+
+      <!--Buttons -->
+      <div class="d-flex justify-content-between align-items-center mt-4">
+        <a href="#" class="text-decoration-none text-muted small">Forgot your password?</a>
+        <button type="submit" class="btn btn-primary">Sign In</button>
+      </div>
+    </form>
+  </div>
+</div>
