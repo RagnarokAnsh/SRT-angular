@@ -4,7 +4,7 @@
     <circle [attr.cx]="center" [attr.cy]="center" [attr.r]="ringWidth - 6" fill="#34495e" />
     <text
       [attr.x]="center"
-      [attr.y]="center - 10"
+      [attr.y]="center"
       text-anchor="middle"
       alignment-baseline="middle"
       font-size="22"
@@ -12,8 +12,7 @@
       font-weight="bold"
       style="pointer-events:none;"
     >
-      <tspan x="400" dy="0">School</tspan>
-      <tspan x="400" dy="1.2em">Readiness</tspan>
+      <tspan dy="0">School Readiness</tspan>
     </text>
 
     <!-- Domain Arc Paths for Text -->
@@ -80,13 +79,7 @@
             [attr.alignment-baseline]="'middle'"
             [attr.dominant-baseline]="'middle'"
           >
-            <ng-container *ngFor="let line of splitLabelToLinesVertical(sector.label); let isFirst = first; let i = index">
-              <tspan 
-                x="0" 
-                [attr.dy]="isFirst ? '0' : '1.2em'"
-                text-anchor="middle"
-              >{{ line }}</tspan>
-            </ng-container>
+            {{ sector.label }}
           </text>
         </g>
       </g>

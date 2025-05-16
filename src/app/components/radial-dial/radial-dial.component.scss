@@ -1,10 +1,9 @@
-@import 'bootstrap/scss/bootstrap';
-
-:host {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
+// Color and gradient variables
+$blue-gradient: linear-gradient(135deg, #3498db, #2980b9);
+$blue-gradient-open: linear-gradient(135deg, #2980b9, #1c6ea4);
+$red-gradient: linear-gradient(135deg, #e74c3c, #c0392b);
+$green-gradient: linear-gradient(135deg, #27ae60, #219653);
+$purple-gradient: linear-gradient(135deg, #9b59b6, #8e44ad);
 
 .radial-dial-container {
   display: flex;
@@ -21,7 +20,7 @@
   width: 150px;
   height: 150px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #3498db, #2980b9);
+  background: $blue-gradient;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -33,7 +32,7 @@
   &.open {
     width: 180px;
     height: 180px;
-    background: linear-gradient(135deg, #2980b9, #1c6ea4);
+    background: $blue-gradient-open;
   }
   
   .center-text {
@@ -79,6 +78,61 @@
   left: 0;
 }
 
+// Merge .sub-domains-container and .competencies-container
+.sub-domains-container, .competencies-container {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  top: 50%;
+  left: 50%;
+}
+
+// Merge .sub-domain-item and .competency-item
+.sub-domain-item, .competency-item {
+  position: absolute;
+  transform-origin: 0 0;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 4;
+  &.active { z-index: 5; }
+  &.selected { z-index: 6; }
+}
+
+// Angle and translateX for each
+.sub-domain-item {
+  --angle: calc(60deg / var(--total) * var(--index) - 30deg);
+  transform: rotate(var(--angle)) translateX(100px);
+}
+.competency-item {
+  --angle: calc(45deg / var(--total) * var(--index) - 22.5deg);
+  transform: rotate(var(--angle)) translateX(100px);
+  animation: fadeIn 0.3s forwards;
+}
+
+// Merge .sub-domain-content and .competency-content
+.sub-domain-content, .competency-content {
+  color: white;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: rotate(calc(-1 * var(--angle)));
+  &:hover {
+    transform: scale(1.05) rotate(calc(-1 * var(--angle)));
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+}
+.sub-domain-content {
+  background: $green-gradient;
+  padding: 8px 12px;
+  border-radius: 15px;
+  max-width: 150px;
+}
+.competency-content {
+  background: $purple-gradient;
+  padding: 6px 10px;
+  border-radius: 12px;
+  max-width: 120px;
+}
+
 .domain-item {
   position: absolute;
   top: 50%;
@@ -98,7 +152,7 @@
   }
   
   .domain-content {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    background: $red-gradient;
     color: white;
     padding: 10px 15px;
     border-radius: 20px;
@@ -125,82 +179,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-}
-
-.sub-domains-container {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  top: 50%;
-  left: 50%;
-}
-
-.sub-domain-item {
-  position: absolute;
-  transform-origin: 0 0;
-  --angle: calc(60deg / var(--total) * var(--index) - 30deg);
-  transform: rotate(var(--angle)) translateX(100px);
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 4;
-  
-  &.active {
-    z-index: 5;
-  }
-  
-  &.selected {
-    z-index: 6;
-  }
-  
-  .sub-domain-content {
-    background: linear-gradient(135deg, #27ae60, #219653);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 15px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    max-width: 150px;
-    transform: rotate(calc(-1 * var(--angle)));
-    
-    &:hover {
-      transform: scale(1.05) rotate(calc(-1 * var(--angle)));
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
-  }
-}
-
-.competencies-container {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  top: 50%;
-  left: 50%;
-}
-
-.competency-item {
-  position: absolute;
-  transform-origin: 0 0;
-  --angle: calc(45deg / var(--total) * var(--index) - 22.5deg);
-  transform: rotate(var(--angle)) translateX(100px);
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 3;
-  animation: fadeIn 0.3s forwards;
-  
-  .competency-content {
-    background: linear-gradient(135deg, #9b59b6, #8e44ad);
-    color: white;
-    padding: 6px 10px;
-    border-radius: 12px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-    max-width: 120px;
-    transform: rotate(calc(-1 * var(--angle)));
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    
-    &:hover {
-      transform: scale(1.05) rotate(calc(-1 * var(--angle)));
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
   }
 }
 
@@ -295,5 +273,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 2rem;
+  margin-top: 0.5rem;
+  width: 100vw;
+  max-width: 100vw;
+  overflow-x: auto;
+  box-sizing: border-box;
 }

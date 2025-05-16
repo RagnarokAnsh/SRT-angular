@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 interface Competency {
@@ -82,7 +82,22 @@ export class RadialDialComponent implements OnInit {
     }
   ];
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.updateDialSize();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    this.updateDialSize();
+  }
+
+  updateDialSize() {
+    const minDim = Math.min(window.innerWidth, window.innerHeight);
+    // Adjust these ratios as needed for your layout
+    this.center = Math.max(180, Math.floor(minDim / 2.5));
+    this.radius = Math.max(90, Math.floor(minDim / 5));
+    this.ringWidth = Math.max(40, Math.floor(minDim / 10));
+  }
 
   // Geometry helpers
   polarToCartesian(cx: number, cy: number, r: number, angle: number) {
@@ -262,19 +277,17 @@ export class RadialDialComponent implements OnInit {
 
   // Split label into lines for vertical text (competencies)
   splitLabelToLinesVertical(label: string): string[] {
-    const maxCharsPerLine = 8; // Fixed number for consistent appearance
+    const maxCharsPerLine = 12; // Increased for better vertical appearance
     const words = label.split(' ');
     const lines: string[] = [];
     let currentLine = '';
 
     for (const word of words) {
-      // If word is longer than maxCharsPerLine, split it
       if (word.length > maxCharsPerLine) {
         if (currentLine) {
           lines.push(currentLine.trim());
           currentLine = '';
         }
-        // Split long word into chunks
         for (let i = 0; i < word.length; i += maxCharsPerLine) {
           lines.push(word.slice(i, i + maxCharsPerLine));
         }
