@@ -1,0 +1,127 @@
+<div class="main-content pb-4 pl-4 pr-4 mb-3">
+  <div class="users">
+    <div class="header d-flex justify-content-between align-items-center">
+      <div class="search-box">
+        
+      </div>
+
+      <!-- <div class="text-end">
+        <button
+          type="button"
+          role="button"
+          class="btn btn-primary"
+          [routerLink]="'/users/create'"
+        >
+          Create User
+        </button>
+      </div> -->
+    </div>
+
+    <div class="page-content">
+      <div class="content-area">
+        <div class=" mat-elevation-z8">
+          <p-table
+            #dt
+            [value]="userData"
+            [paginator]="userData?.length > 0 ? true : false"
+            selectionMode="single"
+            [globalFilterFields]="['firstname', 'lastname', 'email']"
+            dataKey="id"
+            [rows]="10"
+            [tableStyle]="{ 'min-width': '50rem' }"
+            [rowsPerPageOptions]="[5, 10, 20]"
+            [filterDelay]="0"
+            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} users"
+              [showCurrentPageReport]="true"
+          >
+            <ng-template #caption>
+              <div class="d-flex justify-content-between align-items-center">
+              <p-iconfield iconPosition="left">
+                <p-inputicon>
+                  <i class="pi pi-search"></i>
+                </p-inputicon>
+                <input
+                  pInputText
+                  type="text"
+                  #searchInput
+                (input)="dt.filterGlobal(searchInput.value, 'contains')"
+                  placeholder="Search"
+                />
+              </p-iconfield>
+              <div class="text-end">
+                <button
+                  type="button"
+                  role="button"
+                  class="btn btn-primary"
+                  [routerLink]="'/users/create'"
+                >
+                <app-fa-icons class="icons me-2" [icon]="'faPlus'"></app-fa-icons>
+                  Create User
+                </button>
+              </div>
+            </div>
+            </ng-template>
+            <ng-template pTemplate="header">
+              <tr>
+                <th mat-sort-header>S.No.</th>
+                <th mat-sort-header>First Name</th>
+                <th mat-sort-header>Last Name</th>
+                <th mat-sort-header>Email</th>
+                <th mat-sort-header>Group</th>
+                <th mat-sort-header>Status</th>
+                <th mat-sort-header>Actions</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-element let-i="rowIndex">
+              <tr>
+                <td>{{ i + 1 }}</td>
+                <td>{{ element.firstname }}</td>
+                <td>{{ element.lastname }}</td>
+                <td>{{ element.email }}</td>
+                <td>{{ element.group }}</td>
+                <td>
+                  <div class="form-check form-switch status-switch">
+                    <input
+                      class="form-check-input status"
+                      type="checkbox"
+                      role="switch"
+                      id="switch"
+                      value="{{ element.is_active }}"
+                      [checked]="element.is_active"
+                      (change)="
+                        updateUserSettings(element.id, $event, 'is_active')
+                      "
+                      title="{{ element.is_active ? 'Disable' : 'Enable' }}"
+                    />
+                  </div>
+                </td>
+                <td>
+                  <div class="table-icons">
+                    <a
+                      class="table-icon"
+                      routerLink="/users/edit/{{ element.id }}"
+                      title="Edit User"
+                      ><app-fa-icons
+                        class="icons"
+                        [icon]="'faEdit'"
+                      ></app-fa-icons
+                    ></a>
+                    <a
+                      class="table-icon"
+                      (click)="openDialog(element.id)"
+                      title="Delete User"
+                      ><app-fa-icons
+                        [icon]="'faTrash'"
+                        class="icons"
+                      ></app-fa-icons
+                    ></a>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

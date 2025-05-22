@@ -1,0 +1,118 @@
+<div class="main-content pb-4 pl-4 pr-4 mb-3">
+ 
+  <div class="card container-fluid">
+    
+    <!-- <div class="card-header">
+      <h4 class="card-title">Create User</h4>
+    </div> -->
+    <div class="user-form card-body ">
+      <form [formGroup]="userForm">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <div appearance="outline" class="w-100">
+                <label class="required">First Name</label>
+                <input
+                  class="form-control"
+                  matInput
+                  formControlName="firstname"
+                  id="firstname"
+                />
+                @if(f['firstname'].invalid && (f['firstname'].touched ||
+                f['firstname'].dirty)) {
+                @if(f['firstname'].hasError('required')){
+                <span class="text-smallest red text-bolder"
+                  >*First Name is required!</span
+                >
+                } }
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group">
+              <div appearance="outline" class="w-100">
+                <label class="required">Last Name</label>
+                <input
+                  class="form-control"
+                  matInput
+                  formControlName="lastname"
+                  id="lastname"
+                />
+                @if(f['lastname'].invalid && (f['lastname'].touched ||
+                f['lastname'].dirty)) { @if(f['lastname'].hasError('required')){
+                <span class="text-smallest red text-bolder"
+                  >*Last Name is required!</span
+                >
+                } }
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group">
+              <div appearance="outline" class="w-100">
+                <label class="required">Email</label>
+                <input
+                  class="form-control"
+                  matInput
+                  type="email"
+                  formControlName="email"
+                  id="email"
+                />
+                @if(f['email'].invalid && (f['email'].touched ||
+                f['email'].dirty)) { @if(f['email'].hasError('required')){
+                <span class="text-smallest red text-bolder"
+                  >*Email is required!</span
+                >
+                } @if(f['email'].hasError('email')){
+                <span class="text-smallest red text-bolder"
+                  >*Enter a valid email!</span
+                >
+                } }
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group">
+              <div appearance="outline" class="w-100">
+                <label class="required">Role</label>
+                <select class="form-select" formControlName="group_id" id="group_id">
+                  <option *ngFor="let group of groups" [value]="group.id">
+                    {{ group.name }}
+                  </option>
+                </select>
+                @if(f['group_id'].invalid && (f['group_id'].touched || f['group_id'].dirty))
+                { @if(f['group_id'].hasError('required')){
+                <span class="text-smallest red text-bolder"
+                  >*Group is required!</span
+                >
+                } }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-end">
+          <!-- cancel -->
+           <button
+           class="btn btn-secondary me-2"
+            type="button"
+            appBackButton
+            navigateTo="back"
+            > 
+            <app-fa-icons class="icons me-2" [icon]="'faXmark'"></app-fa-icons> Close </button>
+          <button
+            class="btn btn-primary mt-3"
+            [disabled]="userForm.invalid"
+            (click)="onSubmit()"
+          >
+          <app-fa-icons class="icons me-2" [icon]="'faCircleCheck'"></app-fa-icons>
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
