@@ -3,9 +3,8 @@
   <header class="assessment-header">
     <h1>{{ selectedCompetency || 'Loading Competency...' }}</h1>
     <div class="assessment-steps">
-      <div class="step" [class.active]="activeTab === 'videos'" (click)="setActiveTab('videos')">1. Watch Videos</div>
-      <div class="step" [class.active]="activeTab === 'students'" (click)="setActiveTab('students')">2. Select Students</div>
-      <div class="step" [class.active]="activeTab === 'levels'" (click)="setActiveTab('levels')">3. Choose Level</div>
+      <div class="step" [class.active]="activeTab === 'students'" (click)="setActiveTab('students')">1. Select Students</div>
+      <div class="step" [class.active]="activeTab === 'levels'" (click)="setActiveTab('levels')">2. Choose Level</div>
     </div>
   </header>
 
@@ -13,9 +12,6 @@
   <div class="assessment-content">
     <!-- Tab navigation -->
     <div class="tab-navigation">
-      <button class="tab-button" [class.active]="activeTab === 'videos'" (click)="setActiveTab('videos')">
-        <mat-icon>videocam</mat-icon> Instruction Videos
-      </button>
       <button class="tab-button" [class.active]="activeTab === 'students'" (click)="setActiveTab('students')">
         <mat-icon>people</mat-icon> Select Students
       </button>
@@ -26,47 +22,6 @@
 
     <!-- Tab content -->
     <div class="tab-content">
-      <!-- Videos Tab -->
-      <div *ngIf="activeTab === 'videos'" class="tab-pane videos-tab">
-        <h2>Watch the instruction videos</h2>
-        <p class="tab-description">These videos demonstrate how to conduct the assessment for {{ selectedCompetency }}.</p>
-        
-        <div class="video-grid">
-          <div *ngFor="let video of videoItems" class="video-card">
-            <div class="video-wrapper">
-              <video #videoPlayer controls class="video-player">
-                <source [src]="video.videoUrl" type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            </div>
-            <div class="video-info">
-              <h3>{{ video.title }}</h3>
-              <p>{{ video.description }}</p>
-              <button class="audio-button-inline" (click)="toggleAudio(video.instructionAudioUrl)" matTooltip="Play/pause audio instructions">
-                <mat-icon>{{ currentAudio && video.instructionAudioUrl && currentAudio.src.includes(video.instructionAudioUrl.split('/').pop() || '') ? 'pause' : 'volume_up' }}</mat-icon>
-                <span>Audio Instructions</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="level-descriptions">
-          <h3>Assessment Levels</h3>
-          <div class="level-cards">
-            <div *ngFor="let level of levelDescriptions" class="level-card" [style.border-color]="level.color">
-              <div class="level-header" [style.background-color]="level.color">{{ level.level }}</div>
-              <p>{{ level.description }}</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="tab-actions">
-          <button mat-raised-button color="primary" (click)="setActiveTab('students')">
-            Continue to Select Students <mat-icon>arrow_forward</mat-icon>
-          </button>
-        </div>
-      </div>
-
       <!-- Students Tab -->
       <div *ngIf="activeTab === 'students'" class="tab-pane students-tab">
         <h2>Select students to assess</h2>
@@ -154,7 +109,7 @@
         </div>
 
         <div class="tab-actions">
-          <button mat-button (click)="setActiveTab('videos')">
+          <button mat-button (click)="setActiveTab('students')">
             <mat-icon>arrow_back</mat-icon> Back to Videos
           </button>
           <button mat-raised-button color="primary" [disabled]="!selection.hasValue()" (click)="setActiveTab('levels')">

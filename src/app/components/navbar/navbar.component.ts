@@ -1,10 +1,12 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, CommonModule, MatIconModule],
   template: `
     <nav class="navbar">
       <div class="navbar-container">
@@ -19,6 +21,10 @@ import { RouterLink } from '@angular/router';
         <div class="navbar-links" [class.open]="menuOpen">
           <a routerLink="/landing" class="nav-link" routerLinkActive="active" (click)="closeMenu()">Home</a>
           <a routerLink="/login" class="nav-link" routerLinkActive="active" (click)="closeMenu()">Login</a>
+          <a routerLink="/students" class="nav-link" routerLinkActive="active" (click)="closeMenu()">
+            <mat-icon class="nav-icon">group</mat-icon>
+            Manage Students
+          </a>
         </div>
       </div>
     </nav>
@@ -127,7 +133,7 @@ import { RouterLink } from '@angular/router';
         flex-wrap: wrap;
       }
       .navbar-links {
-        position: absolute;
+        position: fixed;
         top: 4.5rem;
         right: 0;
         background: rgba(255,255,255,0.98);
@@ -139,23 +145,37 @@ import { RouterLink } from '@angular/router';
         max-width: 320px;
         padding: 1.5rem 1rem;
         z-index: 99;
-        transition: transform 0.3s;
-        transform: translateX(100%);
+        display: none;
       }
       .navbar-links.open {
-        transform: translateX(0);
+        display: flex;
       }
       .navbar-toggle {
         display: flex;
       }
     }
+    .nav-icon {
+      margin-right: 0.5rem;
+      color: #373a47;
+      transition: color 0.2s;
+      vertical-align: middle;
+      font-size: 20px;
+      height: 20px;
+      width: 20px;
+      line-height: 20px;
+    }
+    .nav-link:hover .nav-icon {
+      color: #fff;
+    }
   `]
 })
 export class NavbarComponent {
   menuOpen = false;
+
   toggleMenu() {
     this.menuOpen = !this.menuOpen;
   }
+
   closeMenu() {
     this.menuOpen = false;
   }

@@ -51,17 +51,6 @@ interface Student {
 }
 
 /**
- * Interface for video items
- */
-interface VideoItem {
-  id: number;
-  title: string;
-  videoUrl: string;
-  description: string;
-  instructionAudioUrl?: string;
-}
-
-/**
  * Interface for level descriptions
  */
 interface LevelDescription {
@@ -141,7 +130,7 @@ export class AssessmentsComponent implements OnInit {
   @ViewChild('videoPlayer') videoPlayer!: ElementRef;
 
   // Active tab tracking
-  activeTab: 'videos' | 'students' | 'levels' = 'videos';
+  activeTab: 'students' | 'levels' = 'students';
 
   // UI control
   menuOpen = false;
@@ -177,40 +166,15 @@ export class AssessmentsComponent implements OnInit {
   createError: string = '';
   messageTimeout: any;
 
+  // Level descriptions (initialized in loadLevelDescriptions)
+  levelDescriptions: LevelDescription[] = [];
+
   constructor(
     private router: Router,
     private dialog: MatDialog,
     private cdr: ChangeDetectorRef,
     private storageService: MockStorageService // Inject the mock service
   ) {}
-
-  // Video items with local path for videos
-  videoItems: VideoItem[] = [
-    {
-      id: 1,
-      title: 'Option 1',
-      videoUrl: 'assets/videos/option1.mp4', // Using local video file
-      description: 'Learn the basics of jumping exercises.',
-      instructionAudioUrl: 'assets/audio/instruction1.mp3'
-    },
-    {
-      id: 2,
-      title: 'Option 2',
-      videoUrl: 'assets/videos/option1.mp4', 
-      description: 'Improve your balance with these techniques.',
-      instructionAudioUrl: 'assets/audio/instruction1.mp3'
-    },
-    {
-      id: 3,
-      title: 'Option 3',
-      videoUrl: 'assets/videos/option1.mp4', 
-      description: 'Master advanced motor skills.',
-      instructionAudioUrl: 'assets/audio/instruction1.mp3'
-    }
-  ];
-
-  // Level descriptions (initialized in loadLevelDescriptions)
-  levelDescriptions: LevelDescription[] = [];
 
   /**
    * Initialize component
@@ -244,15 +208,9 @@ export class AssessmentsComponent implements OnInit {
   /**
    * Set the active tab and update progress indicator
    */
-  setActiveTab(tab: 'videos' | 'students' | 'levels') {
-    // Stop any playing audio when changing tabs
-    this.stopAudio();
-    
+  setActiveTab(tab: 'students' | 'levels') {
     this.activeTab = tab;
-    // If switching to students tab, update the data source
-    if (tab === 'students') {
-      this.updateDataSource();
-    }
+    this.cdr.detectChanges();
   }
 
   /**

@@ -35,6 +35,24 @@ export const routes: Routes = [
         loadComponent: () => import('./assessments/assessments.component').then(m => m.AssessmentsComponent)
     },
     {
+        path: 'students',
+        loadComponent: () => import('./student-management/student-management/student-management.component').then(m => m.StudentManagementComponent),
+        children: [
+            {
+                path: '',
+                loadComponent: () => import('./student-management/students-list/students-list.component').then(m => m.StudentsListComponent)
+            },
+            {
+                path: 'create',
+                loadComponent: () => import('./student-management/create-edit-student/create-edit-student.component').then(m => m.CreateEditStudentComponent)
+            },
+            {
+                path: 'edit/:id',
+                loadComponent: () => import('./student-management/create-edit-student/create-edit-student.component').then(m => m.CreateEditStudentComponent)
+            }
+        ]
+    },
+    {
         path: '**',
         redirectTo: 'landing'
     }

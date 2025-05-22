@@ -1,24 +1,24 @@
-<div class="container mt-4" *ngIf="competency">
-  <div class="row">
-    <div class="col-md-8">
-      <div class="row">
-        <div class="col-md-6">
-          <img [src]="competency.imageUrl" [alt]="competency.name" class="img-fluid mb-3">
-        </div>
-        <div class="col-md-6">
-          <h2>{{ competency.name }}</h2>
-          <p>{{ competency.description }}</p>
-        </div>
+<div class="container mt-5" *ngIf="competency">
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="competency-content">
+        <img [src]="competency.imageUrl" [alt]="competency.name" class="img-fluid mb-3 competency-image">
+        <h2 class="mb-3">{{ competency.name }}</h2>
+        <p class="mb-4">{{ competency.description }}</p>
       </div>
     </div>
-    <div class="col-md-4">
-      <img [src]="competency.detailsImageUrl" alt="Details Image" class="img-fluid mb-3">
+    <div class="col-lg-6">
+      <div class="details-image-container">
+        <img [src]="competency.detailsImageUrl" alt="Details Image" class="img-fluid details-image">
+      </div>
     </div>
   </div>
 
   <div class="mt-4">
-    <h3>SUGGESTED ASSESSMENT ACTIVITY</h3>
-    <div class="row">
+    <h3 class="mb-4">SUGGESTED ASSESSMENT ACTIVITY</h3>
+    
+    <!-- Desktop View -->
+    <div class="row g-4 d-none d-md-flex">
       <div class="col-md-4" *ngFor="let video of competency.videos">
         <div class="embed-responsive embed-responsive-16by9">
           <video controls class="embed-responsive-item w-100">
@@ -27,6 +27,57 @@
           </video>
         </div>
       </div>
+    </div>
+
+    <!-- Mobile View with Swiper -->
+    <div class="d-md-none">
+      <swiper-container
+        [slidesPerView]="1"
+        [spaceBetween]="20"
+        [pagination]="true"
+        [navigation]="true"
+        class="video-swiper">
+        <swiper-slide *ngFor="let video of competency.videos">
+          <div class="embed-responsive embed-responsive-16by9">
+            <video controls class="embed-responsive-item w-100">
+              <source [src]="video" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </swiper-slide>
+      </swiper-container>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <div class="form-check mb-3">
+      <input class="form-check-input" type="checkbox" id="checkbox1" [(ngModel)]="checkboxes[0]">
+      <label class="form-check-label" for="checkbox1">
+        I have watched all the instruction videos
+      </label>
+    </div>
+    <div class="form-check mb-3">
+      <input class="form-check-input" type="checkbox" id="checkbox2" [(ngModel)]="checkboxes[1]">
+      <label class="form-check-label" for="checkbox2">
+        I understand the assessment criteria
+      </label>
+    </div>
+    <div class="form-check mb-3">
+      <input class="form-check-input" type="checkbox" id="checkbox3" [(ngModel)]="checkboxes[2]">
+      <label class="form-check-label" for="checkbox3">
+        I have prepared the necessary materials
+      </label>
+    </div>
+    <div class="form-check mb-3">
+      <input class="form-check-input" type="checkbox" id="checkbox4" [(ngModel)]="checkboxes[3]">
+      <label class="form-check-label" for="checkbox4">
+        I am ready to begin the assessment
+      </label>
+    </div>
+    <div class="text-end">
+      <button class="btn btn-primary" [disabled]="!areAllCheckboxesChecked()" (click)="continueToAssessment()">
+        Continue to Assessment
+      </button>
     </div>
   </div>
 </div>

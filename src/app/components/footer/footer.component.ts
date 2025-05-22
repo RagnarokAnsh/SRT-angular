@@ -47,10 +47,11 @@ import { RouterLink } from '@angular/router';
       box-shadow: 0 -4px 32px rgba(80, 80, 180, 0.10);
       backdrop-filter: blur(16px);
       border-radius: 0;
-      margin-top: 0;
+      margin-top: auto;
       padding: 1.5rem 0 0.5rem;
       position: relative;
       overflow: hidden;
+      width: 100%;
     }
     .footer-container {
       max-width: 1200px;
