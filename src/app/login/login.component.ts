@@ -52,6 +52,7 @@ export class LoginComponent {
         if (user) {
           this.success = 'Login successful!';
           // Navigation is handled by the UserService
+          this.router.navigate(['/select-competency']);
         } else {
           this.error = 'Invalid credentials';
           this.isLoading = false;

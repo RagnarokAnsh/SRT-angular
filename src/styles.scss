@@ -1,30 +1,80 @@
-/* You can add global styles to this file, and also import other style files */
-/* Global Styles */
+@use 'bootstrap/scss/bootstrap' as *;
+
+// Custom Theming for Angular Material
+// For more information: https://material.angular.dev/guide/theming
+@use '@angular/material' as mat;
+
+html {
+  @include mat.theme((
+    color: (
+      theme-type: light,
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}/* You can add global styles to this file, and also import other style files */
+/* Import Bootstrap */
+
+
+
+/* Import Google Fonts */
 @import url('https://fonts.bunny.net/css?family=figtree:400,500,600');
 
+/* Global Variables */
 :root {
+  // Colors
   --primary-color: #f84525;
   --primary-hover: #d63819;
   --background-color: #f8f4f3;
   --text-color: #374151;
+
+  // Typography
+  --font-family-base: 'Figtree', sans-serif;
+  --font-size-base: 1rem;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 600;
+
+  // Spacing
+  --spacing-unit: 1rem;
+  --spacing-xs: calc(var(--spacing-unit) * 0.25);
+  --spacing-sm: calc(var(--spacing-unit) * 0.5);
+  --spacing-md: var(--spacing-unit);
+  --spacing-lg: calc(var(--spacing-unit) * 1.5);
+  --spacing-xl: calc(var(--spacing-unit) * 2);
+
+  // Border Radius
+  --border-radius-sm: 0.375rem;
+  --border-radius-md: 0.5rem;
+  --border-radius-lg: 1rem;
+
+  // Shadows
+  --box-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --box-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --box-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-/* body styles */
+/* Base styles */
 body {
-  font-family: 'Figtree', sans-serif;
+  font-family: var(--font-family-base);
   color: var(--text-color);
   background-color: var(--background-color);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/*Button Styles */
+/* Button Styles */
 .btn-primary {
   background-color: var(--primary-color);
   border-color: var(--primary-color);
   text-transform: uppercase;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.05em;
-  padding: 0.5rem 1rem;
+  padding: var(--spacing-sm) var(--spacing-md);
   
   &:hover, &:focus {
     background-color: var(--primary-hover);
@@ -34,8 +84,9 @@ body {
 
 /* Form Styles */
 .form-control {
-  padding: 0.75rem 1rem;
+  padding: var(--spacing-md);
   font-size: 0.875rem;
+  border-radius: var(--border-radius-sm);
   
   &:focus {
     border-color: var(--primary-color);
@@ -43,21 +94,95 @@ body {
   }
 }
 
-/*  Card Styles */
+/* Card Styles */
 .card {
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--box-shadow-md);
+  background-color: white;
+  padding: var(--spacing-md);
 }
 
 /* Heading Styles */
 .heading-heading {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   font-size: 1.875rem;
   
   .heading-highlight {
     background-color: var(--primary-color);
     color: white;
-    padding: 0 0.5rem;
-    border-radius: 0.375rem;
+    padding: 0 var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
   }
 }
+
+/* Utility classes */
+.text-primary { color: var(--primary-color) !important; }
+.bg-primary { background-color: var(--primary-color) !important; }
+.border-primary { border-color: var(--primary-color) !important; }
+
+/* Responsive utilities */
+@media (min-width: 576px) {
+  .hide-sm {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .hide-md {
+    display: none !important;
+  }
+}
+
+@media (min-width: 992px) {
+  .hide-lg {
+    display: none !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Container styles */
+.container {
+  width: 100%;
+  padding-right: var(--spacing-md);
+  padding-left: var(--spacing-md);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+@media (min-width: 576px) {
+  .container {
+    max-width: 540px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 720px;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    max-width: 960px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1140px;
+  }
+}
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1320px;
+  }
+}
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

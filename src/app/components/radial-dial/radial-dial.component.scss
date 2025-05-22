@@ -12,13 +12,17 @@ $purple-gradient: linear-gradient(135deg, #9b59b6, #8e44ad);
   width: 100%;
   height: 100%;
   min-height: 600px;
+  max-height: 800px;
   position: relative;
+  padding: 2rem;
+  box-sizing: border-box;
+  margin: 2rem auto;
 }
 
 .main-dial {
   position: relative;
-  width: 150px;
-  height: 150px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   background: $blue-gradient;
   display: flex;
@@ -30,8 +34,8 @@ $purple-gradient: linear-gradient(135deg, #9b59b6, #8e44ad);
   z-index: 10;
   
   &.open {
-    width: 180px;
-    height: 180px;
+    width: 120px;
+    height: 120px;
     background: $blue-gradient-open;
   }
   
@@ -39,8 +43,8 @@ $purple-gradient: linear-gradient(135deg, #9b59b6, #8e44ad);
     color: white;
     font-weight: bold;
     text-align: center;
-    font-size: 16px;
-    padding: 10px;
+    font-size: 14px;
+    padding: 8px;
     max-width: 90%;
     line-height: 1.2;
   }
@@ -194,27 +198,76 @@ $purple-gradient: linear-gradient(135deg, #9b59b6, #8e44ad);
 }
 
 // Responsive adjustments
-@media (max-width: 767px) {
+@media (min-width: 1200px) {
+  .radial-dial-container {
+    max-width: 1200px;
+    margin: 3rem auto;
+  }
+
+  .radial-dial-svg-container {
+    max-width: 1000px;
+  }
+
   .main-dial {
     width: 120px;
     height: 120px;
     
     &.open {
-      width: 150px;
-      height: 150px;
+      width: 140px;
+      height: 140px;
+    }
+    
+    .center-text {
+      font-size: 16px;
+    }
+  }
+}
+
+@media (min-width: 1600px) {
+  .radial-dial-container {
+    max-width: 1400px;
+    margin: 4rem auto;
+  }
+
+  .radial-dial-svg-container {
+    max-width: 1200px;
+  }
+}
+
+@media (max-width: 767px) {
+  .radial-dial-container {
+    min-height: 500px;
+    max-height: 600px;
+    padding: 1rem;
+    margin: 1rem auto;
+  }
+
+  .radial-dial-svg-container {
+    min-height: 500px;
+    max-height: 600px;
+  }
+
+  .main-dial {
+    width: 80px;
+    height: 80px;
+    
+    &.open {
+      width: 100px;
+      height: 100px;
     }
     
     .center-text {
       font-size: 1rem;
+      padding: 6px;
     }
   }
   
   .domain-item {
-    transform: rotate(var(--angle)) translateX(170px);
+    transform: rotate(var(--angle)) translateX(120px);
     
     .domain-content {
-      padding: 8px 12px;
-      max-width: 160px;
+      padding: 6px 10px;
+      max-width: 120px;
     }
     
     .vertical-text {
@@ -223,59 +276,141 @@ $purple-gradient: linear-gradient(135deg, #9b59b6, #8e44ad);
   }
   
   .sub-domain-item {
-    transform: rotate(var(--angle)) translateX(80px);
+    transform: rotate(var(--angle)) translateX(60px);
     
     .sub-domain-content {
-      padding: 6px 10px;
-      max-width: 120px;
+      padding: 5px 8px;
+      max-width: 90px;
+      font-size: 0.8rem;
     }
   }
   
   .competency-item {
-    transform: rotate(var(--angle)) translateX(80px);
+    transform: rotate(var(--angle)) translateX(60px);
     
     .competency-content {
-      padding: 5px 8px;
-      max-width: 100px;
+      padding: 4px 6px;
+      max-width: 80px;
+      font-size: 0.8rem;
     }
   }
 }
 
 @media (max-width: 480px) {
+  .radial-dial-container {
+    min-height: 400px;
+    max-height: 500px;
+    padding: 0.5rem;
+    margin: 0.5rem auto;
+  }
+
+  .radial-dial-svg-container {
+    min-height: 400px;
+    max-height: 500px;
+  }
+
   .main-dial {
-    width: 100px;
-    height: 100px;
+    width: 60px;
+    height: 60px;
     
     &.open {
-      width: 120px;
-      height: 120px;
+      width: 80px;
+      height: 80px;
     }
     
     .center-text {
       font-size: 0.9rem;
+      padding: 4px;
     }
   }
   
   .domain-item {
-    transform: rotate(var(--angle)) translateX(140px);
+    transform: rotate(var(--angle)) translateX(90px);
     
     .domain-content {
-      max-width: 130px;
+      padding: 4px 8px;
+      max-width: 90px;
+    }
+    
+    .vertical-text {
+      font-size: 0.8rem;
     }
   }
   
   .sub-domain-item, .competency-item {
-    transform: rotate(var(--angle)) translateX(70px);
+    transform: rotate(var(--angle)) translateX(50px);
+    
+    .sub-domain-content, .competency-content {
+      padding: 3px 6px;
+      max-width: 70px;
+      font-size: 0.8rem;
+    }
   }
 }
 
 .radial-dial-svg-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 0.5rem;
-  width: 100vw;
-  max-width: 100vw;
-  overflow-x: auto;
+  min-height: 600px;
+  max-height: 800px;
+  position: relative;
   box-sizing: border-box;
+
+  svg {
+    width: 100%;
+    height: auto;
+    max-width: 800px;
+    display: block;
+    margin: 0 auto;
+    transform: translateX(0);
+  }
+}
+
+.dial-sector {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover, &.active {
+    filter: brightness(1.1);
+  }
+}
+
+.domain-sector {
+  &:hover {
+    transform: scale(1.02);
+  }
+}
+
+.competency-sector {
+  &:hover {
+    transform: scale(1.01);
+  }
+}
+
+// Responsive text adjustments
+text {
+  @media (max-width: 767px) {
+    font-size: 14px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+  }
+}
+
+// Center text adjustments
+text[tspan] {
+  @media (max-width: 767px) {
+    font-size: 16px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 14px;
+  }
 }

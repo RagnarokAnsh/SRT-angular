@@ -7,12 +7,13 @@
       [attr.y]="center"
       text-anchor="middle"
       alignment-baseline="middle"
-      font-size="22"
+      font-size="30"
       fill="#fff"
       font-weight="bold"
       style="pointer-events:none;"
     >
-      <tspan dy="0">School Readiness</tspan>
+      <tspan [attr.x]="center" dy="-0.3em">School</tspan>
+      <tspan [attr.x]="center" dy="1em">Readiness</tspan>
     </text>
 
     <!-- Domain Arc Paths for Text -->
@@ -41,6 +42,9 @@
           [class.active]="hoveredDomainIdx === i"
           (mouseenter)="onDomainHover(i)"
           (mouseleave)="onDomainLeave()"
+          (click)="onDomainClick(i)"
+          (touchstart)="onDomainClick(i)"
+          style="cursor: pointer;"
         />
         <text
           [attr.font-size]="min(getResponsiveFontSize(sector), 12)"
@@ -67,6 +71,7 @@
           [attr.stroke]="'#fff'"
           stroke-width="2"
           class="dial-sector competency-sector"
+          style="cursor: pointer;"
         />
         <!-- Render vertical text for competencies, centered in the thick ring -->
         <g [attr.transform]="'translate(' + getTextPosition(sector).x + ',' + getTextPosition(sector).y + ') rotate(' + (getTextPosition(sector).rotation) + ')'">

@@ -1,0 +1,32 @@
+<div class="container mt-4" *ngIf="competency">
+  <div class="row">
+    <div class="col-md-8">
+      <div class="row">
+        <div class="col-md-6">
+          <img [src]="competency.imageUrl" [alt]="competency.name" class="img-fluid mb-3">
+        </div>
+        <div class="col-md-6">
+          <h2>{{ competency.name }}</h2>
+          <p>{{ competency.description }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <img [src]="competency.detailsImageUrl" alt="Details Image" class="img-fluid mb-3">
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <h3>SUGGESTED ASSESSMENT ACTIVITY</h3>
+    <div class="row">
+      <div class="col-md-4" *ngFor="let video of competency.videos">
+        <div class="embed-responsive embed-responsive-16by9">
+          <video controls class="embed-responsive-item w-100">
+            <source [src]="video" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

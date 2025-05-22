@@ -4,11 +4,11 @@ import { RouterLink } from '@angular/router';
 @Component({
   selector: 'app-footer',
   standalone: true,
-  imports: [RouterLink],
+  // imports: [RouterLink],
   template: `
     <footer class="footer-glass">
       <div class="footer-container">
-        <div class="footer-grid-glass">
+        <!-- <div class="footer-grid-glass">
           <div class="footer-brand-glass">
             <span class="brand-text-glass">School Readiness Tool</span>
             <p class="footer-description-glass">Lorem ipsum dolor sit amet, consectetur adipisicing elit!</p>
@@ -18,7 +18,6 @@ import { RouterLink } from '@angular/router';
               <h4>Quick Links</h4>
               <a routerLink="/" class="footer-link-glass">Home</a>
               <a routerLink="/login" class="footer-link-glass">Login</a>
-              <a routerLink="/landing" class="footer-link-glass">Landing</a>
             </div>
             <div class="footer-section-glass">
               <h4>Resources</h4>
@@ -35,7 +34,7 @@ import { RouterLink } from '@angular/router';
             </div>
           </div>
         </div>
-        <div class="footer-divider-glass"></div>
+        <div class="footer-divider-glass"></div> -->
         <div class="footer-bottom-glass">
           <p>&copy; {{currentYear}} SRI Tool. All rights reserved.</p>
         </div>
@@ -47,9 +46,9 @@ import { RouterLink } from '@angular/router';
       background: rgba(255,255,255,0.7);
       box-shadow: 0 -4px 32px rgba(80, 80, 180, 0.10);
       backdrop-filter: blur(16px);
-      border-radius: 2rem 2rem 0 0;
-      margin-top: 4rem;
-      padding: 2.5rem 0 0.5rem;
+      border-radius: 0;
+      margin-top: 0;
+      padding: 1.5rem 0 0.5rem;
       position: relative;
       overflow: hidden;
     }
@@ -175,7 +174,7 @@ import { RouterLink } from '@angular/router';
     }
     .footer-bottom-glass {
       text-align: center;
-      padding-bottom: 0.5rem;
+      padding-bottom: 0;
     }
     .footer-bottom-glass p {
       color: #373a47;

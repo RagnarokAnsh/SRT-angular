@@ -51,6 +51,7 @@ export class RadialDialComponent implements OnInit {
   // Interactive state
   expandedLevel: 'domain' | 'competency' = 'domain';
   hoveredDomainIdx: number | null = null;
+  isTouchDevice: boolean = false;
 
   domains: {
     name: string;
@@ -84,6 +85,7 @@ export class RadialDialComponent implements OnInit {
 
   ngOnInit(): void {
     this.updateDialSize();
+    this.isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   }
 
   @HostListener('window:resize', ['$event'])
@@ -92,11 +94,33 @@ export class RadialDialComponent implements OnInit {
   }
 
   updateDialSize() {
-    const minDim = Math.min(window.innerWidth, window.innerHeight);
-    // Adjust these ratios as needed for your layout
-    this.center = Math.max(180, Math.floor(minDim / 2.5));
-    this.radius = Math.max(90, Math.floor(minDim / 5));
-    this.ringWidth = Math.max(40, Math.floor(minDim / 10));
+    const containerWidth = window.innerWidth;
+    const containerHeight = window.innerHeight;
+    const minDim = Math.min(containerWidth, containerHeight);
+    
+    // Base size calculations with maximum limits
+    let baseSize;
+    if (window.innerWidth >= 1600) {
+      baseSize = 1200;
+    } else if (window.innerWidth >= 1200) {
+      baseSize = 1000;
+    } else if (window.innerWidth >= 992) {
+      baseSize = 800;
+    } else {
+      baseSize = Math.min(minDim * 0.8, 800);
+    }
+    
+    // Adjust center and radius based on screen size
+    this.center = Math.max(150, Math.floor(baseSize / 2));
+    this.radius = Math.max(75, Math.floor(baseSize / 4));
+    this.ringWidth = Math.max(30, Math.floor(baseSize / 8));
+    
+    // Additional adjustments for mobile
+    if (window.innerWidth <= 480) {
+      this.center = Math.max(100, Math.floor(baseSize / 2));
+      this.radius = Math.max(50, Math.floor(baseSize / 4));
+      this.ringWidth = Math.max(20, Math.floor(baseSize / 8));
+    }
   }
 
   // Geometry helpers
@@ -203,12 +227,32 @@ export class RadialDialComponent implements OnInit {
 
   // Event handlers
   onDomainHover(idx: number) {
-    this.expandedLevel = 'competency';
-    this.hoveredDomainIdx = idx;
+    if (this.isTouchDevice) {
+      // For touch devices, toggle the domain
+      if (this.hoveredDomainIdx === idx) {
+        this.onDomainLeave();
+      } else {
+        this.expandedLevel = 'competency';
+        this.hoveredDomainIdx = idx;
+      }
+    } else {
+      // For mouse devices, use hover behavior
+      this.expandedLevel = 'competency';
+      this.hoveredDomainIdx = idx;
+    }
   }
+
   onDomainLeave() {
-    this.expandedLevel = 'domain';
-    this.hoveredDomainIdx = null;
+    if (!this.isTouchDevice) {
+      this.expandedLevel = 'domain';
+      this.hoveredDomainIdx = null;
+    }
+  }
+
+  onDomainClick(idx: number) {
+    if (this.isTouchDevice) {
+      this.onDomainHover(idx);
+    }
   }
 
   // Responsive font size for SVG text
@@ -277,7 +321,7 @@ export class RadialDialComponent implements OnInit {
 
   // Split label into lines for vertical text (competencies)
   splitLabelToLinesVertical(label: string): string[] {
-    const maxCharsPerLine = 12; // Increased for better vertical appearance
+    const maxCharsPerLine = 12; 
     const words = label.split(' ');
     const lines: string[] = [];
     let currentLine = '';

@@ -1,0 +1,299 @@
+<div class="assessment-container">
+  <!-- Header with competency name and progress indicator -->
+  <header class="assessment-header">
+    <h1>{{ selectedCompetency || 'Loading Competency...' }}</h1>
+    <div class="assessment-steps">
+      <div class="step" [class.active]="activeTab === 'videos'" (click)="setActiveTab('videos')">1. Watch Videos</div>
+      <div class="step" [class.active]="activeTab === 'students'" (click)="setActiveTab('students')">2. Select Students</div>
+      <div class="step" [class.active]="activeTab === 'levels'" (click)="setActiveTab('levels')">3. Choose Level</div>
+    </div>
+  </header>
+
+  <!-- Main content area with tabs -->
+  <div class="assessment-content">
+    <!-- Tab navigation -->
+    <div class="tab-navigation">
+      <button class="tab-button" [class.active]="activeTab === 'videos'" (click)="setActiveTab('videos')">
+        <mat-icon>videocam</mat-icon> Instruction Videos
+      </button>
+      <button class="tab-button" [class.active]="activeTab === 'students'" (click)="setActiveTab('students')">
+        <mat-icon>people</mat-icon> Select Students
+      </button>
+      <button class="tab-button" [class.active]="activeTab === 'levels'" (click)="setActiveTab('levels')">
+        <mat-icon>assessment</mat-icon> Assessment Level
+      </button>
+    </div>
+
+    <!-- Tab content -->
+    <div class="tab-content">
+      <!-- Videos Tab -->
+      <div *ngIf="activeTab === 'videos'" class="tab-pane videos-tab">
+        <h2>Watch the instruction videos</h2>
+        <p class="tab-description">These videos demonstrate how to conduct the assessment for {{ selectedCompetency }}.</p>
+        
+        <div class="video-grid">
+          <div *ngFor="let video of videoItems" class="video-card">
+            <div class="video-wrapper">
+              <video #videoPlayer controls class="video-player">
+                <source [src]="video.videoUrl" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+            <div class="video-info">
+              <h3>{{ video.title }}</h3>
+              <p>{{ video.description }}</p>
+              <button class="audio-button-inline" (click)="toggleAudio(video.instructionAudioUrl)" matTooltip="Play/pause audio instructions">
+                <mat-icon>{{ currentAudio && video.instructionAudioUrl && currentAudio.src.includes(video.instructionAudioUrl.split('/').pop() || '') ? 'pause' : 'volume_up' }}</mat-icon>
+                <span>Audio Instructions</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="level-descriptions">
+          <h3>Assessment Levels</h3>
+          <div class="level-cards">
+            <div *ngFor="let level of levelDescriptions" class="level-card" [style.border-color]="level.color">
+              <div class="level-header" [style.background-color]="level.color">{{ level.level }}</div>
+              <p>{{ level.description }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-actions">
+          <button mat-raised-button color="primary" (click)="setActiveTab('students')">
+            Continue to Select Students <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Students Tab -->
+      <div *ngIf="activeTab === 'students'" class="tab-pane students-tab">
+        <h2>Select students to assess</h2>
+        <p class="tab-description">Choose the students you want to assess for {{ selectedCompetency }}.</p>
+        
+        <div class="search-filter">
+          <mat-form-field appearance="outline">
+            <mat-label>Filter students</mat-label>
+            <input matInput (keyup)="applyFilter($event)" placeholder="Type a name...">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="table-container">
+          <table mat-table [dataSource]="dataSource" class="student-table">
+            <!-- Checkbox Column -->
+            <ng-container matColumnDef="select">
+              <th mat-header-cell *matHeaderCellDef>
+                <mat-checkbox (change)="$event ? masterToggle() : null"
+                              [checked]="selection.hasValue() && isAllSelected()"
+                              [indeterminate]="selection.hasValue() && !isAllSelected()">
+                </mat-checkbox>
+              </th>
+              <td mat-cell *matCellDef="let student">
+                <mat-checkbox (click)="$event.stopPropagation()"
+                              (change)="$event ? selection.toggle(student) : null"
+                              [checked]="selection.isSelected(student)">
+                </mat-checkbox>
+              </td>
+            </ng-container>
+
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef> Student Name </th>
+              <td mat-cell *matCellDef="let student"> {{ student.first_name }} </td>
+            </ng-container>
+
+            <!-- Age Column -->
+            <ng-container matColumnDef="age">
+              <th mat-header-cell *matHeaderCellDef> Age </th>
+              <td mat-cell *matCellDef="let student"> {{ calculateAge(student.birth_date) }} </td>
+            </ng-container>
+
+            <!-- Assessment Session 1 Column -->
+            <ng-container matColumnDef="assessmentInfo">
+              <th mat-header-cell *matHeaderCellDef> Session 1 </th>
+              <td mat-cell *matCellDef="let student" [ngClass]="student.assessmentLevel?.toLowerCase()">
+                <span *ngIf="student.assessed">{{ student.assessmentLevel }}</span>
+                <span *ngIf="!student.assessed" class="not-assessed">Not assessed</span>
+              </td>
+            </ng-container>
+
+            <!-- Assessment Session 2 Column -->
+            <ng-container matColumnDef="assessmentInfo2">
+              <th mat-header-cell *matHeaderCellDef> Session 2 </th>
+              <td mat-cell *matCellDef="let student" [ngClass]="student.assessmentLevel2?.toLowerCase()">
+                <span *ngIf="student.assessed2">{{ student.assessmentLevel2 }}</span>
+                <span *ngIf="!student.assessed2" class="not-assessed">Not assessed</span>
+              </td>
+            </ng-container>
+
+            <!-- Remarks Column -->
+            <ng-container matColumnDef="remarks">
+              <th mat-header-cell *matHeaderCellDef> Remarks </th>
+              <td mat-cell *matCellDef="let student">
+                <button mat-icon-button (click)="openRemarks(student)">
+                  <mat-icon>note_add</mat-icon>
+                </button>
+                <span *ngIf="student.remarks" class="has-remarks" matTooltip="{{ student.remarks }}">
+                  <mat-icon>comment</mat-icon>
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Header and Row Declarations -->
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+
+          <!-- No data message -->
+          <div *ngIf="filteredStudents.length === 0" class="no-data">
+            <mat-icon>people_outline</mat-icon>
+            <p>No students available. Please add students to proceed.</p>
+          </div>
+        </div>
+
+        <div class="tab-actions">
+          <button mat-button (click)="setActiveTab('videos')">
+            <mat-icon>arrow_back</mat-icon> Back to Videos
+          </button>
+          <button mat-raised-button color="primary" [disabled]="!selection.hasValue()" (click)="setActiveTab('levels')">
+            Continue to Assessment <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Levels Tab -->
+      <div *ngIf="activeTab === 'levels'" class="tab-pane levels-tab">
+        <h2>Choose assessment level</h2>
+        <p class="tab-description">Select the appropriate level for the students you've chosen.</p>
+        
+        <div class="selected-students-summary">
+          <h3>Selected Students ({{ selection.selected.length }})</h3>
+          <div class="selected-chips">
+            <div *ngFor="let student of selection.selected" class="student-chip">
+              {{ student.first_name }} ({{ calculateAge(student.birth_date) }})
+              <button mat-icon-button (click)="selection.deselect(student)">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="level-selection">
+          <h3>Select Level</h3>
+          <div class="level-radio-group">
+            <mat-radio-group [(ngModel)]="assessment.score" name="score" class="level-options">
+              <mat-radio-button *ngFor="let level of levelDescriptions" [value]="level.level" class="level-option">
+                <div class="level-radio-card" [style.border-color]="level.color">
+                  <div class="level-radio-header" [style.background-color]="level.color">
+                    {{ level.level }}
+                  </div>
+                  <p class="level-radio-description">{{ level.description }}</p>
+                </div>
+              </mat-radio-button>
+            </mat-radio-group>
+          </div>
+        </div>
+
+        <div class="notes-section">
+          <h3>Assessment Notes</h3>
+          <mat-form-field appearance="outline" class="notes-field">
+            <mat-label>Add notes about this assessment </mat-label>
+            <textarea matInput [(ngModel)]="assessment.notes" rows="3" placeholder="Enter any observations or comments..."></textarea>
+          </mat-form-field>
+        </div>
+
+        <div class="tab-actions">
+          <button mat-button (click)="setActiveTab('students')">
+            <mat-icon>arrow_back</mat-icon> Back to Students
+          </button>
+          <button mat-raised-button color="primary" [disabled]="!assessment.score" (click)="onSubmit()">
+            Submit Assessment <mat-icon>check</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success/Error messages with auto-fade animation -->
+  <div *ngIf="createSuccess" [@fadeAnimation] class="success-message">
+    <mat-icon>check_circle</mat-icon>
+    <span>{{ createSuccess }}</span>
+  </div>
+  <div *ngIf="createError" [@fadeAnimation] class="error-message">
+    <mat-icon>error</mat-icon>
+    <span>{{ createError }}</span>
+  </div>
+</div>
+
+<!-- Teaching Strategies Dialog -->
+<ng-template #teachingStrategiesDialog>
+  <div class="strategies-dialog">
+    <h2 mat-dialog-title>Teaching Strategies for {{ assessment.score }}</h2>
+    <mat-dialog-content>
+      <div class="strategy-content" [ngSwitch]="assessment.score">
+        <div *ngSwitchCase="'Beginner'">
+          <h3>Strategies for Beginner Level</h3>
+          <ul>
+            <li>Encourage the engagement of children in physical play activities and ensure they have opportunities for physical exercise, such as stretching, running or jumping.</li>
+            <li>Give the children time and scope to practice and improve balance and control.</li>
+            <li>Utilize local music, rhymes, dance and circle games to encourage children to move and have fun.</li>
+          </ul>
+        </div>
+        <div *ngSwitchCase="'Progressing'">
+          <h3>Strategies for Progressing Level</h3>
+          <ul>
+            <li>Introduce more complex physical activities that require coordination.</li>
+            <li>Encourage children to practice skills through games and playful activities.</li>
+            <li>Provide positive feedback and celebrate improvements.</li>
+          </ul>
+        </div>
+        <div *ngSwitchCase="'Advanced'">
+          <h3>Strategies for Advanced Level</h3>
+          <ul>
+            <li>Introduce collaborative physical activities and games.</li>
+            <li>Encourage children to demonstrate skills to peers.</li>
+            <li>Provide opportunities for creative movement and expression.</li>
+          </ul>
+        </div>
+        <div *ngSwitchCase="'PSR'">
+          <h3>Strategies for Primary School Ready Level</h3>
+          <ul>
+            <li>Focus on refining skills and building confidence.</li>
+            <li>Introduce activities that will prepare children for school PE curriculum.</li>
+            <li>Encourage children to take leadership roles in group activities.</li>
+          </ul>
+        </div>
+        <div *ngSwitchDefault>
+          <p>Select an assessment level to see specific teaching strategies.</p>
+        </div>
+      </div>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button (click)="toggleAudio('assets/audio/strategy_' + assessment.score.toLowerCase() + '.mp3')">
+        <mat-icon>{{ currentAudio ? 'pause' : 'volume_up' }}</mat-icon> {{ currentAudio ? 'Pause Audio' : 'Play Audio' }}
+      </button>
+      <button mat-raised-button color="primary" [mat-dialog-close]="true" (click)="continueToNextAssessment()">
+        Continue
+      </button>
+    </mat-dialog-actions>
+  </div>
+</ng-template>
+
+<!-- Remarks Dialog -->
+<ng-template #remarksDialog>
+  <div class="remarks-dialog">
+    <h2 mat-dialog-title>Student Remarks</h2>
+    <mat-dialog-content>
+      <mat-form-field appearance="outline" class="remarks-field">
+        <mat-label>Add remarks for this student</mat-label>
+        <textarea matInput [(ngModel)]="currentRemarks" rows="4" placeholder="Enter observations or comments..."></textarea>
+      </mat-form-field>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button [mat-dialog-close]="false">Cancel</button>
+      <button mat-raised-button color="primary" [mat-dialog-close]="currentRemarks">Save</button>
+    </mat-dialog-actions>
+  </div>
+</ng-template>
