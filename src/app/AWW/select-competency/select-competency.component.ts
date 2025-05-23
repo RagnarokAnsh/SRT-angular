@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { CompetencyService, Domain } from '../competency.service';
+import { CompetencyService, Domain } from '../../competency.service';
 import { NgFor } from '@angular/common';
 
 @Component({

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CompetencyService, Competency } from '../competency.service';
+import { CompetencyService, Competency } from '../../competency.service';
 import { CommonModule, NgIf, NgFor } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { register } from 'swiper/element/bundle';
