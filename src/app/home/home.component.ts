@@ -2,11 +2,11 @@ import { Component } from '@angular/core';
 import { RadialDialComponent } from '../components/radial-dial/radial-dial.component';
 
 @Component({
-  selector: 'app-landing',
+  selector: 'app-home',
   imports: [RadialDialComponent],
-  templateUrl: './landing.component.html',
-  styleUrl: './landing.component.scss'
+  templateUrl: './home.component.html',
+  styleUrl: './home.component.scss'
 })
-export class LandingComponent {
+export class HomeComponent {
 
 }

@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-navbar',
@@ -19,11 +20,36 @@ import { MatIconModule } from '@angular/material/icon';
           <span [class.open]="menuOpen"></span>
         </button>
         <div class="navbar-links" [class.open]="menuOpen">
-          <a routerLink="/landing" class="nav-link" routerLinkActive="active" (click)="closeMenu()">Home</a>
-          <a routerLink="/login" class="nav-link" routerLinkActive="active" (click)="closeMenu()">Login</a>
-          <a routerLink="/students" class="nav-link" routerLinkActive="active" (click)="closeMenu()">
-            <mat-icon class="nav-icon">group</mat-icon>
-            Manage Students
+          <!-- Show Home when not authenticated, Dashboard when authenticated -->
+          <a *ngIf="!isAuthenticated" routerLink="/home" class="nav-link" routerLinkActive="active" (click)="closeMenu()">
+            <mat-icon class="nav-icon">home</mat-icon>
+            Home
+          </a>
+          <a *ngIf="isAuthenticated" routerLink="/dashboard" class="nav-link" routerLinkActive="active" (click)="closeMenu()">
+            <mat-icon class="nav-icon">dashboard</mat-icon>
+            Dashboard
+          </a>
+          
+          <!-- Show these links only when authenticated -->
+          <ng-container *ngIf="isAuthenticated">
+            <a routerLink="/students" class="nav-link" routerLinkActive="active" (click)="closeMenu()">
+              <mat-icon class="nav-icon">group</mat-icon>
+              Manage Students
+            </a>
+            <a routerLink="/select-competency" class="nav-link" routerLinkActive="active" (click)="closeMenu()">
+              <mat-icon class="nav-icon">school</mat-icon>
+              Competency
+            </a>
+            <a (click)="logout()" class="nav-link" style="cursor: pointer;">
+              <mat-icon class="nav-icon">logout</mat-icon>
+              Logout
+            </a>
+          </ng-container>
+
+          <!-- Show login link only when not authenticated -->
+          <a *ngIf="!isAuthenticated" routerLink="/login" class="nav-link" routerLinkActive="active" (click)="closeMenu()">
+            <mat-icon class="nav-icon">login</mat-icon>
+            Login
           </a>
         </div>
       </div>
@@ -169,8 +195,17 @@ import { MatIconModule } from '@angular/material/icon';
     }
   `]
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit {
   menuOpen = false;
+  isAuthenticated = false;
+
+  constructor(private userService: UserService) {}
+
+  ngOnInit() {
+    this.userService.isAuthenticated$.subscribe(
+      isAuthenticated => this.isAuthenticated = isAuthenticated
+    );
+  }
 
   toggleMenu() {
     this.menuOpen = !this.menuOpen;
@@ -178,5 +213,10 @@ export class NavbarComponent {
 
   closeMenu() {
     this.menuOpen = false;
+  }
+
+  logout() {
+    this.userService.logout();
+    this.closeMenu();
   }
 } 

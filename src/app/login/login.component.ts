@@ -44,27 +44,19 @@ export class LoginComponent {
       return;
     }
 
-    console.log('Attempting login with:', { email: this.email }); // Debug log
-
     this.userService.login(this.email, this.password).subscribe({
-      next: (user: User) => {
-        console.log('Login response received:', user); // Debug log
-        if (user) {
+      next: (response: any) => {
+        if (response.token) {
           this.success = 'Login successful!';
           // Navigation is handled by the UserService
-          this.router.navigate(['/dashboard']);
         } else {
-          this.error = 'Invalid credentials';
+          this.error = 'Invalid response from server';
           this.isLoading = false;
         }
       },
-      error: (err: Error) => {
-        console.error('Login error details:', err); // Debug log
-        this.error = err.message || 'Login failed. Please try again.';
-        this.isLoading = false;
-      },
-      complete: () => {
-        console.log('Login process completed'); // Debug log
+      error: (err: any) => {
+        console.error('Login error:', err);
+        this.error = err.error?.message || 'Login failed. Please try again.';
         this.isLoading = false;
       }
     });

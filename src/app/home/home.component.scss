@@ -62,7 +62,7 @@
   }
 }
 
-.landing-container {
+.home-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -77,8 +77,8 @@
   }
 }
 
-/* Add styles for radial dial within the landing container */
-.landing-container app-radial-dial {
+/* Add styles for radial dial within the home container */
+.home-container app-radial-dial {
   flex-basis: 40%; // Allow the radial dial to take up 40% of the space
   flex-shrink: 0; // Prevent shrinking
   display: block; // Ensure it behaves as a block element in flex
