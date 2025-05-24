@@ -1,4 +1,42 @@
-<div class="chart-container">
-  <h2>Dashboard Component</h2>
-  <div echarts [options]="chartOptions" class="chart"></div>
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1 class="heading-heading">
+        Anganwaadi <span class="heading-highlight">Dashboard</span>
+      </h1>
+      <p class="header-subtitle">Overview of student progress and assessments</p>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="chart-card">
+      <div class="card-header">
+        <h2 class="chart-title">Gender Distribution</h2>
+        <div class="card-actions">
+          <span class="total-students">Total: 100 Students</span>
+        </div>
+      </div>
+      <div echarts [options]="genderChartOptions" class="chart"></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="card-header">
+        <h2 class="chart-title">Competency Progress</h2>
+        <div class="card-actions">
+          <span class="progress-text">{{mockData.competencyProgress.completed}}/{{mockData.competencyProgress.total}} Completed</span>
+        </div>
+      </div>
+      <div echarts [options]="competencyChartOptions" class="chart"></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="card-header">
+        <h2 class="chart-title">Student Levels</h2>
+        <div class="card-actions">
+          <span class="total-students">Distribution by Level</span>
+        </div>
+      </div>
+      <div echarts [options]="levelChartOptions" class="chart"></div>
+    </div>
+  </div>
 </div>
