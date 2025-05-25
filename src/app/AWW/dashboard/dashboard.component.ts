@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NgxEchartsModule } from 'ngx-echarts';
-import type { EChartsOption } from 'echarts';
+import { BaseChartDirective } from 'ng2-charts';
+import { Chart, ChartConfiguration, ChartType, registerables } from 'chart.js';
 
 interface DashboardData {
   genderDistribution: { male: number; female: number };
@@ -17,303 +17,264 @@ interface DashboardData {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, NgxEchartsModule],
+  imports: [CommonModule, BaseChartDirective],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit {
-  // Mock data - replace with API data later
+  // Mock data with your specified requirements
   mockData: DashboardData = {
-    genderDistribution: { male: 45, female: 55 },
-    competencyProgress: { completed: 12, total: 17 },
+    genderDistribution: { male: 65, female: 35 }, // 65% boys, 35% girls
+    competencyProgress: { completed: 12, total: 17 }, // 12 out of 17 competencies
     studentLevels: {
-      beginner: 25,
-      progressing: 35,
-      advancing: 20,
-      preschoolReady: 20
+      beginner: 28,
+      progressing: 42,
+      advancing: 18,
+      preschoolReady: 12
     }
   };
 
-  genderChartOptions: EChartsOption = {};
-  competencyChartOptions: EChartsOption = {};
-  levelChartOptions: EChartsOption = {};
-
-  ngOnInit() {
-    this.initializeCharts();
+  // Computed properties for better data display
+  get totalStudents(): number {
+    return this.mockData.genderDistribution.male + this.mockData.genderDistribution.female;
   }
 
-  private initializeCharts() {
-    // Gender Distribution Chart
-    this.genderChartOptions = {
-      backgroundColor: 'transparent',
-      tooltip: {
-        trigger: 'item',
-        formatter: '{b}: {c}%',
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        borderColor: '#eee',
-        borderWidth: 1,
-        textStyle: {
-          color: '#333'
-        },
-        padding: [8, 12]
-      },
+  get competencyPercentage(): number {
+    return Math.round((this.mockData.competencyProgress.completed / this.mockData.competencyProgress.total) * 100);
+  }
+
+  get totalLevelStudents(): number {
+    const levels = this.mockData.studentLevels;
+    return levels.beginner + levels.progressing + levels.advancing + levels.preschoolReady;
+  }
+
+  // Gender Distribution Chart (Modern Doughnut)
+  genderChartData: ChartConfiguration<'doughnut'>['data'] = {
+    labels: ['Boys', 'Girls'],
+    datasets: [{
+      data: [this.mockData.genderDistribution.male, this.mockData.genderDistribution.female],
+      backgroundColor: [
+        'rgba(99, 102, 241, 0.8)',
+        'rgba(236, 72, 153, 0.8)'
+      ],
+      borderColor: [
+        'rgba(99, 102, 241, 1)',
+        'rgba(236, 72, 153, 1)'
+      ],
+      borderWidth: 3,
+      hoverOffset: 8
+    }]
+  };
+
+  genderChartOptions: ChartConfiguration<'doughnut'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '65%',
+    plugins: {
       legend: {
-        orient: 'horizontal',
-        bottom: 0,
-        itemWidth: 12,
-        itemHeight: 12,
-        textStyle: {
-          color: 'var(--text-color)',
-          fontSize: 12,
-          fontWeight: 500
-        },
-        itemGap: 20
-      },
-      series: [
-        {
-          name: 'Gender Distribution',
-          type: 'pie',
-          radius: ['45%', '70%'],
-          center: ['50%', '45%'],
-          avoidLabelOverlap: false,
-          itemStyle: {
-            borderRadius: 6,
-            borderColor: '#fff',
-            borderWidth: 2
+        position: 'bottom',
+        labels: {
+          font: {
+            family: 'Figtree, sans-serif',
+            size: 14,
+            weight: 500
           },
-          label: {
-            show: true,
-            position: 'center',
-            formatter: '{d}%',
-            fontSize: 24,
-            fontWeight: 'bold',
-            color: 'var(--text-color)'
-          },
-          emphasis: {
-            scale: true,
-            scaleSize: 5,
-            label: {
-              show: true,
-              fontSize: 28,
-              fontWeight: 'bold'
-            }
-          },
-          data: [
-            { 
-              value: this.mockData.genderDistribution.male, 
-              name: 'Male',
-              itemStyle: { 
-                color: {
-                  type: 'linear' as const,
-                  x: 0,
-                  y: 0,
-                  x2: 0,
-                  y2: 1,
-                  colorStops: [{
-                    offset: 0, color: '#2196F3'
-                  }, {
-                    offset: 1, color: '#1976D2'
-                  }]
-                }
-              }
-            },
-            { 
-              value: this.mockData.genderDistribution.female, 
-              name: 'Female',
-              itemStyle: { 
-                color: {
-                  type: 'linear' as const,
-                  x: 0,
-                  y: 0,
-                  x2: 0,
-                  y2: 1,
-                  colorStops: [{
-                    offset: 0, color: '#E91E63'
-                  }, {
-                    offset: 1, color: '#C2185B'
-                  }]
-                }
-              }
-            }
-          ],
-          animationType: 'scale',
-          animationEasing: 'elasticOut',
-          animationDelay: function (idx) {
-            return Math.random() * 200;
-          }
+          padding: 25,
+          color: '#374151',
+          usePointStyle: true,
+          pointStyle: 'circle'
         }
-      ]
-    };
-
-    // Competency Progress Chart
-    this.competencyChartOptions = {
-      backgroundColor: 'transparent',
+      },
       tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          type: 'shadow'
-        },
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        borderColor: '#eee',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        titleColor: '#1f2937',
+        bodyColor: '#374151',
+        borderColor: 'rgba(0, 0, 0, 0.1)',
         borderWidth: 1,
-        textStyle: {
-          color: '#333'
+        cornerRadius: 12,
+        titleFont: {
+          size: 16,
+          weight: 600
         },
-        padding: [8, 12]
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '3%',
-        top: '3%',
-        containLabel: true
-      },
-      xAxis: {
-        type: 'value',
-        max: this.mockData.competencyProgress.total,
-        axisLabel: {
-          color: 'var(--text-color)',
-          fontSize: 12
+        bodyFont: {
+          size: 14,
+          weight: 500
         },
-        splitLine: {
-          lineStyle: {
-            color: 'rgba(0,0,0,0.1)'
+        callbacks: {
+          label: (context) => {
+            const percentage = ((context.parsed / this.totalStudents) * 100).toFixed(1);
+            return `${context.label}: ${context.parsed} (${percentage}%)`;
           }
         }
-      },
-      yAxis: {
-        type: 'category',
-        data: ['Competencies'],
-        axisLabel: {
-          color: 'var(--text-color)',
-          fontSize: 12
-        }
-      },
-      series: [
-        {
-          name: 'Completed',
-          type: 'bar',
-          data: [this.mockData.competencyProgress.completed],
-          itemStyle: {
-            color: {
-              type: 'linear' as const,
-              x: 0,
-              y: 0,
-              x2: 1,
-              y2: 0,
-              colorStops: [{
-                offset: 0, color: 'var(--primary-color)'
-              }, {
-                offset: 1, color: 'var(--primary-hover)'
-              }]
-            },
-            borderRadius: [4, 4, 0, 0]
-          },
-          barWidth: '40%',
-          animationDelay: function (idx) {
-            return idx * 100;
-          }
-        }
-      ],
-      animationDuration: 1000,
-      animationEasing: 'cubicOut'
-    };
-
-    // Student Levels Chart
-    const levelColors = [
-      {
-        type: 'linear' as const,
-        x: 0, y: 0, x2: 0, y2: 1,
-        colorStops: [{ offset: 0, color: '#FF9800' }, { offset: 1, color: '#F57C00' }]
-      },
-      {
-        type: 'linear' as const,
-        x: 0, y: 0, x2: 0, y2: 1,
-        colorStops: [{ offset: 0, color: '#2196F3' }, { offset: 1, color: '#1976D2' }]
-      },
-      {
-        type: 'linear' as const,
-        x: 0, y: 0, x2: 0, y2: 1,
-        colorStops: [{ offset: 0, color: '#9C27B0' }, { offset: 1, color: '#7B1FA2' }]
-      },
-      {
-        type: 'linear' as const,
-        x: 0, y: 0, x2: 0, y2: 1,
-        colorStops: [{ offset: 0, color: '#4CAF50' }, { offset: 1, color: '#388E3C' }]
       }
-    ];
+    },
+    animation: {
+      duration: 1500,
+      easing: 'easeInOutCubic'
+    }
+  };
 
-    this.levelChartOptions = {
-      backgroundColor: 'transparent',
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          type: 'shadow'
-        },
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        borderColor: '#eee',
-        borderWidth: 1,
-        textStyle: {
-          color: '#333'
-        },
-        padding: [8, 12]
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '3%',
-        top: '3%',
-        containLabel: true
-      },
-      xAxis: {
-        type: 'category',
-        data: ['Beginner', 'Progressing', 'Advancing', 'Preschool Ready'],
-        axisLabel: {
-          color: 'var(--text-color)',
-          fontSize: 12,
-          interval: 0,
-          rotate: 30
-        },
-        axisTick: {
-          alignWithLabel: true
-        }
-      },
-      yAxis: {
-        type: 'value',
-        axisLabel: {
-          color: 'var(--text-color)',
-          fontSize: 12
-        },
-        splitLine: {
-          lineStyle: {
-            color: 'rgba(0,0,0,0.1)'
-          }
-        }
-      },
-      series: [
-        {
-          name: 'Students',
-          type: 'bar',
-          data: [
-            this.mockData.studentLevels.beginner,
-            this.mockData.studentLevels.progressing,
-            this.mockData.studentLevels.advancing,
-            this.mockData.studentLevels.preschoolReady
-          ],
-          itemStyle: {
-            color: function(params: any) {
-              return levelColors[params.dataIndex];
-            },
-            borderRadius: [4, 4, 0, 0]
-          },
-          barWidth: '40%',
-          animationDelay: function (idx) {
-            return idx * 100;
-          }
-        }
+  // Competency Progress Chart (Modern Progress Bar)
+  competencyChartData: ChartConfiguration<'doughnut'>['data'] = {
+    labels: ['Completed', 'Remaining'],
+    datasets: [{
+      data: [
+        this.mockData.competencyProgress.completed,
+        this.mockData.competencyProgress.total - this.mockData.competencyProgress.completed
       ],
-      animationDuration: 1000,
-      animationEasing: 'cubicOut'
-    };
+      backgroundColor: [
+        'rgba(16, 185, 129, 0.8)',
+        'rgba(229, 231, 235, 0.8)'
+      ],
+      borderColor: [
+        'rgba(16, 185, 129, 1)',
+        'rgba(229, 231, 235, 1)'
+      ],
+      borderWidth: 3,
+      hoverOffset: 6
+    }]
+  };
+
+  competencyChartOptions: ChartConfiguration<'doughnut'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '70%',
+    plugins: {
+      legend: {
+        display: false
+      },
+      tooltip: {
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        titleColor: '#1f2937',
+        bodyColor: '#374151',
+        borderColor: 'rgba(0, 0, 0, 0.1)',
+        borderWidth: 1,
+        cornerRadius: 12,
+        titleFont: {
+          size: 16,
+          weight: 600
+        },
+        bodyFont: {
+          size: 14,
+          weight: 500
+        },
+        callbacks: {
+          label: (context) => {
+            return `${context.label}: ${context.parsed} competencies`;
+          }
+        }
+      }
+    },
+    animation: {
+      duration: 1500,
+      easing: 'easeInOutCubic'
+    }
+  };
+
+  // Student Levels Chart (Modern Horizontal Bar)
+  levelChartData: ChartConfiguration<'bar'>['data'] = {
+    labels: ['Beginner', 'Progressing', 'Advancing', 'Preschool Ready'],
+    datasets: [{
+      data: [
+        this.mockData.studentLevels.beginner,
+        this.mockData.studentLevels.progressing,
+        this.mockData.studentLevels.advancing,
+        this.mockData.studentLevels.preschoolReady
+      ],
+      backgroundColor: [
+        'rgba(245, 158, 11, 0.8)',
+        'rgba(59, 130, 246, 0.8)',
+        'rgba(139, 92, 246, 0.8)',
+        'rgba(16, 185, 129, 0.8)'
+      ],
+      borderColor: [
+        'rgba(245, 158, 11, 1)',
+        'rgba(59, 130, 246, 1)',
+        'rgba(139, 92, 246, 1)',
+        'rgba(16, 185, 129, 1)'
+      ],
+      borderWidth: 2,
+      borderRadius: 8,
+      borderSkipped: false
+    }]
+  };
+
+  levelChartOptions: ChartConfiguration<'bar'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: {
+      legend: {
+        display: false
+      },
+      tooltip: {
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        titleColor: '#1f2937',
+        bodyColor: '#374151',
+        borderColor: 'rgba(0, 0, 0, 0.1)',
+        borderWidth: 1,
+        cornerRadius: 12,
+        titleFont: {
+          size: 16,
+          weight: 600
+        },
+        bodyFont: {
+          size: 14,
+          weight: 500
+        },
+        callbacks: {
+          label: (context) => {
+            const percentage = ((context.parsed.x / this.totalLevelStudents) * 100).toFixed(1);
+            return `${context.parsed.x} students (${percentage}%)`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.05)',
+          display: true,
+          drawOnChartArea: true,
+          drawTicks: false
+        },
+        ticks: {
+          font: {
+            family: 'Figtree, sans-serif',
+            size: 12,
+            weight: 500
+          },
+          color: '#6b7280'
+        },
+        border: {
+          display: false
+        }
+      },
+      y: {
+        grid: {
+          display: false
+        },
+        ticks: {
+          font: {
+            family: 'Figtree, sans-serif',
+            size: 13,
+            weight: 500
+          },
+          color: '#374151'
+        },
+        border: {
+          display: false
+        }
+      }
+    },
+    animation: {
+      duration: 1500,
+      easing: 'easeInOutCubic'
+    }
+  };
+
+  ngOnInit() {
+    Chart.register(...registerables);
   }
 }
