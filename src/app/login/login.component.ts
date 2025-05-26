@@ -4,11 +4,6 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../services/user.service';
 
-interface User {
-  email: string;
-  name: string;
-}
-
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -24,14 +19,40 @@ export class LoginComponent {
   success: string = '';
   isLoading: boolean = false;
 
-  togglePassword() {
-    this.showPassword = !this.showPassword;
-  }
-
   constructor(
     private userService: UserService,
     private router: Router
-  ) {}
+  ) {
+    // Redirect if already authenticated
+    if (this.userService.isAuthenticated()) {
+      const user = this.userService.getCurrentUser();
+      if (user) {
+        this.redirectBasedOnRole();
+      }
+    }
+  }
+
+  private redirectBasedOnRole(): void {
+    if (this.userService.isAdmin()) {
+      this.router.navigate(['/admin/dashboard']);
+    } else if (this.userService.isStateOfficial()) {
+      this.router.navigate(['/state/dashboard']);
+    } else if (this.userService.isDPO()) {
+      this.router.navigate(['/dpo/dashboard']);
+    } else if (this.userService.isCDPO()) {
+      this.router.navigate(['/cdpo/dashboard']);
+    } else if (this.userService.isSupervisor()) {
+      this.router.navigate(['/supervisor/dashboard']);
+    } else if (this.userService.isAWW()) {
+      this.router.navigate(['/dashboard']);
+    } else {
+      this.router.navigate(['/home']);
+    }
+  }
+
+  togglePassword() {
+    this.showPassword = !this.showPassword;
+  }
 
   onLogin() {
     this.error = '';
@@ -46,9 +67,10 @@ export class LoginComponent {
 
     this.userService.login(this.email, this.password).subscribe({
       next: (response: any) => {
-        if (response.token) {
-          this.success = 'Login successful!';
-          // Navigation is handled by the UserService
+        if (response.token && response.user) {
+          this.success = 'Login successful! Redirecting...';
+          // UserService handles the routing based on role automatically
+          this.isLoading = false;
         } else {
           this.error = 'Invalid response from server';
           this.isLoading = false;
@@ -56,7 +78,7 @@ export class LoginComponent {
       },
       error: (err: any) => {
         console.error('Login error:', err);
-        this.error = err.error?.message || 'Login failed. Please try again.';
+        this.error = err.error?.message || 'Login failed. Please check your credentials and try again.';
         this.isLoading = false;
       }
     });
