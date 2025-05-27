@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './login/login.component';
 import { HomeComponent } from './home/home.component';
-import { UsersComponent } from './admin/users/users.component';
 import { SelectCompetencyComponent } from './AWW/select-competency/select-competency.component';
 import { DetailsComponent } from './AWW/details/details.component';
 import { DashboardComponent } from './AWW/dashboard/dashboard.component';
@@ -30,11 +29,6 @@ export const routes: Routes = [
         component: AdminDashboardComponent,
         canActivate: [AdminGuard]
     },
-    {
-        path: 'admin/users',
-        component: UsersComponent,
-        canActivate: [AdminGuard]
-    },
 
     // Anganwadi management routes - only accessible by admin role
     {
@@ -53,6 +47,28 @@ export const routes: Routes = [
             {
                 path: 'edit/:id',
                 loadComponent: () => import('./admin/anganwadi-management/create-edit-anganwadi/create-edit-anganwadi.component').then(m => m.CreateEditAnganwadiComponent)
+            }
+        ]
+    },
+
+    // User management Routes -by admin
+
+    {
+        path: 'admin/users',
+        loadComponent: () => import('./admin/user-management/user-management/user-management.component').then(m => m.UserManagementComponent),
+        canActivate: [AdminGuard],
+        children: [
+            {
+                path: '',
+                loadComponent: () => import('./admin/user-management/user-list/user-list.component').then(m => m.UsersListComponent)
+            },
+            {
+                path: 'create',
+                loadComponent: () => import('./admin/user-management/create-edit-user/create-edit-user.component').then(m => m.CreateEditUserComponent)
+            },
+            {
+                path: 'edit/:id',
+                loadComponent: () => import('./admin/user-management/create-edit-user/create-edit-user.component').then(m => m.CreateEditUserComponent)
             }
         ]
     },

@@ -28,8 +28,8 @@ import { StudentService, Student } from '../student.service';
             <h2 class="heading-heading mb-3 mb-md-0">
               <span class="heading-highlight">Students</span> List
             </h2>
-            <button mat-raised-button color="primary" routerLink="create" class="btn-primary">
-              <mat-icon>add</mat-icon>
+            <button color="primary" routerLink="create" class="btn btn-primary d-flex align-items-center">
+              <mat-icon class="me-1">add</mat-icon>
               <span class="d-none d-sm-inline">Add New Student</span>
             </button>
           </div>
@@ -74,7 +74,7 @@ import { StudentService, Student } from '../student.service';
 
               <!-- Language Column -->
               <ng-container matColumnDef="language">
-                <th mat-header-cell *matHeaderCellDef class="d-none d-md-table-cell">Language</th>
+                <th mat-header-cell *matHeaderCellDef class="d-none d-md-table-cell">Mother Tongue</th>
                 <td mat-cell *matCellDef="let student" class="d-none d-md-table-cell">{{student.language}}</td>
               </ng-container>
 
@@ -212,8 +212,8 @@ export class StudentsListComponent implements OnInit {
       Are you sure you want to delete {{data.name}}?
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-raised-button color="warn" [mat-dialog-close]="true">Delete</button>
+    <button type="button" class="btn btn-outline-secondary me-2" mat-dialog-close>Cancel</button>
+    <button type="button" class="btn btn-danger" [mat-dialog-close]="true">Delete</button>
     </mat-dialog-actions>
   `,
   standalone: true,

@@ -112,8 +112,8 @@ import { StudentService } from '../student.service';
           </div>
 
           <div class="d-flex justify-content-end gap-2 mt-4">
-            <button mat-button type="button" (click)="goBack()">Cancel</button>
-            <button mat-raised-button color="primary" type="submit" [disabled]="studentForm.invalid" class="btn-primary">
+            <button class="btn btn-primary" type="button" (click)="goBack()">Cancel</button>
+            <button type="submit" [disabled]="studentForm.invalid" class="btn btn-primary">
               {{isEditMode ? 'Update' : 'Create'}} Student
             </button>
           </div>
