@@ -56,8 +56,12 @@ import { UserService, User } from '../user.service';
                 <td mat-cell *matCellDef="let user">
                   <mat-chip-set>
                     <mat-chip *ngFor="let role of user.roles" 
-                             [style.background-color]="getRoleColor(role.name)"
-                             [style.color]="'white'">
+                             [ngStyle]="{
+                               'color': getRoleColor(role.name),
+                               'border': '1px solid ' + getRoleColor(role.name),
+                               'background-color': 'transparent'
+                             }"
+                             class="custom-chip">
                       {{role.name | titlecase}}
                     </mat-chip>
                   </mat-chip-set>
@@ -180,6 +184,12 @@ import { UserService, User } from '../user.service';
       display: flex;
       flex-wrap: wrap;
       gap: 4px;
+    }
+
+    .custom-chip {
+      ::ng-deep .mdc-evolution-chip__text-label {
+        color: inherit !important;
+      }
     }
 
     @media (max-width: 768px) {

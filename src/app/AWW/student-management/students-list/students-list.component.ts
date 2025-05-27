@@ -78,6 +78,12 @@ import { StudentService, Student } from '../student.service';
                 <td mat-cell *matCellDef="let student" class="d-none d-md-table-cell">{{student.language}}</td>
               </ng-container>
 
+              <!-- Anganwadi Column -->
+              <ng-container matColumnDef="anganwadi">
+                <th mat-header-cell *matHeaderCellDef class="d-none d-lg-table-cell">Anganwadi Center</th>
+                <td mat-cell *matCellDef="let student" class="d-none d-lg-table-cell">{{student.anganwadi?.name || '-'}}</td>
+              </ng-container>
+
               <!-- Actions Column -->
               <ng-container matColumnDef="actions">
                 <th mat-header-cell *matHeaderCellDef>Actions</th>
@@ -143,7 +149,7 @@ import { StudentService, Student } from '../student.service';
 })
 export class StudentsListComponent implements OnInit {
   students: Student[] = [];
-  displayedColumns: string[] = ['name', 'age', 'dateOfBirth', 'symbol', 'height', 'weight', 'language', 'actions'];
+  displayedColumns: string[] = ['name', 'age', 'dateOfBirth', 'symbol', 'height', 'weight', 'language', 'anganwadi', 'actions'];
 
   constructor(
     private studentService: StudentService,

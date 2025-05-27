@@ -1,0 +1,34 @@
+:host {
+  display: block;
+  padding: var(--spacing-md);
+}
+
+.card {
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.heading-heading {
+  color: var(--text-color);
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.heading-highlight {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  :host {
+    padding: var(--spacing-sm);
+  }
+
+  .card {
+    border-radius: var(--border-radius-sm);
+  }
+} 

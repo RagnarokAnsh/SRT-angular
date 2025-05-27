@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { UserService } from '../../services/user.service';
+import { UserService, User } from '../../services/user.service';
 
 @Component({
   selector: 'app-navbar',
@@ -12,7 +12,7 @@ import { UserService } from '../../services/user.service';
     <nav class="navbar">
       <div class="navbar-container">
         <a routerLink="/" class="navbar-brand">
-          <span class="navbar-heading">School <span class="navbar-highlight">Readiness</span> Tool</span>
+          <img src="assets/images/sri_logo.png" alt="School Readiness Instrument Logo" class="navbar-logo" style="height: 56px; width: auto; display: block;" />
         </a>
         <button class="navbar-toggle" (click)="toggleMenu()" aria-label="Toggle navigation">
           <span [class.open]="menuOpen"></span>
@@ -32,10 +32,33 @@ import { UserService } from '../../services/user.service';
           
           <!-- Show these links only when authenticated -->
           <ng-container *ngIf="isAuthenticated">
-            <a routerLink="/students" class="nav-link" routerLinkActive="active" (click)="closeMenu()">
+            <div class="nav-dropdown" *ngIf="isAdminUser()">
+              <a class="nav-link" (click)="toggleDropdown()">
+                <mat-icon class="nav-icon">admin_panel_settings</mat-icon>
+                Manage
+                <mat-icon class="dropdown-arrow">arrow_drop_down</mat-icon>
+              </a>
+              <div class="dropdown-menu" [class.show]="isDropdownOpen">
+                <a class="dropdown-item" routerLink="/admin/users" (click)="closeMenu()">
+                  <mat-icon class="nav-icon">people</mat-icon>
+                  Users Management
+                </a>
+                <a class="dropdown-item" routerLink="/admin/anganwadi" (click)="closeMenu()">
+                  <mat-icon class="nav-icon">business</mat-icon>
+                  Anganwadi Management
+                </a>
+                <a class="dropdown-item" routerLink="/students" (click)="closeMenu()">
+                  <mat-icon class="nav-icon">school</mat-icon>
+                  Students Management
+                </a>
+              </div>
+            </div>
+            
+            <a *ngIf="!isAdminUser()" routerLink="/students" class="nav-link" routerLinkActive="active" (click)="closeMenu()">
               <mat-icon class="nav-icon">group</mat-icon>
-              Manage Students
+              Students
             </a>
+            
             <a routerLink="/select-competency" class="nav-link" routerLinkActive="active" (click)="closeMenu()">
               <mat-icon class="nav-icon">school</mat-icon>
               Competency
@@ -82,8 +105,12 @@ import { UserService } from '../../services/user.service';
       text-decoration: none;
     }
     .navbar-logo {
-      border-radius: 0.5rem;
-      box-shadow: 0 2px 8px rgba(80, 80, 180, 0.10);
+      
+      background: transparent;
+      box-shadow: none;
+      height: 56px;
+      width: auto;
+      display: block;
     }
     .navbar-heading {
       font-weight: 700;
@@ -193,11 +220,111 @@ import { UserService } from '../../services/user.service';
     .nav-link:hover .nav-icon {
       color: #fff;
     }
+
+    .nav-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-arrow {
+      margin-left: 4px;
+      vertical-align: middle;
+      width: 20px;
+      height: 20px;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: rgba(255, 255, 255, 0.95);
+      min-width: 240px;
+      box-shadow: 0 4px 24px rgba(80, 80, 180, 0.15);
+      border-radius: 0.75rem;
+      padding: 0.5rem 0;
+      z-index: 1000;
+      margin-top: 0.5rem;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .dropdown-menu.show {
+      display: block;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      padding: 0.65rem 1.5rem;
+      color: #373a47;
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border-radius: 0.5rem;
+      margin: 0 0.5rem;
+    }
+
+    .dropdown-item:hover, .dropdown-item:focus, .dropdown-item:active {
+      background: #6366f1;
+      color: #fff;
+    }
+
+    .dropdown-item:hover .nav-icon,
+    .dropdown-item:focus .nav-icon,
+    .dropdown-item:active .nav-icon {
+      color: #fff !important;
+    }
+
+    .dropdown-item .nav-icon {
+      margin-right: 12px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      transition: color 0.2s ease;
+    }
+
+    @media (max-width: 900px) {
+      .dropdown-menu {
+        position: static;
+        box-shadow: none;
+        padding: 0;
+        background: transparent;
+        margin: 0.5rem 0 0 1.5rem;
+        border: none;
+        backdrop-filter: none;
+      }
+
+      .dropdown-item {
+        padding: 0.75rem 1rem;
+        margin: 0.25rem 0.5rem;
+        border-radius: 0.5rem;
+        color: #373a47;
+      }
+
+      .dropdown-item:hover,
+      .dropdown-item:focus,
+      .dropdown-item:active {
+        background: #6366f1;
+        color: #fff;
+      }
+      
+      .dropdown-item:hover .nav-icon,
+      .dropdown-item:focus .nav-icon,
+      .dropdown-item:active .nav-icon {
+        color: #fff !important;
+      }
+    }
   `]
 })
 export class NavbarComponent implements OnInit {
   menuOpen = false;
+  isDropdownOpen = false;
   isAuthenticated = false;
+  currentUser: User | null = null;
 
   constructor(private userService: UserService) {}
 
@@ -205,14 +332,35 @@ export class NavbarComponent implements OnInit {
     this.userService.isAuthenticated$.subscribe(
       isAuthenticated => this.isAuthenticated = isAuthenticated
     );
+    this.userService.currentUser$.subscribe(
+      user => this.currentUser = user
+    );
+  }
+
+  isAdminUser(): boolean {
+    if (!this.currentUser?.roles) return false;
+    return this.currentUser.roles.some(role => role.name === 'admin');
   }
 
   toggleMenu() {
     this.menuOpen = !this.menuOpen;
   }
 
+  @HostListener('document:click', ['$event'])
+  onClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.nav-dropdown')) {
+      this.isDropdownOpen = false;
+    }
+  }
+
+  toggleDropdown() {
+    this.isDropdownOpen = !this.isDropdownOpen;
+  }
+
   closeMenu() {
     this.menuOpen = false;
+    this.isDropdownOpen = false;
   }
 
   logout() {
