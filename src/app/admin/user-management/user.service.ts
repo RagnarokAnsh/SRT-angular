@@ -48,9 +48,14 @@ export interface Sector {
 export interface AnganwadiCenter {
   id: number;
   name: string;
-  district_id: number;
+  code: string;
   project: string;
   sector: string;
+  country_id: number;
+  state_id: number;
+  district_id: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface User {
@@ -63,13 +68,14 @@ export interface User {
   district_id: number | null;
   project: string | null;
   sector: string | null;
-  aganwadi: string | null;
+  anganwadi_id: number | null; // This should be a number (BIGINT in the database)
   created_at: string;
   updated_at: string;
   roles: Role[];
   country: Country | null;
   state: State | null;
   district: District | null;
+  anganwadi: AnganwadiCenter | null;
 }
 
 export interface CreateUserRequest {
@@ -82,7 +88,7 @@ export interface CreateUserRequest {
   district_id?: number | null;
   project?: string | null;
   sector?: string | null;
-  aganwadi?: string | null;
+  anganwadi_id?: number | null; // This should be a number (BIGINT in the database)
 }
 
 export interface UpdateUserRequest {
@@ -95,7 +101,7 @@ export interface UpdateUserRequest {
   district_id?: number | null;
   project?: string | null;
   sector?: string | null;
-  aganwadi?: string | null;
+  anganwadi_id?: number | null; // This should be a number (BIGINT in the database)
 }
 
 @Injectable({
@@ -116,11 +122,33 @@ export class UserService {
   }
 
   createUser(user: CreateUserRequest): Observable<User> {
-    return this.http.post<User>(`${this.baseUrl}/users`, user);
+    console.log('Creating user with data:', user);
+    
+    // Create a copy of the user data to avoid modifying the original
+    const userData = { ...user };
+    
+    // Format the data according to the API expectations
+    if (userData.anganwadi_id !== undefined && userData.anganwadi_id !== null) {
+      // Ensure anganwadi_id is a number
+      userData.anganwadi_id = Number(userData.anganwadi_id);
+    }
+    
+    return this.http.post<User>(`${this.baseUrl}/users`, userData);
   }
 
   updateUser(id: number, user: UpdateUserRequest): Observable<User> {
-    return this.http.put<User>(`${this.baseUrl}/users/${id}`, user);
+    console.log('Updating user with data:', user);
+    
+    // Create a copy of the user data to avoid modifying the original
+    const userData = { ...user };
+    
+    // Format the data according to the API expectations
+    if (userData.anganwadi_id !== undefined && userData.anganwadi_id !== null) {
+      // Ensure anganwadi_id is a number
+      userData.anganwadi_id = Number(userData.anganwadi_id);
+    }
+    
+    return this.http.put<User>(`${this.baseUrl}/users/${id}`, userData);
   }
 
   deleteUser(id: number): Observable<void> {
@@ -165,7 +193,7 @@ export class UserService {
   getRoleRequiredFields(role: string): string[] {
     const roleFieldMap: { [key: string]: string[] } = {
       'admin': [],
-      'aww': ['country_id', 'state_id', 'district_id', 'project', 'sector', 'aganwadi'],
+      'aww': ['country_id', 'state_id', 'district_id', 'project', 'sector', 'anganwadi_id'],
       'supervisor': ['country_id', 'state_id', 'district_id', 'project', 'sector'],
       'cdpo': ['country_id', 'state_id', 'district_id', 'project'],
       'dpo': ['country_id', 'state_id', 'district_id'],

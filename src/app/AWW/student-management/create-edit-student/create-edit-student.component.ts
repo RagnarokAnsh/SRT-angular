@@ -191,6 +191,17 @@ export class CreateEditStudentComponent implements OnInit {
       this.currentUserId = currentUser.id;
       this.currentUserName = currentUser.name || 'You';
       this.studentForm.patchValue({ awwId: this.currentUserId });
+      
+      // If the user has an anganwadi_id field, use it to set the anganwadi ID in the form
+      if (currentUser.anganwadi_id) {
+        this.currentAnganwadiId = currentUser.anganwadi_id;
+        this.studentForm.patchValue({ anganwadiId: currentUser.anganwadi_id });
+      }
+      
+      // If the user has an anganwadi object, use it to set the anganwadi name
+      if (currentUser.anganwadi && currentUser.anganwadi.name) {
+        this.currentAnganwadiName = currentUser.anganwadi.name;
+      }
     }
   }
 

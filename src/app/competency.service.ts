@@ -50,7 +50,7 @@ export class CompetencyService {
           {
             "id": "number-concept",
             "name": "Number concept",
-            "imageUrl": "assets/images/competencies/number concept.png",
+            "imageUrl": "assets/images/competencies/number.png",
             "description": "Learning number concepts is one of the most important competencies and sets the foundation for understanding numbers. Number concepts involve a child's ability to recognize numerals, one-to-one correspondence, counting and simple operations",
             "detailsImageUrl": "assets/images/details/number concept.png",
             "videos": [
@@ -79,7 +79,7 @@ export class CompetencyService {
           {
             "id": "vocabulary-and-expression",
             "name": "Vocabulary and expression",
-            "imageUrl": "assets/images/competencies/vocab&exp.png",
+            "imageUrl": "assets/images/competencies/vocabulary.png",
             "description": "Early vocabulary development is an important predictor of success in reading. A strong vocabulary enables a child to understand and communicate more effectively",
             "detailsImageUrl": "assets/images/details/vocab&exp.png",
             "videos": [
@@ -91,7 +91,7 @@ export class CompetencyService {
           {
             "id": "listening-comprehension",
             "name": "Listening comprehension",
-            "imageUrl": "assets/images/competencies/listen&comp.png",
+            "imageUrl": "assets/images/competencies/listening.png",
             "description": "Listening comprehension is important for a child to understand what is being said. It includes a child's receptive language skills as well as interpretation of what he/she hears.",
             "detailsImageUrl": "assets/images/details/listening.png",
             "videos": [
@@ -103,7 +103,7 @@ export class CompetencyService {
           {
             "id": "emergent-reading-book-handling",
             "name": "Emergent reading - book handling",
-            "imageUrl": "assets/images/competencies/emergent reading.png",
+            "imageUrl": "assets/images/competencies/emergent-reading.png",
             "description": "Book handling is a predictor of successful reading skills. It helps children to develop bonds with books, understand books, letters, words, and directionality, and to understand that print has meaning.",
             "detailsImageUrl": "assets/images/details/emergent reading.png",
             "videos": [
@@ -115,7 +115,7 @@ export class CompetencyService {
           {
             "id": "emergent-writing",
             "name": "Emergent writing",
-            "imageUrl": "assets/images/competencies/emergent writing.png",
+            "imageUrl": "assets/images/competencies/emergent-writing.png",
             "description": "Writing is an important skill. Between the ages of 3 to 6 years, children begin to learn to write, and by the time they are 6 years old, they should be able to write some simple words and/or their names.",
             "detailsImageUrl": "assets/images/details/emergent writing.png",
             "videos": [
@@ -132,7 +132,7 @@ export class CompetencyService {
           {
             "id": "gross-motor-development",
             "name": "Gross motor development",
-            "imageUrl": "assets/images/competencies/gross motor.png",
+            "imageUrl": "assets/images/competencies/gross-motor.png",
             "description": "Gross motor development involves large muscle movements in arms, legs and the torso, and includes skills, such as walking, running, climbing, throwing, kicking, and catching. A child needs considerable practice to develop gross motor skills.",
             "detailsImageUrl": "assets/images/details/gross motor.png",
             "videos": [
@@ -144,7 +144,7 @@ export class CompetencyService {
           {
             "id": "fine-motor-development",
             "name": "Fine motor development",
-            "imageUrl": "assets/images/competencies/fine-motor-development.png",
+            "imageUrl": "assets/images/competencies/fine-motor.png",
             "description": "Fine motor development includes the development of small finger muscles and skills such as picking up things, threading beads, tying shoelaces, colouring within the boundary and stacking objects of different sizes.",
             "detailsImageUrl": "assets/images/details/fine motor.png",
             "videos": [
@@ -185,7 +185,7 @@ export class CompetencyService {
           {
             "id": "emotional-expression-and-regulation",
             "name": "Emotional expression and regulation",
-            "imageUrl": "assets/images/competencies/emotional exp.png",
+            "imageUrl": "assets/images/competencies/emotional.png",
             "description": "Emotional regulation determines a child's ability to express feelings and manage her/his emotions. Emotional regulation is a crucial skill for the well-being of the child. It is important that parents, caregivers and teachers provide support for the child's emotional stability to help her/him grow and develop optimally",
             "detailsImageUrl": "assets/images/details/emotional exp.png",
             "videos": [
@@ -214,7 +214,7 @@ export class CompetencyService {
           {
             "id": "task-persistence",
             "name": "Task persistence",
-            "imageUrl": "assets/images/competencies/task persistence.png",
+            "imageUrl": "assets/images/competencies/task-persistence.png",
             "description": "Task persistence is a skill that is important for children in classroom activities as well as in personal endeavours. It is important that children are encouraged to undertake challenging activities and tasks. This will help them learn to persevere, complete tasks and activities, and not give up.",
             "detailsImageUrl": "assets/images/details/task persistence.png",
             "videos": [
@@ -231,7 +231,7 @@ export class CompetencyService {
           {
             "id": "creative-expression",
             "name": "Creative expression",
-            "imageUrl": "assets/images/competencies/creative expression.png",
+            "imageUrl": "assets/images/competencies/creative-expression.png",
             "description": "One of the best ways for children to learn about new concepts is to ignite their interest through hands- on experience. Besides giving young children the chance to explore different concepts through their senses, the experience helps develop other useful skills, including problem-solving and perseverance.",
             "detailsImageUrl": "assets/images/details/creative exp.png",
             "videos": [

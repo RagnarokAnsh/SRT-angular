@@ -87,7 +87,7 @@ import { UserService, User } from '../user.service';
                   <div class="assignment-info">
                     <div *ngIf="user.project" class="small">Project: {{user.project}}</div>
                     <div *ngIf="user.sector" class="small">Sector: {{user.sector}}</div>
-                    <div *ngIf="user.aganwadi" class="small">Center: {{user.aganwadi}}</div>
+                    <div *ngIf="user.anganwadi" class="small">Center: {{user.anganwadi.name}}</div>
                   </div>
                 </td>
               </ng-container>

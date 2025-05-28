@@ -166,16 +166,16 @@ import { UserService, User, Country, State, District, Project, Sector, Anganwadi
                 </mat-form-field>
               </div>
 
-              <div class="col-md-6 mb-3" *ngIf="isFieldRequired('aganwadi')">
+              <div class="col-md-6 mb-3" *ngIf="isFieldRequired('anganwadi_id')">
                 <mat-form-field appearance="outline" class="w-100">
                   <mat-label>Anganwadi Center</mat-label>
-                  <mat-select formControlName="aganwadi" 
+                  <mat-select formControlName="anganwadi_id" 
                              [disabled]="!userForm.get('sector')?.value">
-                    <mat-option *ngFor="let center of anganwadiCenters" [value]="center.name">
+                    <mat-option *ngFor="let center of anganwadiCenters" [value]="center.id">
                       {{center.name}}
                     </mat-option>
                   </mat-select>
-                  <mat-error *ngIf="userForm.get('aganwadi')?.hasError('required')">
+                  <mat-error *ngIf="userForm.get('anganwadi_id')?.hasError('required')">
                     Anganwadi Center is required for this role
                   </mat-error>
                 </mat-form-field>
@@ -246,7 +246,7 @@ export class CreateEditUserComponent implements OnInit {
       district_id: [null],
       project: [null],
       sector: [null],
-      aganwadi: [null]
+      anganwadi_id: [null]
     });
   }
 
@@ -288,7 +288,7 @@ export class CreateEditUserComponent implements OnInit {
           district_id: user.district_id,
           project: user.project,
           sector: user.sector,
-          aganwadi: user.aganwadi
+          anganwadi_id: user.anganwadi_id
         });
 
         // Load dependent data if values exist
@@ -329,7 +329,7 @@ export class CreateEditUserComponent implements OnInit {
 
   updateFieldValidators() {
     // Clear all location field validators first
-    const locationFields = ['country_id', 'state_id', 'district_id', 'project', 'sector', 'aganwadi'];
+    const locationFields = ['country_id', 'state_id', 'district_id', 'project', 'sector', 'anganwadi_id'];
     
     locationFields.forEach(field => {
       const control = this.userForm.get(field);
@@ -351,7 +351,7 @@ export class CreateEditUserComponent implements OnInit {
       district_id: null,
       project: null,
       sector: null,
-      aganwadi: null
+      anganwadi_id: null
     });
 
     // Clear dependent arrays
@@ -380,7 +380,7 @@ export class CreateEditUserComponent implements OnInit {
       district_id: null,
       project: null,
       sector: null,
-      aganwadi: null
+      anganwadi_id: null
     });
     this.districts = [];
     this.projects = [];
@@ -405,7 +405,7 @@ export class CreateEditUserComponent implements OnInit {
       district_id: null,
       project: null,
       sector: null,
-      aganwadi: null
+      anganwadi_id: null
     });
     this.projects = [];
     this.sectors = [];
@@ -417,8 +417,6 @@ export class CreateEditUserComponent implements OnInit {
       this.userService.getProjectsByDistrict(districtId).subscribe({
         next: (projects) => {
           this.projects = projects;
-          console.log(this.projects);
-          
         },
         error: (error) => {
           console.error('Error loading projects:', error);
@@ -430,7 +428,7 @@ export class CreateEditUserComponent implements OnInit {
     this.userForm.patchValue({
       project: null,
       sector: null,
-      aganwadi: null
+      anganwadi_id: null
     });
     this.sectors = [];
     this.anganwadiCenters = [];
@@ -452,7 +450,7 @@ export class CreateEditUserComponent implements OnInit {
     // Reset dependent fields
     this.userForm.patchValue({
       sector: null,
-      aganwadi: null
+      anganwadi_id: null
     });
     this.anganwadiCenters = [];
   }
@@ -462,9 +460,15 @@ export class CreateEditUserComponent implements OnInit {
     const project = this.userForm.get('project')?.value;
     
     if (sector && districtId && project) {
-      this.userService.getCentersBySector(districtId, project, sector).subscribe({
+      // Use the new API endpoint to get all anganwadi centers
+      this.userService.getAnganwadiCenters().subscribe({
         next: (centers) => {
-          this.anganwadiCenters = centers;
+          // Filter centers by district, project and sector
+          this.anganwadiCenters = centers.filter(center => 
+            center.district_id === districtId && 
+            center.project === project && 
+            center.sector === sector
+          );
         },
         error: (error) => {
           console.error('Error loading anganwadi centers:', error);
@@ -474,7 +478,7 @@ export class CreateEditUserComponent implements OnInit {
 
     // Reset anganwadi field
     this.userForm.patchValue({
-      aganwadi: null
+      anganwadi_id: null
     });
   }
 
@@ -485,19 +489,50 @@ export class CreateEditUserComponent implements OnInit {
   onSubmit() {
     if (this.userForm.valid) {
       this.isLoading = true;
-      const formData = { ...this.userForm.value };
       
-      // Remove password if empty in edit mode
-      if (this.isEditMode && !formData.password) {
-        delete formData.password;
+      // Create a properly formatted request object
+      const formData: any = {
+        name: this.userForm.get('name')?.value,
+        email: this.userForm.get('email')?.value,
+        role: this.userForm.get('role')?.value
+      };
+      
+      // Add password if provided (required for new users, optional for edit)
+      const password = this.userForm.get('password')?.value;
+      if (password) {
+        formData.password = password;
+      } else if (!this.isEditMode) {
+        // Password is required for new users
+        formData.password = '';
       }
-
-      // Remove null values for optional fields
-      Object.keys(formData).forEach(key => {
-        if (formData[key] === null || formData[key] === '') {
-          delete formData[key];
-        }
-      });
+      
+      // Add location fields if required by role
+      if (this.currentRequiredFields.includes('country_id') && this.userForm.get('country_id')?.value) {
+        formData.country_id = Number(this.userForm.get('country_id')?.value);
+      }
+      
+      if (this.currentRequiredFields.includes('state_id') && this.userForm.get('state_id')?.value) {
+        formData.state_id = Number(this.userForm.get('state_id')?.value);
+      }
+      
+      if (this.currentRequiredFields.includes('district_id') && this.userForm.get('district_id')?.value) {
+        formData.district_id = Number(this.userForm.get('district_id')?.value);
+      }
+      
+      if (this.currentRequiredFields.includes('project') && this.userForm.get('project')?.value) {
+        formData.project = this.userForm.get('project')?.value;
+      }
+      
+      if (this.currentRequiredFields.includes('sector') && this.userForm.get('sector')?.value) {
+        formData.sector = this.userForm.get('sector')?.value;
+      }
+      
+      if (this.currentRequiredFields.includes('anganwadi_id') && this.userForm.get('anganwadi_id')?.value) {
+        // API expects anganwadi_id as a number (BIGINT in the database)
+        formData.anganwadi_id = Number(this.userForm.get('anganwadi_id')?.value);
+      }
+      
+      console.log('Submitting user data:', formData);
 
       const operation = this.isEditMode && this.userId
         ? this.userService.updateUser(this.userId, formData)
@@ -511,6 +546,15 @@ export class CreateEditUserComponent implements OnInit {
         error: (error) => {
           this.isLoading = false;
           console.error('Error saving user:', error);
+          console.error('Error details:', error.error);
+          
+          // Display validation errors if available
+          if (error.error && error.error.errors) {
+            console.error('Validation errors:', error.error.errors);
+            Object.keys(error.error.errors).forEach(key => {
+              console.error(`${key}: ${error.error.errors[key].join(', ')}`);
+            });
+          }
           // You might want to show a toast/snackbar here
         }
       });

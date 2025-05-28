@@ -25,6 +25,16 @@ export interface User {
   created_at: string;
   updated_at: string;
   roles: Role[];
+  country_id?: number | null;
+  state_id?: number | null;
+  district_id?: number | null;
+  project?: string | null;
+  sector?: string | null;
+  anganwadi_id?: number | null;
+  country?: any;
+  state?: any;
+  district?: any;
+  anganwadi?: any;
 }
 
 export interface LoginResponse {
