@@ -1,8 +1,9 @@
 @use 'bootstrap/scss/bootstrap' as *;
+@use '@angular/material' as mat;
 
 // Custom Theming for Angular Material
 // For more information: https://material.angular.dev/guide/theming
-@use '@angular/material' as mat;
+
 
 
 :root {
@@ -12,17 +13,22 @@
   ));
 }
 
-html {
-  @include mat.theme((
+@layer material-theme {
+  html {
+    @include mat.theme((
     color: (
-      // theme-type: light,
+      theme-type: light,
       primary: mat.$azure-palette,
       tertiary: mat.$blue-palette,
     ),
     typography: Roboto,
     density: 0,
   ));
+  }
 }
+
+// Define the order of layers. Styles in later layers take precedence.
+@layer primeng, material-theme;
 /* You can add global styles to this file, and also import other style files */
 /* Import Bootstrap */
 
@@ -195,3 +201,34 @@ body {
 }
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* PrimeNG Overrides for Transparency */
+
+// For PrimeNG Table cells (header and body)
+.p-datatable .p-datatable-thead > tr > th,
+.p-datatable .p-datatable-tbody > tr > td {
+  background-color: transparent !important;
+  color: var(--text-color); // Ensure text is visible against the new transparent background
+}
+
+// For PrimeNG InputText
+.p-inputtext {
+  background-color: transparent !important;
+  color: var(--text-color); // Ensure text is visible
+}
+
+// If you have PrimeNG Paginators with tables
+.p-paginator {
+  background-color: transparent !important;
+  .p-paginator-element,
+  .p-dropdown-label,
+  .p-dropdown-trigger,
+  .p-inputtext { // More specific paginator parts
+    background-color: transparent !important;
+    color: var(--text-color) !important; // Ensure text/icons in paginator are visible
+  }
+  .p-highlight { // For active page number
+    background-color: var(--primary-color) !important; // Or another suitable highlight color
+    color: white !important; // Or a contrasting color for the highlight
+  }
+}

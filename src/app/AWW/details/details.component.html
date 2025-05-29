@@ -1,13 +1,13 @@
 <div class="container mt-5" *ngIf="competency">
   <div class="row g-4">
-    <div class="col-lg-6">
+    <div class="col-lg-4">
       <div class="competency-content">
         <img [src]="competency.imageUrl" [alt]="competency.name" class="img-fluid mb-3 competency-image">
         <h2 class="mb-3">{{ competency.name }}</h2>
         <p class="mb-4">{{ competency.description }}</p>
       </div>
     </div>
-    <div class="col-lg-6">
+    <div class="col-lg-8">
       <div class="details-image-container">
         <img [src]="competency.detailsImageUrl" alt="Details Image" class="img-fluid details-image">
       </div>

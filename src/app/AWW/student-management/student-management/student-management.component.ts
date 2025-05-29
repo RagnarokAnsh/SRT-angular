@@ -6,15 +6,7 @@ import { RouterModule } from '@angular/router';
   selector: 'app-student-management',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  template: `
-    <div class="container mt-4">
-      <div class="card">
-        <div class="card-body">
-          <router-outlet></router-outlet>
-        </div>
-      </div>
-    </div>
-  `,
+  templateUrl: './student-management.component.html',
   styles: []
 })
 export class StudentManagementComponent {} 

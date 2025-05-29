@@ -68,7 +68,7 @@ export interface User {
   district_id: number | null;
   project: string | null;
   sector: string | null;
-  anganwadi_id: number | null; // This should be a number (BIGINT in the database)
+  anganwadi_id: number | null; 
   created_at: string;
   updated_at: string;
   roles: Role[];
@@ -76,6 +76,7 @@ export interface User {
   state: State | null;
   district: District | null;
   anganwadi: AnganwadiCenter | null;
+  gender: string | null;
 }
 
 export interface CreateUserRequest {
@@ -88,7 +89,8 @@ export interface CreateUserRequest {
   district_id?: number | null;
   project?: string | null;
   sector?: string | null;
-  anganwadi_id?: number | null; // This should be a number (BIGINT in the database)
+  anganwadi_id?: number | null; // 
+  gender: string;
 }
 
 export interface UpdateUserRequest {
@@ -101,7 +103,8 @@ export interface UpdateUserRequest {
   district_id?: number | null;
   project?: string | null;
   sector?: string | null;
-  anganwadi_id?: number | null; // This should be a number (BIGINT in the database)
+  anganwadi_id?: number | null; // 
+  gender: string;
 }
 
 @Injectable({

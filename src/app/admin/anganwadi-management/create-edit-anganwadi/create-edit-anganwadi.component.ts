@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -9,6 +9,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AnganwadiService, Country, State, District } from '../anganwadi.service';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-create-edit-anganwadi',
@@ -21,135 +23,12 @@ import { AnganwadiService, Country, State, District } from '../anganwadi.service
     MatButtonModule,
     MatCardModule,
     MatSelectModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    ToastModule
   ],
-  template: `
-    <div class="card">
-      <div class="card-body">
-        <h2 class="heading-heading mb-4">
-          <span class="heading-highlight">{{isEditMode ? 'Edit' : 'Add'}}</span> Anganwadi Center
-        </h2>
 
-        <form [formGroup]="anganwadiForm" (ngSubmit)="onSubmit()">
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Center Name</mat-label>
-                <input matInput formControlName="name" placeholder="Enter center name">
-                <mat-error *ngIf="anganwadiForm.get('name')?.hasError('required')">
-                  Center name is required
-                </mat-error>
-              </mat-form-field>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Center Code</mat-label>
-                <input matInput formControlName="code" placeholder="Enter center code">
-                <mat-error *ngIf="anganwadiForm.get('code')?.hasError('required')">
-                  Center code is required
-                </mat-error>
-              </mat-form-field>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Project</mat-label>
-                <input matInput formControlName="project" placeholder="Enter project name">
-                <mat-error *ngIf="anganwadiForm.get('project')?.hasError('required')">
-                  Project is required
-                </mat-error>
-              </mat-form-field>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Sector</mat-label>
-                <input matInput formControlName="sector" placeholder="Enter sector">
-                <mat-error *ngIf="anganwadiForm.get('sector')?.hasError('required')">
-                  Sector is required
-                </mat-error>
-              </mat-form-field>
-            </div>
-
-            <div class="col-md-4 mb-3">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Country</mat-label>
-                <mat-select formControlName="country_id" (selectionChange)="onCountryChange($event.value)">
-                  <mat-option *ngFor="let country of countries" [value]="country.id">
-                    {{country.name}}
-                  </mat-option>
-                </mat-select>
-                <mat-error *ngIf="anganwadiForm.get('country_id')?.hasError('required')">
-                  Country is required
-                </mat-error>
-              </mat-form-field>
-            </div>
-
-            <div class="col-md-4 mb-3">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>State</mat-label>
-                <mat-select formControlName="state_id" 
-                           [disabled]="!anganwadiForm.get('country_id')?.value || loadingStates"
-                           (selectionChange)="onStateChange($event.value)">
-                  <mat-option *ngIf="loadingStates" disabled>
-                    <mat-spinner diameter="20"></mat-spinner> Loading...
-                  </mat-option>
-                  <mat-option *ngFor="let state of states" [value]="state.id">
-                    {{state.name}}
-                  </mat-option>
-                </mat-select>
-                <mat-error *ngIf="anganwadiForm.get('state_id')?.hasError('required')">
-                  State is required
-                </mat-error>
-              </mat-form-field>
-            </div>
-
-            <div class="col-md-4 mb-3">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>District</mat-label>
-                <mat-select formControlName="district_id" 
-                           [disabled]="!anganwadiForm.get('state_id')?.value || loadingDistricts">
-                  <mat-option *ngIf="loadingDistricts" disabled>
-                    <mat-spinner diameter="20"></mat-spinner> Loading...
-                  </mat-option>
-                  <mat-option *ngFor="let district of districts" [value]="district.id">
-                    {{district.name}}
-                  </mat-option>
-                </mat-select>
-                <mat-error *ngIf="anganwadiForm.get('district_id')?.hasError('required')">
-                  District is required
-                </mat-error>
-              </mat-form-field>
-            </div>
-          </div>
-
-          <div class="d-flex justify-content-end gap-2 mt-4">
-            <button type="button" class="btn btn-outline-secondary" (click)="goBack()">Cancel</button>
-            <button type="submit" class="btn btn-primary" [disabled]="anganwadiForm.invalid || submitting">
-              <mat-spinner *ngIf="submitting" diameter="20" class="me-2"></mat-spinner>
-              {{isEditMode ? 'Update' : 'Create'}} Center
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .mat-mdc-form-field {
-      width: 100%;
-    }
-    
-    .mat-spinner {
-      display: inline-block;
-      margin-right: 8px;
-    }
-
-    .mat-mdc-option .mat-spinner {
-      margin-right: 8px;
-      vertical-align: middle;
-    }
-  `]
+  templateUrl: './create-edit-anganwadi.component.html',
+  styleUrl: './create-edit-anganwadi.component.scss'
 })
 export class CreateEditAnganwadiComponent implements OnInit {
   anganwadiForm: FormGroup;
@@ -168,6 +47,8 @@ export class CreateEditAnganwadiComponent implements OnInit {
   private originalCountryId?: number;
   private originalStateId?: number;
   private originalDistrictId?: number;
+
+  private messageService = inject(MessageService);
 
   constructor(
     private fb: FormBuilder,
@@ -302,10 +183,26 @@ export class CreateEditAnganwadiComponent implements OnInit {
       if (this.isEditMode && this.anganwadiId) {
         this.anganwadiService.updateAnganwadiCenter(this.anganwadiId, centerData).subscribe({
           next: () => {
+            setTimeout(() => {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: `Anganwadi center "${centerData.name}" updated successfully`,
+                life: 3000
+              });
+            }, 0);
             this.submitting = false;
             this.goBack();
           },
           error: (error) => {
+            setTimeout(() => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `Failed to update anganwadi center: ${error.message || 'Unknown error'}`,
+                life: 5000
+              });
+            }, 0);
             console.error('Error updating anganwadi center:', error);
             this.submitting = false;
           }
@@ -313,10 +210,26 @@ export class CreateEditAnganwadiComponent implements OnInit {
       } else {
         this.anganwadiService.createAnganwadiCenter(centerData).subscribe({
           next: () => {
+            setTimeout(() => {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: `Anganwadi center "${centerData.name}" created successfully`,
+                life: 3000
+              });
+            }, 0);
             this.submitting = false;
             this.goBack();
           },
           error: (error) => {
+            setTimeout(() => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `Failed to create anganwadi center: ${error.message || 'Unknown error'}`,
+                life: 5000
+              });
+            }, 0);
             console.error('Error creating anganwadi center:', error);
             this.submitting = false;
           }

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { CompetencyService, Domain } from '../../competency.service';
+import { CompetencyService, AppDomain } from '../../competency.service';
 import { NgFor } from '@angular/common';
 
 @Component({
@@ -10,15 +10,15 @@ import { NgFor } from '@angular/common';
   styleUrl: './select-competency.component.scss'
 })
 export class SelectCompetencyComponent implements OnInit {
-  domains: Domain[] = [];
+  domains: AppDomain[] = [];
 
   constructor(private router: Router, private competencyService: CompetencyService) { }
 
   ngOnInit(): void {
-    this.domains = this.competencyService.getDomains();
+    this.competencyService.getDomainsWithCompetencies().subscribe(data => this.domains = data);
   }
 
-  goToDetails(competencyId: string): void {
-    this.router.navigate(['/details', competencyId]);
+  goToDetails(competencyId: number): void {
+    this.router.navigate(['/details', competencyId.toString()]);
   }
 }

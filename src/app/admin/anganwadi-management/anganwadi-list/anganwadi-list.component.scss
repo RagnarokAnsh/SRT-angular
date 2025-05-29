@@ -1,3 +1,4 @@
+
 :host {
   display: block;
   padding: var(--spacing-md);
@@ -12,8 +13,7 @@
 table {
   width: 100%;
 }
-
-.mat-icon {
+.mat-icon{
   text-align: center;
 }
 
@@ -38,4 +38,4 @@ table {
   .mat-mdc-cell, .mat-mdc-header-cell {
     padding: var(--spacing-xs) var(--spacing-sm);
   }
-} 
+}

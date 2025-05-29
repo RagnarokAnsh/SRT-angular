@@ -1,20 +1,33 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-anganwadi-management',
   standalone: true,
-  imports: [CommonModule, RouterModule],
-  template: `
-    <div class="container mt-4">
-      <div class="card">
-        <div class="card-body">
-          <router-outlet></router-outlet>
-        </div>
-      </div>
-    </div>
-  `,
-  styles: []
+  imports: [CommonModule, RouterModule, ToastModule],
+  templateUrl: './anganwadi-management.component.html',
+  styles: [],
+
 })
-export class AnganwadiManagementComponent {}
+export class AnganwadiManagementComponent {
+  constructor(private messageService: MessageService) {}
+
+  showSuccess(message: string) {
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Success',
+      detail: message
+    });
+  }
+
+  showError(message: string) {
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: message
+    });
+  }
+}

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { UserService } from '../../services/user.service';
@@ -30,6 +30,7 @@ export interface ApiStudent {
   created_at: string;
   updated_at: string;
   anganwadi?: Anganwadi;
+  gender: string; 
 }
 
 export interface Student {
@@ -44,6 +45,7 @@ export interface Student {
   anganwadiId: number;
   awwId?: number; // The ID of the anganwadi worker who manages this student
   anganwadi?: Anganwadi;
+  gender: string; // Added gender
 }
 
 @Injectable({
@@ -62,11 +64,19 @@ export class StudentService {
       console.log('Current user ID:', this.currentUserId);
     }
     
-    // Try to get the anganwadi center ID for the current user
-    this.getCurrentUserAnganwadiId().subscribe(id => {
-      this.currentUserAnganwadiId = id;
-      console.log('Current user anganwadi ID:', id);
-    });
+    // Try to get the anganwadi center ID for the current user synchronously
+    if (currentUser && this.userService.isAWW() && currentUser.anganwadi_id) {
+      this.currentUserAnganwadiId = currentUser.anganwadi_id;
+      console.log('Current user anganwadi ID (sync from constructor):', this.currentUserAnganwadiId);
+    } else if (currentUser && this.userService.isAWW()) {
+      // Fallback to async if not directly on currentUser, though ideally it should be
+      this.getCurrentUserAnganwadiId().subscribe(id => {
+        // This subscription in constructor is less ideal, but acts as a fallback
+        // if anganwadi_id wasn't immediately available on the currentUser object.
+        // The getCurrentUserAnganwadiId method itself will cache the ID.
+        console.log('Current user anganwadi ID (async fallback from constructor):', id);
+      });
+    }
   }
 
   // Helper method to convert API student format to our application format
@@ -84,7 +94,8 @@ export class StudentService {
         weight: 0,
         language: '',
         anganwadiId: 1,
-        awwId: this.currentUserId || undefined
+        awwId: this.currentUserId || undefined,
+        gender: '' // Default gender
       };
     }
     
@@ -128,7 +139,8 @@ export class StudentService {
         language: apiStudent.language || '',
         anganwadiId: apiStudent.anganwadi_id || 1,
         awwId: apiStudent.aww_id || this.currentUserId || undefined,
-        anganwadi: apiStudent.anganwadi
+        anganwadi: apiStudent.anganwadi,
+        gender: apiStudent.gender || '' // Map gender
       };
     } catch (error) {
       console.error('Error in mapApiStudentToStudent:', error);
@@ -142,7 +154,8 @@ export class StudentService {
         height: 0,
         weight: 0,
         language: '',
-        anganwadiId: 1
+        anganwadiId: 1,
+        gender: '' // Default gender on error
       };
     }
   }
@@ -201,7 +214,8 @@ export class StudentService {
     // Create the API student object with safe values
     // Only include fields that the API expects
     const apiStudent: any = {
-      name: `${student.firstName || ''} ${student.lastName || ''}`.trim(),
+      name: `${student.firstName} ${student.lastName}`,
+      gender: student.gender, // Add gender to API format
       date_of_birth: formattedDate,
       symbol: student.symbol || '',
       height_cm: student.height ? student.height.toString() : '0',
@@ -227,7 +241,6 @@ export class StudentService {
 
   /**
    * Get the anganwadi center ID for the current user
-   * This would typically come from the user profile or a separate API call
    */
   getCurrentUserAnganwadiId(): Observable<number | null> {
     // If we already have the ID cached, return it
@@ -235,390 +248,219 @@ export class StudentService {
       return of(this.currentUserAnganwadiId);
     }
     
-    // Get the current user from the user service
     const currentUser = this.userService.getCurrentUser();
     
-    // Check if the user is an AWW
     if (currentUser && this.userService.isAWW()) {
-      console.log('Current AWW user:', currentUser);
-      
-      // First, check if the user has an anganwadi_id directly
-      if (currentUser.anganwadi_id) {
-        console.log('Found anganwadi_id in user profile:', currentUser.anganwadi_id);
-        // Store this ID for future use
+      if (typeof currentUser.anganwadi_id === 'number') {
         this.currentUserAnganwadiId = currentUser.anganwadi_id;
-        sessionStorage.setItem('aww_anganwadi_id', currentUser.anganwadi_id.toString());
-        return of(currentUser.anganwadi_id);
-      }
-      
-      // If the user has an anganwadi object, get the ID from there
-      if (currentUser.anganwadi && currentUser.anganwadi.id) {
-        console.log('Found anganwadi object in user profile:', currentUser.anganwadi);
+        console.log('getCurrentUserAnganwadiId: Fetched AWW anganwadi_id directly:', this.currentUserAnganwadiId);
+        return of(this.currentUserAnganwadiId);
+      } else if (currentUser.anganwadi && typeof currentUser.anganwadi.id === 'number') {
+        // Fallback if anganwadi_id is not directly on user, but on user.anganwadi.id
         this.currentUserAnganwadiId = currentUser.anganwadi.id;
-        sessionStorage.setItem('aww_anganwadi_id', currentUser.anganwadi.id.toString());
-        return of(currentUser.anganwadi.id);
+        console.log('getCurrentUserAnganwadiId: Fetched AWW anganwadi_id from anganwadi object:', this.currentUserAnganwadiId);
+        return of(this.currentUserAnganwadiId);
+      } else {
+        console.warn('getCurrentUserAnganwadiId: AWW user ' + currentUser.id + ' does not have a valid anganwadi_id. This needs to be fixed in user data.');
+        return of(null);
       }
-      
-      // If no anganwadi_id in the user profile, try the user-profile endpoint
-      return this.http.get<any>(`${this.apiUrl}/user-profile`).pipe(
-        switchMap(profile => {
-          console.log('User profile response:', profile);
-          
-          // Check if the profile has an anganwadi_id field
-          if (profile && profile.anganwadi_id) {
-            console.log('Found anganwadi_id in user profile API:', profile.anganwadi_id);
-            this.currentUserAnganwadiId = profile.anganwadi_id;
-            sessionStorage.setItem('aww_anganwadi_id', profile.anganwadi_id.toString());
-            return of(profile.anganwadi_id);
-          }
-          
-          // If the profile has an anganwadi object
-          if (profile && profile.anganwadi && profile.anganwadi.id) {
-            console.log('Found anganwadi object in user profile API:', profile.anganwadi);
-            this.currentUserAnganwadiId = profile.anganwadi.id;
-            sessionStorage.setItem('aww_anganwadi_id', profile.anganwadi.id.toString());
-            return of(profile.anganwadi.id);
-          }
-          
-          // If no anganwadi_id is found, check for a stored ID
-          const storedAnganwadiId = sessionStorage.getItem('aww_anganwadi_id');
-          if (storedAnganwadiId) {
-            const parsedId = parseInt(storedAnganwadiId, 10);
-            console.log('Using stored anganwadi_id from session storage:', parsedId);
-            this.currentUserAnganwadiId = parsedId;
-            return of(parsedId);
-          }
-          
-          // If all else fails, get the list of centers and use a fallback
-          return this.http.get<any[]>(`${this.apiUrl}/anganwadi-centers`).pipe(
-            map(centers => this.getFallbackAnganwadiId(centers)),
-            catchError(error => {
-              console.error('Error getting anganwadi centers:', error);
-              return of(null);
-            })
-          );
-        }),
-        catchError(error => {
-          console.error('Error getting user profile:', error);
-          return of(null);
-        })
-      );
     }
     
-    // For non-AWW users or if no user is logged in
+    // If not an AWW, or no current user, return null
+    // console.log('getCurrentUserAnganwadiId: User is not AWW or no current user, returning null.');
     return of(null);
   }
-  
+
   /**
    * Helper method to get anganwadi center details by ID
    */
   getAnganwadiDetails(anganwadiId: number): Observable<Anganwadi | null> {
-    console.log('Looking up anganwadi details for ID:', anganwadiId);
+    // console.log('Looking up anganwadi details for ID:', anganwadiId);
     return this.http.get<Anganwadi[]>(`${this.apiUrl}/anganwadi-centers`).pipe(
       map(centers => {
         const center = centers.find(c => c.id === anganwadiId);
         if (center) {
-          console.log('Found matching anganwadi center:', center);
+          // console.log('Found matching anganwadi center:', center);
           return center;
         }
-        console.warn('No anganwadi center found with ID:', anganwadiId);
+        // console.warn('No anganwadi center found with ID:', anganwadiId);
         return null;
       }),
       catchError(error => {
-        console.error('Error getting anganwadi centers:', error);
+        console.error('Error getting anganwadi centers in getAnganwadiDetails:', error);
         return of(null);
       })
     );
   }
-  
-  /**
-   * Helper method to get a fallback anganwadi ID
-   */
-  private getFallbackAnganwadiId(centers: any[]): number | null {
-    if (centers && centers.length > 0) {
-      const centerId = centers[0].id;
-      console.log('Using first available anganwadi center as fallback:', centerId);
-      this.currentUserAnganwadiId = centerId;
-      sessionStorage.setItem('aww_anganwadi_id', centerId.toString());
-      return centerId;
-    }
-    console.warn('No anganwadi centers available');
-    return null;
-  }
-  
+
   /**
    * Get all students, optionally filtered by current worker's anganwadi center
    */
   getStudents(filterByCurrentWorker: boolean = true): Observable<Student[]> {
-    // If the user is an AWW and we want to filter by their anganwadi center
     if (filterByCurrentWorker && this.userService.isAWW()) {
-      // First ensure we have the current user's anganwadi ID
       return this.getCurrentUserAnganwadiId().pipe(
-        switchMap(anganwadiId => {
-          if (!anganwadiId) {
-            console.error('No anganwadi ID found for the current AWW user');
-            return of([]);
+        switchMap(awwAnganwadiId => {
+          if (awwAnganwadiId === null) { // Check for null specifically
+            console.warn('getStudents: AWW user has no anganwadiId, returning empty list of students.');
+            return of([]); // Return empty array if AWW has no anganwadi ID
           }
-          this.currentUserAnganwadiId = anganwadiId;
-          console.log('Filtering students by anganwadi ID:', anganwadiId);
-          
-          // Since we don't have a specific endpoint for filtering by anganwadi,
-          // we'll get all students and filter client-side
-          return this.http.get<ApiStudent[]>(`${this.apiUrl}/children`)
-            .pipe(
-              map(apiStudents => {
-                console.log('Total students before filtering:', apiStudents.length);
-                // Filter students by anganwadi_id
-                const filteredApiStudents = apiStudents.filter(student => student.anganwadi_id === anganwadiId);
-                console.log('Students after filtering by anganwadi_id:', filteredApiStudents.length);
-                // Map API students to our application format
-                return filteredApiStudents.map(apiStudent => this.mapApiStudentToStudent(apiStudent));
-              })
-            );
-        })
+          // console.log('getStudents: Filtering students by anganwadi ID:', awwAnganwadiId);
+          return this.http.get<ApiStudent[]>(`${this.apiUrl}/children`).pipe(
+            map(apiStudents => {
+              const filteredApiStudents = apiStudents.filter(apiStudent => apiStudent.anganwadi_id === awwAnganwadiId);
+              // console.log(`getStudents: Total students ${apiStudents.length}, filtered to ${filteredApiStudents.length} for anganwadi ID ${awwAnganwadiId}`);
+              return filteredApiStudents.map(apiStudent => this.mapApiStudentToStudent(apiStudent));
+            }),
+            catchError(this.handleError) // Handle errors from fetching children
+          );
+        }),
+        catchError(this.handleError) // Handle errors from getCurrentUserAnganwadiId
       );
     } else {
       // For non-AWW users or when filtering is disabled, get all students
-      return this.http.get<ApiStudent[]>(`${this.apiUrl}/children`)
-        .pipe(
-          map(apiStudents => {
-            // Map API students to our application format
-            return apiStudents.map(apiStudent => this.mapApiStudentToStudent(apiStudent));
-          })
-        );
+      // console.log('getStudents: Fetching all students (user not AWW or filter disabled).');
+      return this.http.get<ApiStudent[]>(`${this.apiUrl}/children`).pipe(
+        map(apiStudents => apiStudents.map(apiStudent => this.mapApiStudentToStudent(apiStudent))),
+        catchError(this.handleError)
+      );
     }
   }
 
   getStudent(id: number): Observable<Student> {
-    return this.http.get<ApiStudent>(`${this.apiUrl}/children/${id}`)
-      .pipe(
-        map(apiStudent => this.mapApiStudentToStudent(apiStudent))
-      );
-  }
+    return this.http.get<ApiStudent>(`${this.apiUrl}/children/${id}`).pipe(
+      switchMap(apiStudent => {
+        const student = this.mapApiStudentToStudent(apiStudent);
+        if (this.userService.isAWW()) {
+          return this.getCurrentUserAnganwadiId().pipe(
+            map(awwAnganwadiId => {
+              if (!awwAnganwadiId) {
+                console.error('AWW user does not have an Anganwadi ID. Access denied for student:', id);
+                throw new Error('Access Denied: Your Anganwadi center information is missing.');
+              } // This closes: if (!awwAnganwadiId)
+              if (student.anganwadiId !== awwAnganwadiId) {
+                console.warn(`Access Denied: AWW (Anganwadi ID: ${awwAnganwadiId}) attempting to access student (ID: ${id}) from different Anganwadi (ID: ${student.anganwadiId}).`);
+                throw new Error('Access Denied: You do not have permission to view this student.');
+              }
+              return student; // Return the student if access is permitted
+            }) // Closes: map(awwAnganwadiId => { ... })
+          ); // Closes: return this.getCurrentUserAnganwadiId().pipe(...)
+        } // Closes: if (this.userService.isAWW())
+        return of(student); // Non-AWW users can access, or if not AWW, return student directly
+      }), // Closes: switchMap(apiStudent => { ... })
+      catchError(this.handleError)
+    ); // Closes: return this.http.get(...).pipe(...)
+  } // Closes: getStudent(id: number): Observable<Student>
 
-  createStudent(student: Omit<Student, 'id'>): Observable<Student> {
-    // For AWW users, ensure the student is assigned to their anganwadi center
+  createStudent(studentData: Omit<Student, 'id'>): Observable<Student> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    });
+
     if (this.userService.isAWW()) {
       return this.getCurrentUserAnganwadiId().pipe(
-        switchMap(anganwadiId => {
-          if (!anganwadiId) {
-            return throwError(() => new Error('No anganwadi center assigned to the current user'));
+        switchMap(awwAnganwadiId => {
+          if (!awwAnganwadiId) {
+            return throwError(() => new Error('Access Denied: Anganwadi center not assigned. Cannot create student.'));
           }
-          
-          // Set the anganwadi ID to the current user's anganwadi center
-          student.anganwadiId = anganwadiId;
-          
-          // Map the student to API format - age calculation is now done inside mapStudentToApiFormat
-          const apiStudent = this.mapStudentToApiFormat(student);
-          
-          // Create the headers for the request
-          const headers = new HttpHeaders({
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          });
-          
-          // Make the API request
-          return this.http.post<any>(`${this.apiUrl}/children`, apiStudent, { headers })
-            .pipe(
-              map(response => {
-                console.log('API response:', response);
-                
-                // Check if the response has a nested child object (common in Laravel APIs)
-                if (response && response.child) {
-                  return this.mapApiStudentToStudent(response.child);
-                } else if (response && response.data) {
-                  return this.mapApiStudentToStudent(response.data);
-                } else if (response && typeof response === 'object') {
-                  // If the response is the student object directly
-                  return this.mapApiStudentToStudent(response);
-                } else {
-                  // Create a default student object if we can't map from the response
-                  return {
-                    id: 0,
-                    firstName: student.firstName,
-                    lastName: student.lastName,
-                    dateOfBirth: new Date(student.dateOfBirth),
-                    symbol: student.symbol,
-                    height: student.height,
-                    weight: student.weight,
-                    language: student.language,
-                    anganwadiId: student.anganwadiId
-                  };
-                }
-              }),
-              catchError(error => {
-                console.error('API error details:', error);
-                
-                // Try to extract validation errors from the response
-                if (error.status === 422 && error.error) {
-                  console.log('Validation errors:', error.error);
-                  let errorMessage = 'Validation failed: ';
-                  
-                  // Laravel typically returns validation errors in error.error.errors
-                  if (error.error.errors) {
-                    const validationErrors = error.error.errors;
-                    const errorFields = Object.keys(validationErrors);
-                    
-                    errorFields.forEach(field => {
-                      errorMessage += `${field}: ${validationErrors[field].join(', ')}. `;
-                    });
-                  } else if (typeof error.error === 'string') {
-                    errorMessage += error.error;
-                  }
-                  
-                  return throwError(() => new Error(errorMessage));
-                } else if (error.status === 500) {
-                  // For 500 errors, provide more detailed information if available
-                  console.log('Server error details:', error);
-                  if (error.error && error.error.message) {
-                    return throwError(() => new Error(`Server error: ${error.error.message}`));
-                  }
-                  return throwError(() => new Error('Server error occurred. Please try again or contact support.'));
-                }
-                
-                return throwError(() => new Error(`Failed to create student: ${error.message || 'Unknown error'}`));
-              })
-            );
-        })
+          const studentPayload = {
+            ...studentData,
+            anganwadiId: awwAnganwadiId // Enforce AWW's anganwadiId
+          };
+          const apiStudent = this.mapStudentToApiFormat(studentPayload);
+          return this.http.post<ApiStudent>(`${this.apiUrl}/children`, apiStudent, { headers }).pipe(
+            map(response => this.mapApiStudentToStudent(response)),
+            catchError(this.handleError)
+          );
+        }),
+        catchError(this.handleError) // Catch errors from getCurrentUserAnganwadiId or if awwAnganwadiId is null
       );
     } else {
       // For non-AWW users, proceed with the regular create process
-      // Map the student to API format - age calculation is now done inside mapStudentToApiFormat
-      const apiStudent = this.mapStudentToApiFormat(student);
-      
-      // Create the headers for the request
-      const headers = new HttpHeaders({
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      });
-      
-      // Make the API request
-      return this.http.post<any>(`${this.apiUrl}/children`, apiStudent, { headers })
-        .pipe(
-          map(response => {
-            console.log('API response:', response);
-            
-            // Check if the response has a nested child object (common in Laravel APIs)
-            if (response && response.child) {
-              return this.mapApiStudentToStudent(response.child);
-            } else if (response && response.data) {
-              return this.mapApiStudentToStudent(response.data);
-            } else if (response && typeof response === 'object') {
-              // If the response is the student object directly
-              return this.mapApiStudentToStudent(response);
-            } else {
-              // Create a default student object if we can't map from the response
-              return {
-                id: 0,
-                firstName: student.firstName,
-                lastName: student.lastName,
-                dateOfBirth: new Date(student.dateOfBirth),
-                symbol: student.symbol,
-                height: student.height,
-                weight: student.weight,
-                language: student.language,
-                anganwadiId: student.anganwadiId
-              };
+      const apiStudent = this.mapStudentToApiFormat(studentData);
+      return this.http.post<ApiStudent>(`${this.apiUrl}/children`, apiStudent, { headers }).pipe(
+        map(response => this.mapApiStudentToStudent(response)),
+        catchError(this.handleError)
+      );
+    }
+  }
+
+updateStudent(id: number, studentData: Omit<Student, 'id'>): Observable<Student> {
+  const headers = new HttpHeaders({
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  });
+
+  if (this.userService.isAWW()) {
+    return this.getStudent(id).pipe( // This call includes the access check
+      switchMap(existingStudent => { // existingStudent is confirmed to be accessible by AWW
+        return this.getCurrentUserAnganwadiId().pipe(
+          switchMap(awwAnganwadiId => {
+            if (!awwAnganwadiId) {
+              return throwError(() => new Error('Access Denied: Anganwadi center not assigned. Cannot update student.'));
             }
-          }),
-          catchError(error => {
-            console.error('API error details:', error);
-            
-            // Try to extract validation errors from the response
-            if (error.status === 422 && error.error) {
-              console.log('Validation errors:', error.error);
-              let errorMessage = 'Validation failed: ';
-              
-              // Laravel typically returns validation errors in error.error.errors
-              if (error.error.errors) {
-                const validationErrors = error.error.errors;
-                const errorFields = Object.keys(validationErrors);
-                
-                errorFields.forEach(field => {
-                  errorMessage += `${field}: ${validationErrors[field].join(', ')}. `;
-                });
-              } else if (typeof error.error === 'string') {
-                errorMessage += error.error;
-              }
-              
-              return throwError(() => new Error(errorMessage));
-            } else if (error.status === 500) {
-              // For 500 errors, provide more detailed information if available
-              console.log('Server error details:', error);
-              if (error.error && error.error.message) {
-                return throwError(() => new Error(`Server error: ${error.error.message}`));
-              }
-              return throwError(() => new Error('Server error occurred. Please try again or contact support.'));
-            }
-            
-            return throwError(() => new Error(`Failed to create student: ${error.message || 'Unknown error'}`));
+            // Ensure the student update uses the AWW's anganwadiId
+            const studentPayloadForApi = {
+              ...studentData,
+              anganwadiId: awwAnganwadiId, // Enforce AWW's anganwadiId
+            };
+            const apiStudent = this.mapStudentToApiFormat(studentPayloadForApi, id);
+            return this.http.put<ApiStudent>(`${this.apiUrl}/children/${id}`, apiStudent, { headers }).pipe(
+              map(response => this.mapApiStudentToStudent(response))
+              // Error handling for the PUT request is chained in the outer catchError
+            );
           })
         );
-    }
+      }),
+      catchError(this.handleError) // Catches errors from getStudent, getCurrentUserAnganwadiId, or the PUT request
+    );
+  } else {
+    // Admin or other roles: proceed without AWW restrictions
+    const apiStudent = this.mapStudentToApiFormat(studentData, id);
+    return this.http.put<ApiStudent>(`${this.apiUrl}/children/${id}`, apiStudent, { headers }).pipe(
+      map(response => this.mapApiStudentToStudent(response)),
+      catchError(this.handleError)
+    );
   }
+}
 
-  updateStudent(id: number, student: Omit<Student, 'id'>): Observable<Student> {
-    // For AWW users, ensure they can only update students from their anganwadi center
-    if (this.userService.isAWW()) {
-      return this.getCurrentUserAnganwadiId().pipe(
-        switchMap(anganwadiId => {
-          if (!anganwadiId) {
-            return throwError(() => new Error('No anganwadi center assigned to the current user'));
-          }
-          
-          // First get the student to check if it belongs to the AWW's anganwadi center
-          return this.getStudent(id).pipe(
-            switchMap(existingStudent => {
-              if (existingStudent.anganwadiId !== anganwadiId) {
-                return throwError(() => new Error('You are not authorized to update students from other anganwadi centers'));
-              }
-              
-              // Set the anganwadi ID to the current user's anganwadi center
-              student.anganwadiId = anganwadiId;
-              
-              const apiStudent = this.mapStudentToApiFormat(student, id);
-              return this.http.put<ApiStudent>(`${this.apiUrl}/children/${id}`, apiStudent)
-                .pipe(
-                  map(response => this.mapApiStudentToStudent(response))
-                );
-            })
-          );
-        })
-      );
-    } else {
-      // For non-AWW users, proceed with the update
-      const apiStudent = this.mapStudentToApiFormat(student, id);
-      return this.http.put<ApiStudent>(`${this.apiUrl}/children/${id}`, apiStudent)
-        .pipe(
-          map(response => this.mapApiStudentToStudent(response))
-        );
-    }
-  }
+deleteStudent(id: number): Observable<void> {
+  const headers = new HttpHeaders({
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  });
 
-  deleteStudent(id: number): Observable<void> {
-    // For AWW users, ensure they can only delete students from their anganwadi center
-    if (this.userService.isAWW()) {
-      return this.getCurrentUserAnganwadiId().pipe(
-        switchMap(anganwadiId => {
-          if (!anganwadiId) {
-            return throwError(() => new Error('No anganwadi center assigned to the current user'));
-          }
-          
-          // First get the student to check if it belongs to the AWW's anganwadi center
-          return this.getStudent(id).pipe(
-            switchMap(existingStudent => {
-              if (existingStudent.anganwadiId !== anganwadiId) {
-                return throwError(() => new Error('You are not authorized to delete students from other anganwadi centers'));
-              }
-              
-              return this.http.delete<void>(`${this.apiUrl}/children/${id}`);
-            })
-          );
-        })
-      );
-    } else {
-      // For non-AWW users, proceed with the deletion
-      return this.http.delete<void>(`${this.apiUrl}/children/${id}`);
-    }
+  if (this.userService.isAWW()) {
+    return this.getStudent(id).pipe( // This call includes the access check
+      switchMap(student => { // student is confirmed to be accessible by AWW
+        return this.http.delete<void>(`${this.apiUrl}/children/${id}`, { headers });
+      }),
+      catchError(this.handleError) // Catches errors from getStudent or the DELETE request
+    );
+  } else {
+    // Admin or other roles: proceed without AWW restrictions
+    return this.http.delete<void>(`${this.apiUrl}/children/${id}`, { headers }).pipe(
+      catchError(this.handleError)
+    );
   }
+}
+
+private handleError = (error: HttpErrorResponse): Observable<never> => {
+  if (error.error instanceof ErrorEvent) {
+    // A client-side or network error occurred. Handle it accordingly.
+    console.error('An error occurred:', error.error.message);
+  } else {
+    // The backend returned an unsuccessful response code.
+    // The response body may contain clues as to what went wrong.
+    console.error(
+      `Backend returned code ${error.status}, ` +
+      `body was: ${JSON.stringify(error.error)}`);
+  }
+  // Return an observable with a user-facing error message.
+  // For access denied errors thrown explicitly, this might be overridden by the specific error message.
+  if (error.status === 403 || error.message.startsWith('Access Denied')) {
+    return throwError(() => new Error(error.message || 'Access Denied: You do not have permission to perform this action.'));
+  }
+  return throwError(() => new Error('Something bad happened; please try again later.'));
+};
 }

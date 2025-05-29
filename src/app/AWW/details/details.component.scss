@@ -2,13 +2,21 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 
 .competency-image {
   width: 100%;
-  max-height: 300px;
+  max-height: 200px;
   object-fit: contain;
   border-radius: var(--border-radius-md);
+  max-width: 125px;
+}
+h3 {
+  text-align: center;
+}
+h2 {
+  text-align: center;
 }
 
 .details-image-container {
@@ -17,9 +25,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: white;
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--box-shadow-md);
   padding: var(--spacing-md);
 }
 

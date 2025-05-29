@@ -27,131 +27,7 @@ import { UserService } from '../../../services/user.service';
     MatNativeDateModule,
     MatSelectModule
   ],
-  template: `
-    <div class="card">
-      <div class="card-body">
-        <h2 class="heading-heading mb-4">
-          <span class="heading-highlight">{{isEditMode ? 'Edit' : 'Add'}}</span> Student
-        </h2>
-        
-        <div *ngIf="isLoading" class="text-center my-4">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-          <p class="mt-2">Loading data...</p>
-        </div>
-
-        <form [formGroup]="studentForm" (ngSubmit)="onSubmit()" *ngIf="!isLoading">
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>First Name</mat-label>
-                <input matInput formControlName="firstName" placeholder="Enter first name">
-                <mat-error *ngIf="studentForm.get('firstName')?.hasError('required')">
-                  First name is required
-                </mat-error>
-              </mat-form-field>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Last Name</mat-label>
-                <input matInput formControlName="lastName" placeholder="Enter last name">
-                <mat-error *ngIf="studentForm.get('lastName')?.hasError('required')">
-                  Last name is required
-                </mat-error>
-              </mat-form-field>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Date of Birth</mat-label>
-                <input matInput [matDatepicker]="picker" formControlName="dateOfBirth">
-                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                <mat-datepicker #picker></mat-datepicker>
-                <mat-error *ngIf="studentForm.get('dateOfBirth')?.hasError('required')">
-                  Date of birth is required
-                </mat-error>
-              </mat-form-field>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Symbol</mat-label>
-                <input matInput formControlName="symbol" placeholder="Enter symbol">
-                <mat-error *ngIf="studentForm.get('symbol')?.hasError('required')">
-                  Symbol is required
-                </mat-error>
-              </mat-form-field>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Height (cm)</mat-label>
-                <input matInput type="number" formControlName="height" placeholder="Enter height">
-                <mat-error *ngIf="studentForm.get('height')?.hasError('required')">
-                  Height is required
-                </mat-error>
-                <mat-error *ngIf="studentForm.get('height')?.hasError('min')">
-                  Height must be greater than 0
-                </mat-error>
-              </mat-form-field>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Weight (kg)</mat-label>
-                <input matInput type="number" formControlName="weight" placeholder="Enter weight">
-                <mat-error *ngIf="studentForm.get('weight')?.hasError('required')">
-                  Weight is required
-                </mat-error>
-                <mat-error *ngIf="studentForm.get('weight')?.hasError('min')">
-                  Weight must be greater than 0
-                </mat-error>
-              </mat-form-field>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Language</mat-label>
-                <input matInput formControlName="language" placeholder="Enter language">
-                <mat-error *ngIf="studentForm.get('language')?.hasError('required')">
-                  Language is required
-                </mat-error>
-              </mat-form-field>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Anganwadi Center</mat-label>
-                <input matInput [value]="currentAnganwadiName" readonly>
-                <mat-hint *ngIf="!isEditMode">Student will be assigned to your center</mat-hint>
-              </mat-form-field>
-              <!-- Hidden field to store the anganwadi ID -->
-              <input type="hidden" formControlName="anganwadiId">
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Assigned Worker</mat-label>
-                <input matInput [value]="currentUserName" readonly>
-                <mat-hint *ngIf="!isEditMode">Student will be assigned to you</mat-hint>
-              </mat-form-field>
-              <!-- Hidden field to store the AWW ID -->
-              <input type="hidden" formControlName="awwId">
-            </div>
-          </div>
-
-          <div class="d-flex justify-content-end gap-2 mt-4">
-            <button class="btn btn-primary" type="button" (click)="goBack()">Cancel</button>
-            <button type="submit" [disabled]="studentForm.invalid" class="btn btn-primary">
-              {{isEditMode ? 'Update' : 'Create'}} Student
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  `,
+  templateUrl: './create-edit-student.component.html',
   styles: []
 })
 export class CreateEditStudentComponent implements OnInit {
@@ -164,6 +40,7 @@ export class CreateEditStudentComponent implements OnInit {
   currentAnganwadiName: string = 'Your Anganwadi Center';
   currentUserName: string = 'You';
   currentUserId: number | null = null;
+  errorMessage: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -181,6 +58,7 @@ export class CreateEditStudentComponent implements OnInit {
       height: ['', [Validators.required, Validators.min(0)]],
       weight: ['', [Validators.required, Validators.min(0)]],
       language: ['', Validators.required],
+      gender: ['', Validators.required],
       anganwadiId: ['', Validators.required],
       awwId: [''] // This will be set to the current user's ID
     });
@@ -207,37 +85,43 @@ export class CreateEditStudentComponent implements OnInit {
 
   ngOnInit() {
     this.isLoading = true;
-    
-    // Get the current user's anganwadi center ID first
-    this.studentService.getCurrentUserAnganwadiId().subscribe({
-      next: (anganwadiId) => {
-        if (anganwadiId) {
-          this.currentAnganwadiId = anganwadiId;
-          // Set the anganwadi ID in the form
-          this.studentForm.patchValue({ anganwadiId: anganwadiId });
-          
-          // Load the anganwadi centers to get the name of the current center
-          this.loadAnganwadiCenters();
-          
-          // If in edit mode, load the student data
-          const id = this.route.snapshot.paramMap.get('id');
-          if (id) {
-            this.isEditMode = true;
-            this.studentId = +id;
-            this.loadStudentData(this.studentId);
-          } else {
-            this.isLoading = false;
-          }
-        } else {
-          console.error('No anganwadi center ID found for the current user');
-          this.isLoading = false;
-        }
-      },
-      error: (error) => {
-        console.error('Error getting current user anganwadi ID:', error);
-        this.isLoading = false;
+
+    // currentAnganwadiId and currentAnganwadiName are primarily set in the constructor.
+    if (this.userService.isAWW()) {
+      if (this.currentAnganwadiId) {
+        this.studentForm.patchValue({ anganwadiId: this.currentAnganwadiId });
+        this.studentForm.get('anganwadiId')?.disable();
+        // If currentAnganwadiName is already set from constructor, great.
+        // loadAnganwadiCenters will still run to populate the list for other roles
+        // or if the name wasn't on the currentUser object.
+      } else {
+        // This means an AWW user does not have an anganwadi_id from the constructor.
+        console.error("CreateEditStudentComponent (ngOnInit): AWW user's anganwadi center ID is missing. This is a data issue.");
+        this.errorMessage = "Your anganwadi center information is missing. This is required to manage students. Please contact support.";
+        this.studentForm.get('anganwadiId')?.disable(); // Disable to prevent interaction
       }
-    });
+    }
+
+    // Load all anganwadi centers. For non-AWWs, this populates the dropdown.
+    // For AWWs, it can help confirm the name if not available on currentUser.anganwadi.name.
+    // loadAnganwadiCenters handles setting isLoading to false on its own.
+    this.loadAnganwadiCenters(); 
+
+    // Check if we are in edit mode
+    const idParam = this.route.snapshot.paramMap.get('id');
+    if (idParam) {
+      this.isEditMode = true;
+      this.studentId = +idParam;
+      this.loadStudentData(this.studentId); 
+    } else {
+      // In create mode. If not loading centers (e.g., if loadAnganwadiCenters completed very fast or errored before setting isLoading = false),
+      // ensure isLoading is false. However, loadAnganwadiCenters should robustly handle this.
+      // If not loading anything else, and not in edit mode, then isLoading should be false.
+      // This explicit set is a safeguard if loadAnganwadiCenters hasn't set it.
+      // However, it's better if loadAnganwadiCenters always finalizes isLoading.
+      // For now, we rely on loadAnganwadiCenters to set isLoading = false.
+      // If we reach here and isLoading is still true, it implies loadAnganwadiCenters is still running or errored without setting it.
+    }
   }
   
   loadAnganwadiCenters() {

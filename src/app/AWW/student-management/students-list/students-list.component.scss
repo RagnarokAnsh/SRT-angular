@@ -1,3 +1,4 @@
+
 :host {
   display: block;
   padding: var(--spacing-md);
@@ -31,11 +32,7 @@ table {
 }
 
 @media (max-width: 768px) {
-  :host {
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
-
   .mat-mdc-cell, .mat-mdc-header-cell {
     padding: var(--spacing-xs) var(--spacing-sm);
   }
-} 
+}

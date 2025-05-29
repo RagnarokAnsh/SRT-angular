@@ -3,8 +3,15 @@
     <h2 class="heading-heading mb-4">
       <span class="heading-highlight">{{isEditMode ? 'Edit' : 'Add'}}</span> Student
     </h2>
+    
+    <div *ngIf="isLoading" class="text-center my-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-2">Loading data...</p>
+    </div>
 
-    <form [formGroup]="studentForm" (ngSubmit)="onSubmit()">
+    <form [formGroup]="studentForm" (ngSubmit)="onSubmit()" *ngIf="!isLoading">
       <div class="row">
         <div class="col-md-6 mb-3">
           <mat-form-field appearance="outline" class="w-100">
@@ -83,14 +90,48 @@
             </mat-error>
           </mat-form-field>
         </div>
+
+        <div class="col-md-6 mb-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Gender</mat-label>
+            <mat-select formControlName="gender" placeholder="Select gender">
+              <mat-option value="Boy">Boy</mat-option>
+              <mat-option value="Girl">Girl</mat-option>
+              <mat-option value="N/A">N/A</mat-option>
+            </mat-select>
+            <mat-error *ngIf="studentForm.get('gender')?.hasError('required')">
+              Gender is required
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Anganwadi Center</mat-label>
+            <input matInput [value]="currentAnganwadiName" readonly>
+            <mat-hint *ngIf="!isEditMode">Student will be assigned to your center</mat-hint>
+          </mat-form-field>
+          <!-- Hidden field to store the anganwadi ID -->
+          <input type="hidden" formControlName="anganwadiId">
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Assigned Worker</mat-label>
+            <input matInput [value]="currentUserName" readonly>
+            <mat-hint *ngIf="!isEditMode">Student will be assigned to you</mat-hint>
+          </mat-form-field>
+          <!-- Hidden field to store the AWW ID -->
+          <input type="hidden" formControlName="awwId">
+        </div>
       </div>
 
       <div class="d-flex justify-content-end gap-2 mt-4">
-        <button mat-button type="button" (click)="goBack()">Cancel</button>
-        <button mat-raised-button color="primary" type="submit" [disabled]="studentForm.invalid" class="btn-primary">
+        <button class="btn btn-primary" type="button" (click)="goBack()">Cancel</button>
+        <button type="submit" [disabled]="studentForm.invalid" class="btn btn-primary">
           {{isEditMode ? 'Update' : 'Create'}} Student
         </button>
       </div>
     </form>
   </div>
-</div> 
+</div>
