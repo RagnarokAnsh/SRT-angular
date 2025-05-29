@@ -1,7 +1,7 @@
 <div class="container mt-5">
   <div *ngFor="let domain of domains">
     <div class="competency-section">
-      <h3>{{ domain.name }}</h3>
+      <h3 class="domain-heading">{{ domain.name }}</h3>
       <div class="competency-grid">
         <div class="competency-item" *ngFor="let competency of domain.competencies" (click)="goToDetails(competency.id)">
           <img [src]="competency.imageUrl" [alt]="competency.name">

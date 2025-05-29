@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -6,7 +6,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatTableDataSource } from '@angular/material/table';
 import { StudentService, Student } from '../student.service';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-students-list',
@@ -18,32 +22,49 @@ import { StudentService, Student } from '../student.service';
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
-    MatDialogModule
+    MatDialogModule,
+    MatPaginatorModule,
+    ToastModule
   ],
   templateUrl: './students-list.component.html',
-  styleUrl: './students-list.component.scss'
+  styleUrls: ['./students-list.component.scss']
 })
 export class StudentsListComponent implements OnInit {
-  students: Student[] = [];
+  dataSource = new MatTableDataSource<Student>([]);
   displayedColumns: string[] = ['name', 'age', 'gender', 'dateOfBirth', 'symbol', 'height', 'weight', 'language', 'anganwadi', 'actions'];
+  
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     private studentService: StudentService,
     private router: Router,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private messageService: MessageService
   ) {}
 
   ngOnInit() {
     this.loadStudents();
   }
+  
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+  }
 
   loadStudents() {
     this.studentService.getStudents().subscribe({
       next: (students) => {
-        this.students = students;
+        this.dataSource.data = students;
+        // No toast on successful loading to avoid too many notifications
+        // Only show toast on initial component load or errors
       },
       error: (error) => {
         console.error('Error loading students:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load students',
+          life: 3000
+        });
       }
     });
   }
@@ -69,18 +90,30 @@ export class StudentsListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.deleteStudent(student.id);
+        this.deleteStudent(student.id, `${student.firstName} ${student.lastName}`);
       }
     });
   }
 
-  deleteStudent(id: number) {
+  deleteStudent(id: number, studentName?: string) {
     this.studentService.deleteStudent(id).subscribe({
       next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Student Deleted',
+          detail: studentName ? `Student ${studentName} has been successfully deleted` : 'Student has been successfully deleted',
+          life: 3000
+        });
         this.loadStudents();
       },
       error: (error) => {
         console.error('Error deleting student:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: error.message || 'Failed to delete student',
+          life: 3000
+        });
       }
     });
   }

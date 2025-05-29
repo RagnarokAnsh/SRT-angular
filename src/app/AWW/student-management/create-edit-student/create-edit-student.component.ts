@@ -12,6 +12,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { StudentService, Anganwadi } from '../student.service';
 import { HttpClient } from '@angular/common/http';
 import { UserService } from '../../../services/user.service';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-create-edit-student',
@@ -25,7 +27,8 @@ import { UserService } from '../../../services/user.service';
     MatCardModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatSelectModule
+    MatSelectModule,
+    ToastModule
   ],
   templateUrl: './create-edit-student.component.html',
   styles: []
@@ -48,7 +51,8 @@ export class CreateEditStudentComponent implements OnInit {
     private router: Router,
     private studentService: StudentService,
     private http: HttpClient,
-    private userService: UserService
+    private userService: UserService,
+    private messageService: MessageService
   ) {
     this.studentForm = this.fb.group({
       firstName: ['', Validators.required],
@@ -148,15 +152,27 @@ export class CreateEditStudentComponent implements OnInit {
   }
 
   loadStudentData(id: number) {
-    this.studentService.getStudent(id).subscribe(
-      student => {
+    this.studentService.getStudent(id).subscribe({
+      next: (student) => {
         this.studentForm.patchValue(student);
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Student Loaded',
+          detail: `Successfully loaded student data`,
+          life: 3000
+        });
       },
-      error => {
+      error: (error) => {
         console.error('Error loading student:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: error.message || 'Failed to load student data',
+          life: 3000
+        });
         this.goBack();
       }
-    );
+    });
   }
 
   onSubmit() {
@@ -173,11 +189,22 @@ export class CreateEditStudentComponent implements OnInit {
         this.studentService.updateStudent(this.studentId, studentData).subscribe({
           next: (response) => {
             console.log('Update successful:', response);
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Student Updated',
+              detail: `Student ${response.firstName} ${response.lastName}'s information has been successfully updated`,
+              life: 3000
+            });
             this.goBack();
           },
           error: (error) => {
             console.error('Error updating student:', error);
-            alert(`Failed to update student: ${error.message || 'Unknown error'}`);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: error.message || 'Failed to update student',
+              life: 3000
+            });
           }
         });
       } else {
@@ -185,11 +212,22 @@ export class CreateEditStudentComponent implements OnInit {
         this.studentService.createStudent(studentData).subscribe({
           next: (response) => {
             console.log('Create successful:', response);
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Student Created',
+              detail: `Student ${response.firstName} ${response.lastName} has been successfully created`,
+              life: 3000
+            });
             this.goBack();
           },
           error: (error) => {
             console.error('Error creating student:', error);
-            alert(`Failed to create student: ${error.message || 'Unknown error'}`);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: error.message || 'Failed to create student',
+              life: 3000
+            });
           }
         });
       }
@@ -200,6 +238,13 @@ export class CreateEditStudentComponent implements OnInit {
         const control = this.studentForm.get(key);
         control?.markAsTouched();
         console.log(`Form control ${key} errors:`, control?.errors);
+      });
+      
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Validation Error',
+        detail: 'Please fill in all required fields correctly',
+        life: 5000
       });
     }
   }

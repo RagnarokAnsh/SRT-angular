@@ -6,6 +6,9 @@ import { DetailsComponent } from './AWW/details/details.component';
 import { DashboardComponent } from './AWW/dashboard/dashboard.component';
 import { AdminDashboardComponent } from './admin/admin-dashboard/admin-dashboard.component';
 import { AuthGuard, AdminGuard, AWWGuard } from './auth/auth.guard';
+import { STUDENT_MANAGEMENT_ROUTES } from './AWW/student-management/student-management.routes';
+import { ANGANWADI_MANAGEMENT_ROUTES } from './admin/anganwadi-management/anganwadi-management.routes';
+import { USER_MANAGEMENT_ROUTES } from './admin/user-management/user-management.routes';
 
 export const routes: Routes = [
     // Public routes
@@ -33,44 +36,15 @@ export const routes: Routes = [
     // Anganwadi management routes - only accessible by admin role
     {
         path: 'admin/anganwadi',
-        loadComponent: () => import('./admin/anganwadi-management/anganwadi-management/anganwadi-management.component').then(m => m.AnganwadiManagementComponent),
-        canActivate: [AdminGuard],
-        children: [
-            {
-                path: '',
-                loadComponent: () => import('./admin/anganwadi-management/anganwadi-list/anganwadi-list.component').then(m => m.AnganwadiListComponent)
-            },
-            {
-                path: 'create',
-                loadComponent: () => import('./admin/anganwadi-management/create-edit-anganwadi/create-edit-anganwadi.component').then(m => m.CreateEditAnganwadiComponent)
-            },
-            {
-                path: 'edit/:id',
-                loadComponent: () => import('./admin/anganwadi-management/create-edit-anganwadi/create-edit-anganwadi.component').then(m => m.CreateEditAnganwadiComponent)
-            }
-        ]
+        loadChildren: () => ANGANWADI_MANAGEMENT_ROUTES,
+        canActivate: [AdminGuard]
     },
 
     // User management Routes -by admin
-
     {
         path: 'admin/users',
-        loadComponent: () => import('./admin/user-management/user-management/user-management.component').then(m => m.UserManagementComponent),
-        canActivate: [AdminGuard],
-        children: [
-            {
-                path: '',
-                loadComponent: () => import('./admin/user-management/user-list/user-list.component').then(m => m.UsersListComponent)
-            },
-            {
-                path: 'create',
-                loadComponent: () => import('./admin/user-management/create-edit-user/create-edit-user.component').then(m => m.CreateEditUserComponent)
-            },
-            {
-                path: 'edit/:id',
-                loadComponent: () => import('./admin/user-management/create-edit-user/create-edit-user.component').then(m => m.CreateEditUserComponent)
-            }
-        ]
+        loadChildren: () => USER_MANAGEMENT_ROUTES,
+        canActivate: [AdminGuard]
     },
 
     // AWW routes - only accessible by aww role
@@ -102,23 +76,9 @@ export const routes: Routes = [
     // Student management routes - accessible by both admin and aww
     {
         path: 'students',
-        loadComponent: () => import('./AWW/student-management/student-management/student-management.component').then(m => m.StudentManagementComponent),
+        loadChildren: () => STUDENT_MANAGEMENT_ROUTES,
         canActivate: [AuthGuard],
-        data: { roles: ['admin', 'aww'] },
-        children: [
-            {
-                path: '',
-                loadComponent: () => import('./AWW/student-management/students-list/students-list.component').then(m => m.StudentsListComponent)
-            },
-            {
-                path: 'create',
-                loadComponent: () => import('./AWW/student-management/create-edit-student/create-edit-student.component').then(m => m.CreateEditStudentComponent)
-            },
-            {
-                path: 'edit/:id',
-                loadComponent: () => import('./AWW/student-management/create-edit-student/create-edit-student.component').then(m => m.CreateEditStudentComponent)
-            }
-        ]
+        data: { roles: ['admin', 'aww'] }
     },
 
     // Fallback route

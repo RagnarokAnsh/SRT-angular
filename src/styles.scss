@@ -232,3 +232,71 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     color: white !important; // Or a contrasting color for the highlight
   }
 }
+
+/* Management Components Shared Styles */
+
+// Table container styling
+.table-responsive {
+  margin-top: var(--spacing-md);
+  border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+
+// Paginator container styling
+.paginator-container {
+  border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
+  background-color: white;
+  box-shadow: 0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 1px 3px 0 rgba(0,0,0,.12);
+}
+
+// Table styling
+table.mat-mdc-table {
+  width: 100%;
+}
+
+// Actions column styling
+.mat-column-actions {
+  width: 100px;
+  text-align: center;
+}
+
+// Row hover effect
+.mat-mdc-row:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+// Header row styling
+.mat-mdc-header-row {
+  background-color: var(--background-color);
+}
+
+// Cell padding
+.mat-mdc-cell, .mat-mdc-header-cell {
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+// Info containers styling
+.location-info, .assignment-info {
+  line-height: 1.4;
+}
+
+// Large icon for empty state
+.large-icon {
+  font-size: 4rem;
+  width: 4rem;
+  height: 4rem;
+}
+
+// Custom chip styling for Material chips
+.custom-chip .mdc-evolution-chip__text-label {
+  color: inherit !important;
+}
+
+// Responsive styling for tables
+@media (max-width: 768px) {
+  .mat-mdc-cell, .mat-mdc-header-cell {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+}

@@ -1,4 +1,6 @@
 
+<p-toast></p-toast>
+
 <div class="container">
     <div class="card">
       <div class="card-body">
@@ -13,7 +15,7 @@
         </div>
 
         <div class="table-responsive">
-          <table mat-table [dataSource]="users" class="mat-elevation-z2 w-100">
+          <table mat-table [dataSource]="dataSource" class="mat-elevation-z2 w-100">
             <!-- Name Column -->
             <ng-container matColumnDef="name">
               <th mat-header-cell *matHeaderCellDef>Name</th>
@@ -52,8 +54,8 @@
 
             <!-- Location Column -->
             <ng-container matColumnDef="location">
-              <th mat-header-cell *matHeaderCellDef class="d-none d-md-table-cell">Location</th>
-              <td mat-cell *matCellDef="let user" class="d-none d-md-table-cell">
+              <th mat-header-cell *matHeaderCellDef >Location</th>
+              <td mat-cell *matCellDef="let user" >
                 <div class="location-info">
                   <div *ngIf="user.country">{{user.country.name}}</div>
                   <div *ngIf="user.state" class="text-muted small">{{user.state.name}}</div>
@@ -64,8 +66,8 @@
 
             <!-- Project/Sector Column -->
             <ng-container matColumnDef="assignment">
-              <th mat-header-cell *matHeaderCellDef class="d-none d-lg-table-cell">Details</th>
-              <td mat-cell *matCellDef="let user" class="d-none d-lg-table-cell">
+              <th mat-header-cell *matHeaderCellDef >Details</th>
+              <td mat-cell *matCellDef="let user" >
                 <div class="assignment-info">
                   <div *ngIf="user.project" class="small">Project: {{user.project}}</div>
                   <div *ngIf="user.sector" class="small">Sector: {{user.sector}}</div>
@@ -92,9 +94,10 @@
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
+          <mat-paginator [pageSizeOptions]="[5, 10, 25, 50]" showFirstLastButtons aria-label="Select page of users"></mat-paginator>
         </div>
 
-        <div *ngIf="users.length === 0" class="text-center py-5">
+        <div *ngIf="dataSource.data.length === 0" class="text-center py-5">
           <mat-icon class="large-icon text-muted">people_outline</mat-icon>
           <p class="text-muted mt-3">No users found. Create your first user!</p>
         </div>

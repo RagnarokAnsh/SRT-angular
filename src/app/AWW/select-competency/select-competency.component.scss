@@ -1,17 +1,38 @@
 .competency-section {
   margin-bottom: var(--spacing-xl);
+  text-align: center; // Center the section content
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
-  h3 {
-    margin-bottom: var(--spacing-md);
-    // Using global text color if applicable, otherwise define a color
-    color: var(--text-color);
+  .domain-heading {
+    margin: 0 0 var(--spacing-md) 0;
+    display: inline-block;
+    position: relative;
+    font-weight: var(--font-weight-bold);
+    font-size: 1.5rem;
+    padding-bottom: var(--spacing-sm);
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background-color: var(--primary-color);
+      border-radius: var(--border-radius-sm);
+    }
   }
 }
 
 .competency-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); // Responsive columns
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); // Responsive columns - reduced size
   gap: var(--spacing-md);
+  width: 80%; // Set a fixed width for the grid
+  margin: 0 auto; // Center the grid container
+  justify-content: center; // Center the grid tracks when there's extra space
 }
 
 .competency-item {
@@ -65,22 +86,33 @@
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease;
   pointer-events: none; // Allows clicking through the description when hidden
+  border-radius: var(--border-radius-md); // Match the container's border radius
+  overflow: hidden; // Hide overflow without scrolling
 
   p {
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: var(--text-color); // Using global text color
+    margin: 0.25rem;
+    line-height: 1.4;
+    max-height: 100%; // Use full height
+    overflow: hidden; // Hide overflow without scrolling
+    text-overflow: ellipsis; // Add ellipsis for overflow text
+    display: -webkit-box;
+    -webkit-line-clamp: 6; // Limit to approximately 6 lines of text
+    line-clamp: 6; // Standard property for compatibility
+    -webkit-box-orient: vertical;
   }
 }
 
 // Responsive adjustments
 @media (min-width: 768px) {
   .competency-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 }
 
 @media (min-width: 1200px) {
   .competency-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   }
 }

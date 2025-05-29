@@ -10,6 +10,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { UserService, User, Country, State, District, Project, Sector, AnganwadiCenter } from '../user.service';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-create-edit-user',
@@ -23,7 +25,8 @@ import { UserService, User, Country, State, District, Project, Sector, Anganwadi
     MatCardModule,
     MatSelectModule,
     MatProgressSpinnerModule,
-    MatIconModule
+    MatIconModule,
+    ToastModule
   ],
   templateUrl: './create-edit-user.component.html',
   styleUrl: './create-edit-user.component.scss'
@@ -51,7 +54,8 @@ export class CreateEditUserComponent implements OnInit {
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private userService: UserService
+    private userService: UserService,
+    private messageService: MessageService
   ) {
     this.userForm = this.fb.group({
       name: ['', Validators.required],
@@ -74,14 +78,14 @@ export class CreateEditUserComponent implements OnInit {
 
     const id = this.route.snapshot.paramMap.get('id');
     console.log('ngOnInit - id from route:', id);
-  if (id) {
+    if (id) {
       this.isEditMode = true;
       this.userId = +id;
       // In edit mode, password is optional
       this.userForm.get('password')?.clearValidators();
       this.userForm.get('password')?.updateValueAndValidity();
       console.log('ngOnInit - Calling loadUserData with userId:', this.userId);
-    this.loadUserData(this.userId);
+      this.loadUserData(this.userId);
     }
   }
 
@@ -97,10 +101,10 @@ export class CreateEditUserComponent implements OnInit {
   }
 
   loadUserData(id: number) {
-  console.log('loadUserData - called with id:', id);
+    console.log('loadUserData - called with id:', id);
     this.userService.getUser(id).subscribe({
       next: (user) => {
-      console.log('loadUserData - user data received:', user);
+        console.log('loadUserData - user data received:', user);
         this.userForm.patchValue({
           name: user.name,
           email: user.email,
@@ -112,6 +116,13 @@ export class CreateEditUserComponent implements OnInit {
           sector: user.sector,
           anganwadi_id: user.anganwadi_id,
           gender: user.gender
+        });
+
+        this.messageService.add({
+          severity: 'info',
+          summary: 'User Loaded',
+          detail: `Successfully loaded user data for ${user.name}`,
+          life: 3000
         });
 
         // Load dependent data if values exist
@@ -138,6 +149,12 @@ export class CreateEditUserComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading user:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: error.message || 'Failed to load user data',
+          life: 3000
+        });
         this.goBack();
       }
     });
@@ -153,7 +170,7 @@ export class CreateEditUserComponent implements OnInit {
   updateFieldValidators() {
     // Clear all location field validators first
     const locationFields = ['country_id', 'state_id', 'district_id', 'project', 'sector', 'anganwadi_id'];
-    
+
     locationFields.forEach(field => {
       const control = this.userForm.get(field);
       if (control) {
@@ -281,15 +298,15 @@ export class CreateEditUserComponent implements OnInit {
   onSectorChange(sector: string) {
     const districtId = this.userForm.get('district_id')?.value;
     const project = this.userForm.get('project')?.value;
-    
+
     if (sector && districtId && project) {
       // Use the new API endpoint to get all anganwadi centers
       this.userService.getAnganwadiCenters().subscribe({
         next: (centers) => {
           // Filter centers by district, project and sector
-          this.anganwadiCenters = centers.filter(center => 
-            center.district_id === districtId && 
-            center.project === project && 
+          this.anganwadiCenters = centers.filter(center =>
+            center.district_id === districtId &&
+            center.project === project &&
             center.sector === sector
           );
         },
@@ -312,7 +329,7 @@ export class CreateEditUserComponent implements OnInit {
   onSubmit() {
     if (this.userForm.valid) {
       this.isLoading = true;
-      
+
       // Create a properly formatted request object
       const formData: any = {
         name: this.userForm.get('name')?.value,
@@ -320,7 +337,7 @@ export class CreateEditUserComponent implements OnInit {
         role: this.userForm.get('role')?.value,
         gender: this.userForm.get('gender')?.value
       };
-      
+
       // Add password if provided (required for new users, optional for edit)
       const password = this.userForm.get('password')?.value;
       if (password) {
@@ -329,33 +346,33 @@ export class CreateEditUserComponent implements OnInit {
         // Password is required for new users
         formData.password = '';
       }
-      
+
       // Add location fields if required by role
       if (this.currentRequiredFields.includes('country_id') && this.userForm.get('country_id')?.value) {
         formData.country_id = Number(this.userForm.get('country_id')?.value);
       }
-      
+
       if (this.currentRequiredFields.includes('state_id') && this.userForm.get('state_id')?.value) {
         formData.state_id = Number(this.userForm.get('state_id')?.value);
       }
-      
+
       if (this.currentRequiredFields.includes('district_id') && this.userForm.get('district_id')?.value) {
         formData.district_id = Number(this.userForm.get('district_id')?.value);
       }
-      
+
       if (this.currentRequiredFields.includes('project') && this.userForm.get('project')?.value) {
         formData.project = this.userForm.get('project')?.value;
       }
-      
+
       if (this.currentRequiredFields.includes('sector') && this.userForm.get('sector')?.value) {
         formData.sector = this.userForm.get('sector')?.value;
       }
-      
+
       if (this.currentRequiredFields.includes('anganwadi_id') && this.userForm.get('anganwadi_id')?.value) {
         // API expects anganwadi_id as a number (BIGINT in the database)
         formData.anganwadi_id = Number(this.userForm.get('anganwadi_id')?.value);
       }
-      
+
       console.log('Submitting user data:', formData);
 
       const operation = this.isEditMode && this.userId
@@ -363,8 +380,27 @@ export class CreateEditUserComponent implements OnInit {
         : this.userService.createUser(formData);
 
       operation.subscribe({
-        next: () => {
+        next: (response) => {
           console.log('User operation successful, attempting to go back.');
+
+          // Show success message with the user's name
+          const userName = this.userForm.get('name')?.value;
+          if (this.isEditMode) {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'User Updated',
+              detail: `User ${userName} has been successfully updated`,
+              life: 3000
+            });
+          } else {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'User Created',
+              detail: `User ${userName} has been successfully created`,
+              life: 3000
+            });
+          }
+
           this.isLoading = false;
           this.goBack();
         },
@@ -372,15 +408,28 @@ export class CreateEditUserComponent implements OnInit {
           this.isLoading = false;
           console.error('Error saving user:', error);
           console.error('Error details:', error.error);
-          
+
           // Display validation errors if available
+          let errorMessage = 'An error occurred while saving the user';
           if (error.error && error.error.errors) {
             console.error('Validation errors:', error.error.errors);
+            const validationErrors: string[] = [];
             Object.keys(error.error.errors).forEach(key => {
-              console.error(`${key}: ${error.error.errors[key].join(', ')}`);
+              const errorMsg = `${key}: ${error.error.errors[key].join(', ')}`;
+              console.error(errorMsg);
+              validationErrors.push(errorMsg);
             });
+            errorMessage = validationErrors.join('; ');
+          } else if (error.message) {
+            errorMessage = error.message;
           }
-          // You might want to show a toast/snackbar here
+
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: errorMessage,
+            life: 5000
+          });
         }
       });
     }

@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -7,7 +7,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatTableDataSource } from '@angular/material/table';
 import { UserService, User } from '../user.service';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-users-list',
@@ -20,32 +24,48 @@ import { UserService, User } from '../user.service';
     MatIconModule,
     MatTooltipModule,
     MatDialogModule,
-    MatChipsModule
+    MatChipsModule,
+    MatPaginatorModule,
+    ToastModule
   ],
- templateUrl: './user-list.component.html',
- styleUrl: './user-list.component.scss'
+  templateUrl: './user-list.component.html',
+  styleUrls: ['./user-list.component.scss']
 })
 export class UsersListComponent implements OnInit {
-  users: User[] = [];
+  dataSource = new MatTableDataSource<User>([]);
   displayedColumns: string[] = ['name', 'email', 'gender', 'roles', 'location', 'assignment', 'actions'];
+  
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     private userService: UserService,
     private router: Router,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private messageService: MessageService
   ) {}
 
   ngOnInit() {
     this.loadUsers();
   }
+  
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+  }
 
   loadUsers() {
     this.userService.getUsers().subscribe({
       next: (users) => {
-        this.users = users;
+        this.dataSource.data = users;
+        // No toast on successful loading to avoid too many notifications
       },
       error: (error) => {
         console.error('Error loading users:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load users',
+          life: 3000
+        });
       }
     });
   }
@@ -70,18 +90,30 @@ export class UsersListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.deleteUser(user.id);
+        this.deleteUser(user.id, user.name);
       }
     });
   }
 
-  deleteUser(id: number) {
+  deleteUser(id: number, userName?: string) {
     this.userService.deleteUser(id).subscribe({
       next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'User Deleted',
+          detail: userName ? `User ${userName} has been successfully deleted` : 'User has been successfully deleted',
+          life: 3000
+        });
         this.loadUsers();
       },
       error: (error) => {
         console.error('Error deleting user:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: error.message || 'Failed to delete user',
+          life: 3000
+        });
       }
     });
   }

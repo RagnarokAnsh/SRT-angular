@@ -3,7 +3,9 @@
     <div class="col-lg-4">
       <div class="competency-content">
         <img [src]="competency.imageUrl" [alt]="competency.name" class="img-fluid mb-3 competency-image">
-        <h2 class="mb-3">{{ competency.name }}</h2>
+        <div class="text-center">
+          <h2>{{ competency.name }}</h2>
+        </div>
         <p class="mb-4">{{ competency.description }}</p>
       </div>
     </div>
@@ -15,7 +17,9 @@
   </div>
 
   <div class="mt-4">
-    <h3 class="mb-4">SUGGESTED ASSESSMENT ACTIVITY</h3>
+    <div class="text-center">
+      <h3>SUGGESTED ASSESSMENT ACTIVITY</h3>
+    </div>
     
     <!-- Desktop View -->
     <div class="row g-4 d-none d-md-flex">

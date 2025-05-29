@@ -1,41 +1,5 @@
+// Component-specific styles that aren't in the global styles file
 
-:host {
-  display: block;
-  padding: var(--spacing-md);
-}
-
-.table-responsive {
-  margin-top: var(--spacing-md);
-  border-radius: var(--border-radius-md);
-  overflow: hidden;
-}
-
-table {
-  width: 100%;
-}
-.mat-icon{
+.mat-icon {
   text-align: center;
-}
-
-.mat-column-actions {
-  width: 100px;
-  text-align: center;
-}
-
-.mat-mdc-row:hover {
-  background-color: rgba(0, 0, 0, 0.04);
-}
-
-.mat-mdc-header-row {
-  background-color: var(--background-color);
-}
-
-.mat-mdc-cell, .mat-mdc-header-cell {
-  padding: var(--spacing-sm) var(--spacing-md);
-}
-
-@media (max-width: 768px) {
-  .mat-mdc-cell, .mat-mdc-header-cell {
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
 }

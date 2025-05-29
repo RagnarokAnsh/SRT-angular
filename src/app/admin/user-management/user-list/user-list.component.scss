@@ -1,38 +1,11 @@
-
 :host {
     display: block;
     padding: var(--spacing-md);
   }
 
-  .table-responsive {
-    margin-top: var(--spacing-md);
-    border-radius: var(--border-radius-md);
-    overflow: hidden;
-  }
-
-  table {
-    width: 100%;
-  }
-
   .mat-column-actions {
-    width: 120px;
+    width: 120px; 
     text-align: center;
-  }
-
-  .mat-mdc-row:hover {
-    background-color: rgba(0, 0, 0, 0.04);
-  }
-
-  .mat-mdc-header-row {
-    background-color: var(--background-color);
-  }
-
-  .mat-mdc-cell, .mat-mdc-header-cell {
-    padding: var(--spacing-sm) var(--spacing-md);
-  }
-
-  .location-info, .assignment-info {
-    line-height: 1.4;
   }
 
   .badge {
@@ -52,26 +25,8 @@
     color: black;
   }
 
-  .large-icon {
-    font-size: 4rem;
-    width: 4rem;
-    height: 4rem;
-  }
-
   mat-chip-set {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-  }
-
-  .custom-chip {
-    ::ng-deep .mdc-evolution-chip__text-label {
-      color: inherit !important;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .mat-mdc-cell, .mat-mdc-header-cell {
-      padding: var(--spacing-xs) var(--spacing-sm);
-    }
   }

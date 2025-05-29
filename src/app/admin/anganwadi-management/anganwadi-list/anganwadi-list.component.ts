@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, inject } from '@angular/core';
+import { Component, OnInit, Inject, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -6,6 +6,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatTableDataSource } from '@angular/material/table';
 import { AnganwadiService, AnganwadiCenter } from '../anganwadi.service';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
@@ -21,15 +23,18 @@ import { ToastModule } from 'primeng/toast';
     MatIconModule,
     MatTooltipModule,
     MatDialogModule,
+    MatPaginatorModule,
     ToastModule
   ],
 
- templateUrl: './anganwadi-list.component.html',
- styleUrl: './anganwadi-list.component.scss'
+  templateUrl: './anganwadi-list.component.html',
+  styleUrls: ['./anganwadi-list.component.scss']
 })
 export class AnganwadiListComponent implements OnInit {
-  anganwadiCenters: AnganwadiCenter[] = [];
+  dataSource = new MatTableDataSource<AnganwadiCenter>([]);
   displayedColumns: string[] = ['name', 'code', 'project', 'sector', 'country', 'state', 'district', 'actions'];
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   private messageService = inject(MessageService);
 
@@ -37,24 +42,28 @@ export class AnganwadiListComponent implements OnInit {
     private anganwadiService: AnganwadiService,
     private router: Router,
     private dialog: MatDialog
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.loadAnganwadiCenters();
+  }
+
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
   }
 
   loadAnganwadiCenters() {
     // First, try to load centers with names, if that fails, load basic centers
     this.anganwadiService.getAnganwadiCentersWithNamesDetailed().subscribe({
       next: (centers) => {
-        this.anganwadiCenters = centers;
+        this.dataSource.data = centers;
       },
       error: (error) => {
         console.error('Error loading centers with names, falling back to basic load:', error);
         // Fallback to basic centers
         this.anganwadiService.getAnganwadiCenters().subscribe({
           next: (centers) => {
-            this.anganwadiCenters = centers.map(center => ({
+            this.dataSource.data = centers.map(center => ({
               ...center,
               country_name: `Country ID: ${center.country_id}`,
               state_name: `State ID: ${center.state_id}`,
@@ -63,7 +72,7 @@ export class AnganwadiListComponent implements OnInit {
           },
           error: (basicError) => {
             console.error('Error loading anganwadi centers:', basicError);
-            this.anganwadiCenters = [];
+            this.dataSource.data = [];
           }
         });
       }
