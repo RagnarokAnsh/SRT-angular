@@ -1,6 +1,6 @@
 .competency-section {
   margin-bottom: var(--spacing-xl);
-  text-align: center; // Center the section content
+  text-align: center; 
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -28,23 +28,24 @@
 
 .competency-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); // Responsive columns - reduced size
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); 
   gap: var(--spacing-md);
-  width: 80%; // Set a fixed width for the grid
-  margin: 0 auto; // Center the grid container
-  justify-content: center; // Center the grid tracks when there's extra space
+  width: 80%; 
+  margin: 0 auto; 
+  justify-content: center; 
 }
 
 .competency-item {
-  position: relative; // Needed for absolute positioning of description
+  position: relative;
   border: 1px solid #ccc;
   border-radius: var(--border-radius-md);
   padding: var(--spacing-md);
   text-align: center;
-  cursor: pointer;
   overflow: hidden; // Hide description initially
   box-shadow: var(--box-shadow-sm);
   transition: box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
 
   &:hover {
     box-shadow: var(--box-shadow-md);
@@ -60,6 +61,7 @@
     height: auto;
     border-radius: var(--border-radius-sm);
     margin-bottom: var(--spacing-sm);
+    cursor: pointer;
   }
 
   p {
@@ -67,6 +69,33 @@
     font-size: 0.9rem;
     font-weight: var(--font-weight-medium);
     color: var(--text-color); // Using global text color
+  }
+  
+  .competency-actions {
+    margin-top: var(--spacing-md);
+    display: flex;
+    justify-content: center;
+    
+    .btn-assess {
+      background-color: var(--primary-color, #4caf50);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius-sm, 4px);
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      box-shadow: var(--box-shadow-sm);
+      
+      &:hover {
+        background-color: var(--primary-dark, #388e3c);
+        box-shadow: var(--box-shadow-md);
+      }
+      
+      &:active {
+        transform: translateY(1px);
+      }
+    }
   }
 }
 

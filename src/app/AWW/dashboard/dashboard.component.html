@@ -12,10 +12,10 @@
 
   <!-- Main Dashboard Content -->
   <div class="container">
-    <div class="dashboard-grid">
+    <div class="chart-row">
       
       <!-- Gender Distribution Card -->
-      <div class="chart-card gender-card">
+      <div class="chart-card gender-card" style="flex: 1;">
         <div class="card-header">
           <div class="card-title-section">
             <h3 class="card-title">Student Gender Distribution</h3>
@@ -42,41 +42,8 @@
         </div>
       </div>
 
-      <!-- Competency Progress Card -->
-      <div class="chart-card competency-card">
-        <div class="card-header">
-          <div class="card-title-section">
-            <h3 class="card-title">Competency Assessment Progress</h3>
-            <p class="card-subtitle">{{ mockData.competencyProgress.completed }} of {{ mockData.competencyProgress.total }} completed</p>
-          </div>
-          <div class="progress-stats">
-            <div class="progress-circle">
-              <span class="progress-percentage">{{ competencyPercentage }}%</span>
-            </div>
-          </div>
-        </div>
-        <div class="chart-container">
-          <canvas 
-            baseChart
-            [data]="competencyChartData"
-            [options]="competencyChartOptions"
-            type="doughnut">
-          </canvas>
-          <div class="progress-details">
-            <div class="detail-item completed">
-              <span class="detail-dot"></span>
-              <span class="detail-text">Completed: {{ mockData.competencyProgress.completed }}</span>
-            </div>
-            <div class="detail-item remaining">
-              <span class="detail-dot"></span>
-              <span class="detail-text">Remaining: {{ mockData.competencyProgress.total - mockData.competencyProgress.completed }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Student Levels Card -->
-      <div class="chart-card levels-card">
+      <div class="chart-card levels-card" style="flex: 2;">
         <div class="card-header">
           <div class="card-title-section">
             <h3 class="card-title">Student Learning Levels</h3>

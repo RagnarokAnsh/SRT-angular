@@ -72,6 +72,18 @@ export const routes: Routes = [
         canActivate: [AuthGuard],
         data: { roles: ['aww', 'admin'] }
     },
+    {
+        path: 'assessments/:id',
+        loadComponent: () => import('./AWW/assessments/assessments.component').then(m => m.AssessmentsComponent),
+        canActivate: [AuthGuard],
+        data: { roles: ['aww', 'admin'] }
+    },
+    {
+        path: 'aww/assessments/:id',
+        loadComponent: () => import('./AWW/assessments/assessments.component').then(m => m.AssessmentsComponent),
+        canActivate: [AuthGuard],
+        data: { roles: ['aww', 'admin'] }
+    },
 
     // Student management routes - accessible by both admin and aww
     {

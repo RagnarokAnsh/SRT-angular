@@ -115,61 +115,61 @@ export class DashboardComponent implements OnInit {
   };
 
   // Competency Progress Chart (Modern Progress Bar)
-  competencyChartData: ChartConfiguration<'doughnut'>['data'] = {
-    labels: ['Completed', 'Remaining'],
-    datasets: [{
-      data: [
-        this.mockData.competencyProgress.completed,
-        this.mockData.competencyProgress.total - this.mockData.competencyProgress.completed
-      ],
-      backgroundColor: [
-        'rgba(16, 185, 129, 0.8)',
-        'rgba(229, 231, 235, 0.8)'
-      ],
-      borderColor: [
-        'rgba(16, 185, 129, 1)',
-        'rgba(229, 231, 235, 1)'
-      ],
-      borderWidth: 3,
-      hoverOffset: 6
-    }]
-  };
+  // competencyChartData: ChartConfiguration<'doughnut'>['data'] = {
+  //   labels: ['Completed', 'Remaining'],
+  //   datasets: [{
+  //     data: [
+  //       this.mockData.competencyProgress.completed,
+  //       this.mockData.competencyProgress.total - this.mockData.competencyProgress.completed
+  //     ],
+  //     backgroundColor: [
+  //       'rgba(16, 185, 129, 0.8)',
+  //       'rgba(229, 231, 235, 0.8)'
+  //     ],
+  //     borderColor: [
+  //       'rgba(16, 185, 129, 1)',
+  //       'rgba(229, 231, 235, 1)'
+  //     ],
+  //     borderWidth: 3,
+  //     hoverOffset: 6
+  //   }]
+  // };
 
-  competencyChartOptions: ChartConfiguration<'doughnut'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '70%',
-    plugins: {
-      legend: {
-        display: false
-      },
-      tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#1f2937',
-        bodyColor: '#374151',
-        borderColor: 'rgba(0, 0, 0, 0.1)',
-        borderWidth: 1,
-        cornerRadius: 12,
-        titleFont: {
-          size: 16,
-          weight: 600
-        },
-        bodyFont: {
-          size: 14,
-          weight: 500
-        },
-        callbacks: {
-          label: (context) => {
-            return `${context.label}: ${context.parsed} competencies`;
-          }
-        }
-      }
-    },
-    animation: {
-      duration: 1500,
-      easing: 'easeInOutCubic'
-    }
-  };
+  // competencyChartOptions: ChartConfiguration<'doughnut'>['options'] = {
+  //   responsive: true,
+  //   maintainAspectRatio: false,
+  //   cutout: '70%',
+  //   plugins: {
+  //     legend: {
+  //       display: false
+  //     },
+  //     tooltip: {
+  //       backgroundColor: 'rgba(255, 255, 255, 0.95)',
+  //       titleColor: '#1f2937',
+  //       bodyColor: '#374151',
+  //       borderColor: 'rgba(0, 0, 0, 0.1)',
+  //       borderWidth: 1,
+  //       cornerRadius: 12,
+  //       titleFont: {
+  //         size: 16,
+  //         weight: 600
+  //       },
+  //       bodyFont: {
+  //         size: 14,
+  //         weight: 500
+  //       },
+  //       callbacks: {
+  //         label: (context) => {
+  //           return `${context.label}: ${context.parsed} competencies`;
+  //         }
+  //       }
+  //     }
+  //   },
+  //   animation: {
+  //     duration: 1500,
+  //     easing: 'easeInOutCubic'
+  //   }
+  // };
 
   // Student Levels Chart (Modern Horizontal Bar)
   levelChartData: ChartConfiguration<'bar'>['data'] = {

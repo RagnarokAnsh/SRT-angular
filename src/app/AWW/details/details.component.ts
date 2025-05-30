@@ -48,6 +48,15 @@ export class DetailsComponent implements OnInit {
   }
 
   continueToAssessment(): void {
-    this.router.navigate(['/assessments']);
+    if (this.competency) {
+      // Store the competency name in localStorage for backward compatibility
+      localStorage.setItem('selectedCompetencyName', this.competency.name);
+      
+      // Navigate to the assessments page with the competency ID
+      this.router.navigate(['/assessments', this.competency.id]);
+    } else {
+      // Fallback to the regular assessments route if no competency is available
+      this.router.navigate(['/assessments']);
+    }
   }
 }

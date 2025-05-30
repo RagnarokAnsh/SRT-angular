@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, OnInit, ViewChild, TemplateRef, ChangeDetectorRef, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
@@ -20,6 +20,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+
+// Services
+import { CompetencyService, ApiCompetency } from '../../competency.service';
+import { StudentService } from '../student-management/student.service';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 /**
  * Interface for Assessment data structure
@@ -103,7 +109,8 @@ class MockStorageService {
     MatDialogModule,
     MatTooltipModule,
     MatSortModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    ToastModule
   ],
   templateUrl: './assessments.component.html',
   styleUrls: ['./assessments.component.scss'],
@@ -159,6 +166,8 @@ export class AssessmentsComponent implements OnInit {
 
   // Competency information
   selectedCompetency: string = '';
+  competencyId: number = 0;
+  competencyData: ApiCompetency | null = null;
 
   // UI feedback messages
   createSuccess: string = '';
@@ -170,38 +179,118 @@ export class AssessmentsComponent implements OnInit {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private dialog: MatDialog,
     private cdr: ChangeDetectorRef,
-    private storageService: MockStorageService // Inject the mock service
+    private storageService: MockStorageService, // Inject the mock service
+    private competencyService: CompetencyService, // Inject the competency service
+    private studentService: StudentService, // Inject the student service
+    private messageService: MessageService // Inject the message service
   ) {}
 
   /**
    * Initialize component
    */
   ngOnInit() {
-    this.selectedCompetency = this.storageService.getItem('selectedCompetencyName') || '';
+    // Get competency ID from route params or localStorage
+    this.route.params.subscribe(params => {
+      if (params['id']) {
+        this.competencyId = +params['id'];
+        this.loadCompetencyData(this.competencyId);
+      } else {
+        // Fallback to stored competency name if no ID in route
+        this.selectedCompetency = this.storageService.getItem('selectedCompetencyName') || '';
+        this.loadCompetencyByName(this.selectedCompetency);
+      }
+    });
+  }
 
-    // Replace API call with mock data for competency
-    // this.apiService.getCompetencies().subscribe({
-    //   next: (competencies) => {
-    //     const selectedCompetency = competencies.find((c: any) => c.name === this.selectedCompetency);
-    //     if (selectedCompetency) {
-    //       this.assessment.competency_id = selectedCompetency.id;
-    //       this.loadLevelDescriptions();
-    //     }
-    //   },
-    //   error: (err) => {
-    //     console.error('Error fetching competencies:', err);
-    //     this.showMessage('Failed to load competency information.', true);
-    //   }
-    // });
+  /**
+   * Load competency data by ID
+   */
+  loadCompetencyData(competencyId: number) {
+    if (!competencyId) {
+      this.showMessage('Invalid competency ID', true);
+      return;
+    }
 
-    // Set a default competency ID for mock data
-    this.assessment.competency_id = 1; // Set a default ID, adjust if needed
-    this.loadLevelDescriptions();
+    // Fetch competency data by ID
+    this.competencyService.getCompetencyById(competencyId).subscribe({
+      next: (competency) => {
+        if (competency) {
+          this.competencyData = competency as any;
+          this.selectedCompetency = competency.name;
+          this.assessment.competency_id = competency.id;
+          this.loadLevelDescriptions();
+          this.loadStudents();
+          this.loadAssessments();
+        } else {
+          this.showMessage('Competency not found', true);
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching competency data:', err);
+        this.showMessage('Failed to load competency information.', true);
+      }
+    });
+  }
 
-    this.loadStudents(); // This will need to be updated to use mock data
-    this.loadAssessments(); // This will need to be updated to use mock data
+  /**
+   * Load competency by name (fallback method)
+   */
+  loadCompetencyByName(competencyName: string) {
+    if (!competencyName) {
+      this.showMessage('No competency selected', true);
+      return;
+    }
+
+    // Fetch all competencies and find by name
+    this.competencyService.getDomainsWithCompetencies().subscribe({
+      next: (domains) => {
+        let foundCompetency = null;
+        
+        // Search through all domains and their competencies
+        for (const domain of domains) {
+          const competency = domain.competencies.find(c => 
+            c.name.toLowerCase() === competencyName.toLowerCase());
+          
+          if (competency) {
+            foundCompetency = competency;
+            break;
+          }
+        }
+        
+        if (foundCompetency) {
+          this.competencyData = foundCompetency as any;
+          this.selectedCompetency = foundCompetency.name;
+          this.assessment.competency_id = foundCompetency.id;
+          this.competencyId = foundCompetency.id;
+        } else {
+          // If not found, use first competency as fallback
+          if (domains.length > 0 && domains[0].competencies.length > 0) {
+            const firstCompetency = domains[0].competencies[0];
+            this.competencyData = firstCompetency as any;
+            this.selectedCompetency = firstCompetency.name;
+            this.assessment.competency_id = firstCompetency.id;
+            this.competencyId = firstCompetency.id;
+          }
+        }
+        
+        this.loadLevelDescriptions();
+        this.loadStudents();
+        this.loadAssessments();
+      },
+      error: (err) => {
+        console.error('Error fetching competencies:', err);
+        this.showMessage('Failed to load competency information.', true);
+        
+        // Set a default competency ID for fallback
+        this.assessment.competency_id = 1;
+        this.loadLevelDescriptions();
+        this.loadStudents();
+        this.loadAssessments();
+      }
+    });
   }
 
   /**
@@ -376,6 +465,18 @@ export class AssessmentsComponent implements OnInit {
   toggleMenu() {
     this.menuOpen = !this.menuOpen;
   }
+  
+  /**
+   * Navigate back to the details page for the current competency
+   */
+  backToVideos() {
+    if (this.competencyId) {
+      this.router.navigate(['/details', this.competencyId]);
+    } else {
+      // If no competency ID is available, navigate to the select competency page
+      this.router.navigate(['/select-competency']);
+    }
+  }
 
   /**
    * Handle logout action
@@ -420,20 +521,40 @@ export class AssessmentsComponent implements OnInit {
    * Load students from API
    */
   loadStudents() {
-    // Replace API call with mock data loading
-    // TODO: Load mock student data here
-    console.log('Loading mock students');
-    // Example mock student data:
-    this.students = [
-    { id: 1, first_name: 'Shyam', birth_date: '2020-05-15', selected: false, assessed: true, assessmentLevel: 'Beginner', },
-    { id: 2, first_name: 'Ghanshyam', birth_date: '2023-01-10', selected: false, assessed: true, assessmentLevel: 'Beginner',},
-    { id: 3, first_name: 'Binod', birth_date: '2021-03-22', selected: false, assessed: true, assessmentLevel: 'Advanced', },
-    { id: 4, first_name: 'Mukesh', birth_date: '2021-07-19', selected: false, assessed: true, assessmentLevel: 'Advanced',  },
-    { id: 5, first_name: 'Ram', birth_date: '2022-02-05', selected: false, assessed: true, assessmentLevel: 'Progressing',  },
-    { id: 6, first_name: 'Hemant', birth_date: '2022-09-12', selected: false, assessed: true, assessmentLevel: 'PSR',  }
-  
-    ];
-    this.updateDataSource();
+    // Get students from the StudentService, filtered by the logged-in anganwadi worker's ID
+    this.studentService.getStudents(true).subscribe({
+      next: (students) => {
+        // Map the students from the API to our Student interface
+        this.students = students.map(student => {
+          return {
+            id: student.id,
+            first_name: `${student.firstName} ${student.lastName}`,
+            birth_date: student.dateOfBirth instanceof Date ? student.dateOfBirth.toISOString().split('T')[0] : '',
+            aww_id: student.anganwadiId,
+            selected: false,
+            assessed: false,
+            assessmentLevel: ''
+          };
+        });
+        
+        console.log('Loaded students for current anganwadi:', this.students);
+        this.updateDataSource();
+        this.loadAssessments(); // Load assessments after students are loaded
+      },
+      error: (error) => {
+        console.error('Error loading students:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load students',
+          life: 3000
+        });
+        
+        // Fallback to empty array if there's an error
+        this.students = [];
+        this.updateDataSource();
+      }
+    });
   }
 
   /**
@@ -451,9 +572,7 @@ export class AssessmentsComponent implements OnInit {
     // });
 
     console.log('Loading mock assessments');
-    // TODO: Implement more sophisticated mock assessment loading if needed
-
-    // Simulate loading some mock assessment data and updating students
+    // Create mock assessment data
     const mockAssessments = [
       { child_id: 1, competency_id: this.assessment.competency_id, score: 'Beginner', assessment_date: '2023-10-26', notes: 'Excellent progress' },
       { child_id: 2, competency_id: this.assessment.competency_id, score: 'Progressing', assessment_date: '2023-10-20', notes: 'Needs more practice' },
@@ -461,12 +580,12 @@ export class AssessmentsComponent implements OnInit {
       { child_id: 4, competency_id: this.assessment.competency_id, score: 'Advanced', assessment_date: '2023-10-26', notes: 'Excellent progress' },
       { child_id: 5, competency_id: this.assessment.competency_id, score: 'Progressing', assessment_date: '2023-10-20', notes: 'Needs more practice' },
       { child_id: 6, competency_id: this.assessment.competency_id, score: 'Progressing', assessment_date: '2023-09-15', notes: 'Initial assessment' },
-      { child_id: 1, competency_id: this.assessment.competency_id, score: 'Beginner', assessment_date: '2023-10-26', notes: 'Excellent progress' },
-      { child_id: 2, competency_id: this.assessment.competency_id, score: 'Progressing', assessment_date: '2023-10-20', notes: 'Needs more practice' },
-      { child_id: 3, competency_id: this.assessment.competency_id, score: 'Advanced', assessment_date: '2023-09-15', notes: 'Initial assessment' },
-      { child_id: 4, competency_id: this.assessment.competency_id, score: 'PSR', assessment_date: '2023-10-26', notes: 'Excellent progress' },
-      { child_id: 5, competency_id: this.assessment.competency_id, score: 'PSR', assessment_date: '2023-10-20', notes: 'Needs more practice' },
-      { child_id: 6, competency_id: this.assessment.competency_id, score: 'PSR', assessment_date: '2023-09-15', notes: 'Initial assessment' },
+      { child_id: 1, competency_id: this.assessment.competency_id, score: 'Beginner', assessment_date: '2023-09-26', notes: 'Previous assessment' },
+      { child_id: 2, competency_id: this.assessment.competency_id, score: 'Beginner', assessment_date: '2023-09-20', notes: 'Previous assessment' },
+      { child_id: 3, competency_id: this.assessment.competency_id, score: 'Advanced', assessment_date: '2023-08-15', notes: 'Previous assessment' },
+      { child_id: 4, competency_id: this.assessment.competency_id, score: 'PSR', assessment_date: '2023-09-26', notes: 'Previous assessment' },
+      { child_id: 5, competency_id: this.assessment.competency_id, score: 'PSR', assessment_date: '2023-09-20', notes: 'Previous assessment' },
+      { child_id: 6, competency_id: this.assessment.competency_id, score: 'PSR', assessment_date: '2023-08-15', notes: 'Previous assessment' }
     ];
 
     const competencyId = this.assessment.competency_id;
@@ -547,8 +666,16 @@ export class AssessmentsComponent implements OnInit {
 
     this.updateDataSource();
 
-    // Show teaching strategies dialog
-    this.dialog.open(this.teachingStrategiesDialog);
+    // Comment out teaching strategies dialog as it's not needed now
+    // this.dialog.open(this.teachingStrategiesDialog);
+    
+    // Reset form for next assessment
+    this.assessment.score = '';
+    this.assessment.notes = '';
+    this.selection.clear();
+    
+    // Redirect back to the student selection tab
+    this.setActiveTab('students');
   }
 
   /**
