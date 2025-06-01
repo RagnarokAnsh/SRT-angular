@@ -17,7 +17,7 @@
   </div>
 
   <div class="mt-4">
-    <div class="text-center">
+    <div class="text-center mb-4">
       <h3>Suggested Assessment Activity</h3>
     </div>
     
@@ -79,7 +79,7 @@
       </label>
     </div>
     <div class="text-end">
-      <button class="btn btn-primary" [disabled]="!areAllCheckboxesChecked()" (click)="continueToAssessment()">
+      <button class="btn btn-primary" [style.background-color]="!areAllCheckboxesChecked() ? '#6c757d' : ''" [style.border-color]="!areAllCheckboxesChecked() ? '#6c757d' : ''" [disabled]="!areAllCheckboxesChecked()" (click)="continueToAssessment()">
         Continue to Assessment
       </button>
     </div>

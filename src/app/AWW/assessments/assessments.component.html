@@ -64,12 +64,21 @@
               <th mat-header-cell *matHeaderCellDef> Age </th>
               <td mat-cell *matCellDef="let student"> {{ calculateAge(student.birth_date) }} </td>
             </ng-container>
+            
+            <!-- Gender Column -->
+            <ng-container matColumnDef="gender">
+              <th mat-header-cell *matHeaderCellDef> Gender </th>
+              <td mat-cell *matCellDef="let student"> {{ student.gender }} </td>
+            </ng-container>
 
             <!-- Assessment Session 1 Column -->
             <ng-container matColumnDef="assessmentInfo">
               <th mat-header-cell *matHeaderCellDef> Session 1 </th>
               <td mat-cell *matCellDef="let student" [ngClass]="student.assessmentLevel?.toLowerCase()">
-                <span *ngIf="student.assessed">{{ student.assessmentLevel }}</span>
+                <div *ngIf="student.assessed" class="assessment-cell">
+                  <div class="assessment-level">{{ student.assessmentLevel }}</div>
+                  <div class="assessment-date" *ngIf="student.assessmentDate">{{ student.assessmentDate }}</div>
+                </div>
                 <span *ngIf="!student.assessed" class="not-assessed">Not assessed</span>
               </td>
             </ng-container>
@@ -78,8 +87,35 @@
             <ng-container matColumnDef="assessmentInfo2">
               <th mat-header-cell *matHeaderCellDef> Session 2 </th>
               <td mat-cell *matCellDef="let student" [ngClass]="student.assessmentLevel2?.toLowerCase()">
-                <span *ngIf="student.assessed2">{{ student.assessmentLevel2 }}</span>
+                <div *ngIf="student.assessed2" class="assessment-cell">
+                  <div class="assessment-level">{{ student.assessmentLevel2 }}</div>
+                  <div class="assessment-date" *ngIf="student.assessmentDate2">{{ student.assessmentDate2 }}</div>
+                </div>
                 <span *ngIf="!student.assessed2" class="not-assessed">Not assessed</span>
+              </td>
+            </ng-container>
+            
+            <!-- Assessment Session 3 Column -->
+            <ng-container matColumnDef="assessmentInfo3">
+              <th mat-header-cell *matHeaderCellDef> Session 3 </th>
+              <td mat-cell *matCellDef="let student" [ngClass]="student.assessmentLevel3?.toLowerCase()">
+                <div *ngIf="student.assessed3" class="assessment-cell">
+                  <div class="assessment-level">{{ student.assessmentLevel3 }}</div>
+                  <div class="assessment-date" *ngIf="student.assessmentDate3">{{ student.assessmentDate3 }}</div>
+                </div>
+                <span *ngIf="!student.assessed3" class="not-assessed">Not assessed</span>
+              </td>
+            </ng-container>
+            
+            <!-- Assessment Session 4 Column -->
+            <ng-container matColumnDef="assessmentInfo4">
+              <th mat-header-cell *matHeaderCellDef> Session 4 </th>
+              <td mat-cell *matCellDef="let student" [ngClass]="student.assessmentLevel4?.toLowerCase()">
+                <div *ngIf="student.assessed4" class="assessment-cell">
+                  <div class="assessment-level">{{ student.assessmentLevel4 }}</div>
+                  <div class="assessment-date" *ngIf="student.assessmentDate4">{{ student.assessmentDate4 }}</div>
+                </div>
+                <span *ngIf="!student.assessed4" class="not-assessed">Not assessed</span>
               </td>
             </ng-container>
 
@@ -90,8 +126,10 @@
                 <button mat-icon-button (click)="openRemarks(student)">
                   <mat-icon>note_add</mat-icon>
                 </button>
-                <span *ngIf="student.remarks" class="has-remarks" matTooltip="{{ student.remarks }}">
-                  <mat-icon>comment</mat-icon>
+                <span *ngIf="student.remarks" class="has-remarks" 
+                  matTooltip="{{ student.remarks }}" 
+                  matTooltipClass="remarks-tooltip">
+                  <mat-icon>info</mat-icon>
                 </span>
               </td>
             </ng-container>
@@ -149,14 +187,6 @@
               </mat-radio-button>
             </mat-radio-group>
           </div>
-        </div>
-
-        <div class="notes-section">
-          <h3>Assessment Notes</h3>
-          <mat-form-field appearance="outline" class="notes-field">
-            <mat-label>Add notes about this assessment </mat-label>
-            <textarea matInput [(ngModel)]="assessment.notes" rows="3" placeholder="Enter any observations or comments..."></textarea>
-          </mat-form-field>
         </div>
 
         <div class="tab-actions">
