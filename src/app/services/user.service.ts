@@ -189,7 +189,7 @@ export class UserService {
     } else if (roles.includes('supervisor')) {
       this.router.navigate(['/supervisor/dashboard']);
     } else if (roles.includes('aww')) {
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/select-competency']);
     } else {
       // Default route for users without specific roles
       this.router.navigate(['/home']);

@@ -23,12 +23,14 @@ export interface SessionData {
 export interface AssessmentSubmission {
   children: number[];
   competency_id: number;
-  score: string;
+  observation: string; // Changed from score to observation
   assessment_date: string;
-  notes?: string;
+  // remarks?: string; // Removed
   anganwadi_id: number;
   attempt_number: number;
 }
+
+// StudentRemarkSubmission interface removed
 
 @Injectable({
   providedIn: 'root'
@@ -84,8 +86,8 @@ export class AssessmentService {
     console.log('Assessment data being submitted:', JSON.stringify(assessments, null, 2));
 
     // Create an array of observables, one for each assessment submission
-    const submissionObservables = assessments.map(assessment => 
-      this.http.post<any>(`${this.apiUrl}/assessments/`, assessment, { 
+    const submissionObservables = assessments.map(assessment =>
+      this.http.post<any>(`${this.apiUrl}/assessments/`, assessment, { // Original endpoint
         headers,
         observe: 'response' // Get the full response including headers and status
       }).pipe(
@@ -109,6 +111,8 @@ export class AssessmentService {
       })
     );
   }
+
+  // updateStudentRemarks method removed
 
   private handleError(error: any) {
     console.error('An error occurred:', error);

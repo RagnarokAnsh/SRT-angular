@@ -176,7 +176,7 @@
         <div class="level-selection">
           <h3>Select Level</h3>
           <div class="level-radio-group">
-            <mat-radio-group [(ngModel)]="assessment.score" name="score" class="level-options">
+            <mat-radio-group [(ngModel)]="assessment.observation" name="observation" class="level-options"> <!-- Changed ngModel and name -->
               <mat-radio-button *ngFor="let level of levelDescriptions" [value]="level.level" class="level-option">
                 <div class="level-radio-card" [style.border-color]="level.color">
                   <div class="level-radio-header" [style.background-color]="level.color">
@@ -188,12 +188,14 @@
             </mat-radio-group>
           </div>
         </div>
+        
+        <!-- Removed batch remarks input section -->
 
         <div class="tab-actions">
           <button mat-button (click)="setActiveTab('students')">
             <mat-icon>arrow_back</mat-icon> Back to Students
           </button>
-          <button mat-raised-button color="primary" [disabled]="!assessment.score" (click)="onSubmit()">
+          <button mat-raised-button color="primary" [disabled]="!assessment.observation" (click)="onSubmit()"> <!-- Changed disabled binding -->
             Submit Assessment <mat-icon>check</mat-icon>
           </button>
         </div>

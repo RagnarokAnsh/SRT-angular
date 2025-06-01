@@ -44,7 +44,7 @@ export class LoginComponent {
     } else if (this.userService.isSupervisor()) {
       this.router.navigate(['/supervisor/dashboard']);
     } else if (this.userService.isAWW()) {
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/select-competency']);
     } else {
       this.router.navigate(['/home']);
     }

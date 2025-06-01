@@ -127,44 +127,72 @@
   .card-stats {
     display: flex;
     gap: var(--spacing-lg);
+    margin-top: var(--spacing-md);
     
     @media (max-width: 768px) {
       width: 100%;
       justify-content: space-around;
+      margin-top: var(--spacing-md);
     }
   }
   
   .stat-item {
     text-align: center;
-    padding: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-lg);
     border-radius: var(--border-radius-md);
-    min-width: 80px;
+    min-width: 100px;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
     
     &.boys {
       background: rgba(99, 102, 241, 0.1);
       border: 2px solid rgba(99, 102, 241, 0.2);
+      
+      .stat-value {
+        color: #4f46e5;
+      }
     }
     
     &.girls {
       background: rgba(236, 72, 153, 0.1);
       border: 2px solid rgba(236, 72, 153, 0.2);
+      
+      .stat-value {
+        color: #db2777;
+      }
     }
     
     .stat-value {
       display: block;
-      font-size: 1.5rem;
+      font-size: 1.75rem;
       font-weight: var(--font-weight-bold);
-      color: var(--text-color);
+      margin-bottom: 2px;
+      transition: all 0.3s ease;
     }
     
     .stat-label {
       display: block;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       color: #6b7280;
       font-weight: var(--font-weight-medium);
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin-top: var(--spacing-xs);
+    }
+  }
+  
+  .chart-container {
+    position: relative;
+    margin-top: var(--spacing-md);
+    height: 300px;
+    
+    canvas {
+      max-height: 100%;
+      width: 100% !important;
+      height: 100% !important;
     }
   }
 }

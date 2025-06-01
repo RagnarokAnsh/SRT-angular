@@ -1,7 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartConfiguration, ChartType, registerables } from 'chart.js';
+import { StudentService, Student, ApiStudent } from '../student-management/student.service';
+import { AssessmentService } from '../assessments/assessment.service';
+import { forkJoin, of, Observable } from 'rxjs';
+import { catchError, switchMap, map } from 'rxjs/operators';
+
+interface StudentWithGender extends Student {
+  gender: string;
+}
+
+interface AssessmentData {
+  students: Student[];
+  assessments: any[];
+}
 
 interface DashboardData {
   genderDistribution: { male: number; female: number };
@@ -22,44 +35,48 @@ interface DashboardData {
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit {
-  // Mock data with your specified requirements
-  mockData: DashboardData = {
-    genderDistribution: { male: 65, female: 35 }, // 65% boys, 35% girls
-    competencyProgress: { completed: 12, total: 17 }, // 12 out of 17 competencies
-    studentLevels: {
-      beginner: 28,
-      progressing: 42,
-      advancing: 18,
-      preschoolReady: 12
-    }
-  };
+  // Real data properties
+  students: StudentWithGender[] = [];
+  loading = true;
+  error: string | null = null;
+  private _genderDistribution = { male: 0, female: 0 };
 
-  // Computed properties for better data display
+  // Computed properties for data display
   get totalStudents(): number {
-    return this.mockData.genderDistribution.male + this.mockData.genderDistribution.female;
+    return this.students.length;
   }
 
-  get competencyPercentage(): number {
-    return Math.round((this.mockData.competencyProgress.completed / this.mockData.competencyProgress.total) * 100);
+  // Getter for gender distribution
+  get genderDistribution() {
+    return this._genderDistribution;
   }
 
-  get totalLevelStudents(): number {
-    const levels = this.mockData.studentLevels;
-    return levels.beginner + levels.progressing + levels.advancing + levels.preschoolReady;
+  // For now, we'll keep these as placeholders
+  get competencyProgress() {
+    return { completed: 0, total: 0 };
   }
 
-  // Gender Distribution Chart (Modern Doughnut)
+  get studentLevels() {
+    return {
+      beginner: 0,
+      progressing: 0,
+      advancing: 0,
+      preschoolReady: 0
+    };
+  }
+
+  // Gender Distribution Chart (Modern Doughnut) - Fixed colors
   genderChartData: ChartConfiguration<'doughnut'>['data'] = {
     labels: ['Boys', 'Girls'],
     datasets: [{
-      data: [this.mockData.genderDistribution.male, this.mockData.genderDistribution.female],
+      data: [0, 0], // Will be updated when data loads
       backgroundColor: [
-        'rgba(99, 102, 241, 0.8)',
-        'rgba(236, 72, 153, 0.8)'
+        'rgba(79, 70, 229, 0.8)', // indigo-600 (matching boys stat card)
+        'rgba(219, 39, 119, 0.8)'  // pink-600 (matching girls stat card)
       ],
       borderColor: [
-        'rgba(99, 102, 241, 1)',
-        'rgba(236, 72, 153, 1)'
+        'rgba(79, 70, 229, 1)',    // indigo-600
+        'rgba(219, 39, 119, 1)'    // pink-600
       ],
       borderWidth: 3,
       hoverOffset: 8
@@ -102,8 +119,10 @@ export class DashboardComponent implements OnInit {
         },
         callbacks: {
           label: (context) => {
-            const percentage = ((context.parsed / this.totalStudents) * 100).toFixed(1);
-            return `${context.label}: ${context.parsed} (${percentage}%)`;
+            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+            const value = context.parsed as number;
+            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+            return `${context.label}: ${value} (${percentage}%)`;
           }
         }
       }
@@ -114,72 +133,15 @@ export class DashboardComponent implements OnInit {
     }
   };
 
-  // Competency Progress Chart (Modern Progress Bar)
-  // competencyChartData: ChartConfiguration<'doughnut'>['data'] = {
-  //   labels: ['Completed', 'Remaining'],
-  //   datasets: [{
-  //     data: [
-  //       this.mockData.competencyProgress.completed,
-  //       this.mockData.competencyProgress.total - this.mockData.competencyProgress.completed
-  //     ],
-  //     backgroundColor: [
-  //       'rgba(16, 185, 129, 0.8)',
-  //       'rgba(229, 231, 235, 0.8)'
-  //     ],
-  //     borderColor: [
-  //       'rgba(16, 185, 129, 1)',
-  //       'rgba(229, 231, 235, 1)'
-  //     ],
-  //     borderWidth: 3,
-  //     hoverOffset: 6
-  //   }]
-  // };
-
-  // competencyChartOptions: ChartConfiguration<'doughnut'>['options'] = {
-  //   responsive: true,
-  //   maintainAspectRatio: false,
-  //   cutout: '70%',
-  //   plugins: {
-  //     legend: {
-  //       display: false
-  //     },
-  //     tooltip: {
-  //       backgroundColor: 'rgba(255, 255, 255, 0.95)',
-  //       titleColor: '#1f2937',
-  //       bodyColor: '#374151',
-  //       borderColor: 'rgba(0, 0, 0, 0.1)',
-  //       borderWidth: 1,
-  //       cornerRadius: 12,
-  //       titleFont: {
-  //         size: 16,
-  //         weight: 600
-  //       },
-  //       bodyFont: {
-  //         size: 14,
-  //         weight: 500
-  //       },
-  //       callbacks: {
-  //         label: (context) => {
-  //           return `${context.label}: ${context.parsed} competencies`;
-  //         }
-  //       }
-  //     }
-  //   },
-  //   animation: {
-  //     duration: 1500,
-  //     easing: 'easeInOutCubic'
-  //   }
-  // };
-
   // Student Levels Chart (Modern Horizontal Bar)
   levelChartData: ChartConfiguration<'bar'>['data'] = {
     labels: ['Beginner', 'Progressing', 'Advancing', 'Preschool Ready'],
     datasets: [{
       data: [
-        this.mockData.studentLevels.beginner,
-        this.mockData.studentLevels.progressing,
-        this.mockData.studentLevels.advancing,
-        this.mockData.studentLevels.preschoolReady
+        this.studentLevels.beginner,
+        this.studentLevels.progressing,
+        this.studentLevels.advancing,
+        this.studentLevels.preschoolReady
       ],
       backgroundColor: [
         'rgba(245, 158, 11, 0.8)',
@@ -224,7 +186,7 @@ export class DashboardComponent implements OnInit {
         },
         callbacks: {
           label: (context) => {
-            const percentage = ((context.parsed.x / this.totalLevelStudents) * 100).toFixed(1);
+            const percentage = ((context.parsed.x / this.totalStudents) * 100).toFixed(1);
             return `${context.parsed.x} students (${percentage}%)`;
           }
         }
@@ -274,7 +236,157 @@ export class DashboardComponent implements OnInit {
     }
   };
 
-  ngOnInit() {
+  constructor(
+    private studentService: StudentService,
+    private assessmentService: AssessmentService,
+    private cdr: ChangeDetectorRef
+  ) {
+    // Register Chart.js components
     Chart.register(...registerables);
+  }
+
+  ngOnInit() {
+    this.loadStudentData();
+  }
+
+  loadStudentData(): void {
+    this.loading = true;
+    this.error = null;
+    
+    // Get students data
+    this.studentService.getStudents().subscribe({
+      next: (students) => {
+        this.students = students || [];
+        this.updateGenderDistribution();
+        this.updateCharts();
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading students:', error);
+        this.error = 'Failed to load student data. Please try again later.';
+        this.loading = false;
+      }
+    });
+  }
+
+  /**
+   * Helper method to normalize gender values
+   */
+  private normalizeGender(gender: string | undefined | null): 'male' | 'female' | 'other' {
+    if (!gender) return 'other';
+    
+    const normalizedGender = gender.toLowerCase().trim();
+    
+    // Handle various male representations
+    if (normalizedGender === 'male' || normalizedGender === 'm' || normalizedGender === 'boy') {
+      return 'male';
+    }
+    
+    // Handle various female representations
+    if (normalizedGender === 'female' || normalizedGender === 'f' || normalizedGender === 'girl') {
+      return 'female';
+    }
+    
+    return 'other';
+  }
+
+  /**
+   * Update gender distribution for stat cards
+   */
+  private updateGenderDistribution(): void {
+    // Reset counts
+    this._genderDistribution = { male: 0, female: 0 };
+    
+    // Count students by normalized gender
+    this.students.forEach(student => {
+      const normalizedGender = this.normalizeGender(student.gender);
+      if (normalizedGender === 'male') {
+        this._genderDistribution.male++;
+      } else if (normalizedGender === 'female') {
+        this._genderDistribution.female++;
+      }
+    });
+
+    console.log('Gender Distribution Updated:', this._genderDistribution);
+  }
+  
+  private updateCharts(): void {
+    if (!this.students || this.students.length === 0) {
+      // Reset charts to empty state
+      this.genderChartData = {
+        labels: ['Boys', 'Girls'],
+        datasets: [{
+          data: [0, 0],
+          backgroundColor: [
+            'rgba(79, 70, 229, 0.8)',
+            'rgba(219, 39, 119, 0.8)'
+          ],
+          borderColor: [
+            'rgba(79, 70, 229, 1)',
+            'rgba(219, 39, 119, 1)'
+          ],
+          borderWidth: 3,
+          hoverOffset: 8
+        }]
+      };
+      this.levelChartData = { labels: [], datasets: [] };
+      return;
+    }
+
+    // Update gender chart with fixed Boys/Girls order and colors
+    const newGenderChartData: ChartConfiguration<'doughnut'>['data'] = {
+      labels: ['Boys', 'Girls'],
+      datasets: [{
+        data: [this._genderDistribution.male, this._genderDistribution.female],
+        backgroundColor: [
+          'rgba(79, 70, 229, 0.8)', // indigo-600 for boys (matching stat card)
+          'rgba(219, 39, 119, 0.8)'  // pink-600 for girls (matching stat card)
+        ],
+        borderColor: [
+          'rgba(79, 70, 229, 1)',    // indigo-600
+          'rgba(219, 39, 119, 1)'    // pink-600
+        ],
+        borderWidth: 3,
+        hoverOffset: 8
+      }]
+    };
+    
+    // Update level chart data
+    const levelLabels = ['Beginner', 'Progressing', 'Advancing', 'Preschool Ready'];
+    const levelData = [
+      this.studentLevels.beginner,
+      this.studentLevels.progressing,
+      this.studentLevels.advancing,
+      this.studentLevels.preschoolReady
+    ];
+
+    const newLevelChartData: ChartConfiguration<'bar'>['data'] = {
+      labels: [...levelLabels],
+      datasets: [{
+        data: [...levelData],
+        backgroundColor: [
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(139, 92, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)'
+        ],
+        borderColor: [
+          'rgba(245, 158, 11, 1)',
+          'rgba(59, 130, 246, 1)',
+          'rgba(139, 92, 246, 1)',
+          'rgba(16, 185, 129, 1)'
+        ],
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false
+      }]
+    };
+
+    // Update the chart data
+    this.genderChartData = { ...newGenderChartData };
+    this.levelChartData = { ...newLevelChartData };
+    
+    // Manually trigger change detection
+    this.cdr.detectChanges();
   }
 }

@@ -294,7 +294,7 @@
 
 .search-filter mat-form-field {
   width: 100%;
-  max-width: 400px;
+  max-width: 250px;
 }
 
 .table-container {
@@ -314,11 +314,11 @@
   }
 
   .beginner {
-    color: #ff5722;
+    color: #ffc107;
   }
 
   .progressing {
-    color: #ffc107;
+    color: #ff5722;
   }
 
   .advanced {

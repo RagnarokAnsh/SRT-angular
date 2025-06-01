@@ -46,9 +46,9 @@ import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.componen
 interface Assessment {
   child_ids: number[];
   competency_id: number;
-  score: string;
+  observation: string;
   assessment_date: string;
-  notes: string;
+  // currentAssessmentRemarks removed
 }
 
 /**
@@ -73,7 +73,8 @@ interface Student {
   assessed4?: boolean;
   assessmentLevel4?: string;
   assessmentDate4?: string;
-  remarks?: string;
+  remarks?: string; // This is for displaying existing remarks from GET (tooltip).
+  // remarks1-4 removed
   sessions?: number; // Number of assessment sessions completed
 }
 
@@ -152,9 +153,9 @@ export class AssessmentsComponent implements OnInit {
   assessment: Assessment = {
     child_ids: [],
     competency_id: 0,
-    score: '',
-    assessment_date: new Date().toISOString().split('T')[0],
-    notes: ''
+    observation: '',
+    assessment_date: new Date().toISOString().split('T')[0]
+    // currentAssessmentRemarks removed
   };
   currentUserAnganwadiId: number | null = null;
   allStudents: Student[] = [];
@@ -480,24 +481,28 @@ export class AssessmentsComponent implements OnInit {
                     console.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
                     updatedStudent.assessmentLevel = level;
                     updatedStudent.assessmentDate = this.formatDateForDisplay(sessionData.created_at);
+                    // updatedStudent.remarks1 = sessionData.remarks || ''; // Removed
                     break;
                   case 2:
                     updatedStudent.assessed2 = true;
                     console.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
                     updatedStudent.assessmentLevel2 = level;
                     updatedStudent.assessmentDate2 = this.formatDateForDisplay(sessionData.created_at);
+                    // updatedStudent.remarks2 = sessionData.remarks || ''; // Removed
                     break;
                   case 3:
                     updatedStudent.assessed3 = true;
                     console.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
                     updatedStudent.assessmentLevel3 = level;
                     updatedStudent.assessmentDate3 = this.formatDateForDisplay(sessionData.created_at);
+                    // updatedStudent.remarks3 = sessionData.remarks || ''; // Removed
                     break;
                   case 4:
                     updatedStudent.assessed4 = true;
                     console.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
                     updatedStudent.assessmentLevel4 = level;
                     updatedStudent.assessmentDate4 = this.formatDateForDisplay(sessionData.created_at);
+                    // updatedStudent.remarks4 = sessionData.remarks || ''; // Removed
                     break;
                 }
                 return true; // Session processed, contributes to sessionCount
@@ -506,11 +511,12 @@ export class AssessmentsComponent implements OnInit {
                 // This part might need adjustment if API can return strings for assessed levels directly
                 let level = sessionData;
                 let date = this.formatDateForDisplay(new Date().toISOString()); // Or a placeholder date
+                // Assuming string sessionData doesn't include remarks in this fallback
                 switch (sessionNumber) {
-                  case 1: updatedStudent.assessed = true; updatedStudent.assessmentLevel = level; updatedStudent.assessmentDate = date; break;
-                  case 2: updatedStudent.assessed2 = true; updatedStudent.assessmentLevel2 = level; updatedStudent.assessmentDate2 = date; break;
-                  case 3: updatedStudent.assessed3 = true; updatedStudent.assessmentLevel3 = level; updatedStudent.assessmentDate3 = date; break;
-                  case 4: updatedStudent.assessed4 = true; updatedStudent.assessmentLevel4 = level; updatedStudent.assessmentDate4 = date; break;
+                  case 1: updatedStudent.assessed = true; updatedStudent.assessmentLevel = level; updatedStudent.assessmentDate = date; break; // remarks1 removed
+                  case 2: updatedStudent.assessed2 = true; updatedStudent.assessmentLevel2 = level; updatedStudent.assessmentDate2 = date; break; // remarks2 removed
+                  case 3: updatedStudent.assessed3 = true; updatedStudent.assessmentLevel3 = level; updatedStudent.assessmentDate3 = date; break; // remarks3 removed
+                  case 4: updatedStudent.assessed4 = true; updatedStudent.assessmentLevel4 = level; updatedStudent.assessmentDate4 = date; break; // remarks4 removed
                 }
                 return true;
               }
@@ -528,7 +534,9 @@ export class AssessmentsComponent implements OnInit {
             if (sessionCount > this.maxSessions) {
               this.maxSessions = sessionCount;
             }
-
+            // The top-level assessmentData.remarks is for the "i" button tooltip,
+            // representing the latest overall remark if backend provides it this way.
+            // Per-session remarks are now stored in remarks1, remarks2 etc.
             updatedStudent.remarks = assessmentData.remarks || '';
             updatedStudent.sessions = sessionCount;
           }
@@ -586,7 +594,7 @@ export class AssessmentsComponent implements OnInit {
     console.log('Submitting assessment:', this.assessment);
 
     // Validation
-    if (!this.assessment.score) {
+    if (!this.assessment.observation) { // Changed from score to observation
       this.showMessage('Please select a level.', true);
       return;
     }
@@ -661,19 +669,21 @@ export class AssessmentsComponent implements OnInit {
       }
       
       console.log(`Student ${childId} attempt number: ${attemptNumber}`);
+      const currentObservationForSubmission = this.assessment.observation; // Changed variable name and source
+      console.log(`[Debug] For child ${childId}, attempt ${attemptNumber}, captured observation for submission payload: '${currentObservationForSubmission}'`); // Log message updated, variable updated
       
       return {
         children: [childId], // Use children array with the child ID
         competency_id: this.assessment.competency_id,
-        score: this.assessment.score,
+        observation: currentObservationForSubmission,
         assessment_date: this.assessment.assessment_date,
-        notes: this.assessment.notes || '',
-        anganwadi_id: anganwadiId, // Add anganwadi_id to each submission
-        attempt_number: attemptNumber // Use the calculated attempt number
+        // remarks: this.assessment.currentAssessmentRemarks || '', // Removed
+        anganwadi_id: anganwadiId,
+        attempt_number: attemptNumber
       };
     });
     
-    console.log('Submitting assessments:', submissions);
+    console.log('Submitting assessments (payload to service):', submissions);
 
     // Submit assessments to API
     this.assessmentService.submitMultipleAssessments(submissions).subscribe({
@@ -691,33 +701,37 @@ export class AssessmentsComponent implements OnInit {
             if (!student.assessed) {
               // First assessment
               updatedStudent.assessed = true;
-              updatedStudent.assessmentLevel = this.assessment.score;
+              updatedStudent.assessmentLevel = this.assessment.observation;
               updatedStudent.assessmentDate = today;
+              // updatedStudent.remarks1 = this.assessment.currentAssessmentRemarks || ''; // Removed
               updatedStudent.sessions = 1;
             } else if (!student.assessed2) {
               // Second assessment
               updatedStudent.assessed2 = true;
-              updatedStudent.assessmentLevel2 = this.assessment.score;
+              updatedStudent.assessmentLevel2 = this.assessment.observation;
               updatedStudent.assessmentDate2 = today;
+              // updatedStudent.remarks2 = this.assessment.currentAssessmentRemarks || ''; // Removed
               updatedStudent.sessions = 2;
             } else if (!student.assessed3) {
               // Third assessment
               updatedStudent.assessed3 = true;
-              updatedStudent.assessmentLevel3 = this.assessment.score;
+              updatedStudent.assessmentLevel3 = this.assessment.observation;
               updatedStudent.assessmentDate3 = today;
+              // updatedStudent.remarks3 = this.assessment.currentAssessmentRemarks || ''; // Removed
               updatedStudent.sessions = 3;
             } else if (!student.assessed4) {
               // Fourth assessment
               updatedStudent.assessed4 = true;
-              updatedStudent.assessmentLevel4 = this.assessment.score;
+              updatedStudent.assessmentLevel4 = this.assessment.observation;
               updatedStudent.assessmentDate4 = today;
-              updatedStudent.sessions = 4;
+              // updatedStudent.remarks4 = this.assessment.currentAssessmentRemarks || ''; // Removed
             }
             
-            // Update remarks if provided
-            if (this.assessment.notes) {
-              updatedStudent.remarks = this.assessment.notes;
-            }
+            // The general student.remarks (for tooltip) is populated from backend GET.
+            // No need to update it here from batch remarks as that feature is removed.
+            // if (this.assessment.currentAssessmentRemarks) {
+            //      updatedStudent.remarks = this.assessment.currentAssessmentRemarks;
+            // }
             
             return updatedStudent;
           }
@@ -734,8 +748,8 @@ export class AssessmentsComponent implements OnInit {
         this.updateDataSource();
 
         // Reset form for next assessment
-        this.assessment.score = '';
-        this.assessment.notes = '';
+        this.assessment.observation = '';
+        // this.assessment.currentAssessmentRemarks = ''; // Removed
         this.selection.clear();
 
         // Redirect back to the student selection tab
@@ -838,12 +852,15 @@ export class AssessmentsComponent implements OnInit {
     this.currentRemarks = student.remarks || '';
     
     const dialogRef = this.dialog.open(this.remarksDialog);
-    dialogRef.afterClosed().subscribe((result: any) => {
+    dialogRef.afterClosed().subscribe((result: string | false) => { // result is 'newRemarksValue'
       if (result !== false && this.currentStudent) {
-        this.currentStudent.remarks = result;
+        this.currentStudent.remarks = result as string; // This updates the local student object's remarks
+        this.updateDataSource(); // Ensure the table reflects this local change
       }
     });
   }
+
+  // private formatDateForApi ... // This helper function is removed
 
   /**
    * Show message with auto-fade
@@ -971,6 +988,13 @@ export class AssessmentsComponent implements OnInit {
         { level: 'Beginner', description: 'Plays alongside others. Limited interaction.', color: '#FFD657' },
         { level: 'Progressing', description: 'Plays with others. Shares with prompting.', color: '#FFC067' },
         { level: 'Advanced', description: 'Cooperates well. Shares willingly.', color: '#AFD588' },
+        { level: 'PSR', description: 'Leads group activities. Shows strong social skills.', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('imagination'))  {
+      this.levelDescriptions = [
+        { level: 'Beginner', description: 'Unable to answer questions about what would happen next in a story', color: '#FFD657' },
+        { level: 'Progressing', description: ' Answers questions about what would happen next in a story', color: '#FFC067' },
+        { level: 'Advanced', description: ' Role-plays characters in a story or uses props to tell a story', color: '#AFD588' },
         { level: 'PSR', description: 'Leads group activities. Shows strong social skills.', color: '#9FDFF8' }
       ];
     } else {
