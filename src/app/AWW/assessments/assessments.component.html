@@ -176,20 +176,41 @@
         <div class="level-selection">
           <h3>Select Level</h3>
           <div class="level-radio-group">
-            <mat-radio-group [(ngModel)]="assessment.observation" name="observation" class="level-options"> <!-- Changed ngModel and name -->
-              <mat-radio-button *ngFor="let level of levelDescriptions" [value]="level.level" class="level-option">
-                <div class="level-radio-card" [style.border-color]="level.color">
-                  <div class="level-radio-header" [style.background-color]="level.color">
-                    {{ level.level }}
-                  </div>
-                  <p class="level-radio-description">{{ level.description }}</p>
+            <div class="level-options">
+                <div class="level-option-wrapper" *ngFor="let level of levelDescriptions">
+                  <label class="level-radio-label">
+                    <div class="level-card" [style.border-color]="level.color" [class.selected]="assessment.observation === level.level">
+                      <div class="level-header" [style.background-color]="level.color">
+                        {{ level.level }}
+                      </div>
+                      <div class="level-description">{{ level.description }}</div>
+                      <div class="radio-container">
+                        <input type="radio" [value]="level.level" [(ngModel)]="assessment.observation" name="observation" id="radio-{{level.level}}" class="level-radio-input">
+                        <label for="radio-{{level.level}}" class="radio-custom-label"></label>
+                      </div>
+                    </div>
+                  </label>
                 </div>
-              </mat-radio-button>
-            </mat-radio-group>
+              </div>
           </div>
         </div>
         
-        <!-- Removed batch remarks input section -->
+        <!-- Assessment remarks section -->
+        <div class="remarks-section">
+          <div class="remarks-header">
+            <h3>Assessment Remarks</h3>
+            <button *ngIf="assessment.remarks" mat-icon-button 
+                    matTooltip="{{assessment.remarks}}" 
+                    matTooltipClass="remarks-tooltip">
+              <mat-icon>info</mat-icon>
+            </button>
+          </div>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Add remarks for this assessment</mat-label>
+            <textarea matInput [(ngModel)]="assessment.remarks" rows="3" placeholder="Enter general observations or comments..."></textarea>
+            <mat-hint>These remarks will apply to the entire assessment</mat-hint>
+          </mat-form-field>
+        </div>
 
         <div class="tab-actions">
           <button mat-button (click)="setActiveTab('students')">

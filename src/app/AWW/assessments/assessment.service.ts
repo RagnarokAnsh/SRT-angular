@@ -25,7 +25,7 @@ export interface AssessmentSubmission {
   competency_id: number;
   observation: string; // Changed from score to observation
   assessment_date: string;
-  // remarks?: string; // Removed
+  remarks?: string; // Added back to match backend API
   anganwadi_id: number;
   attempt_number: number;
 }

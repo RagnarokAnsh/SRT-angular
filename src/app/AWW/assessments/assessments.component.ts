@@ -48,7 +48,7 @@ interface Assessment {
   competency_id: number;
   observation: string;
   assessment_date: string;
-  // currentAssessmentRemarks removed
+  remarks?: string;
 }
 
 /**
@@ -73,9 +73,8 @@ interface Student {
   assessed4?: boolean;
   assessmentLevel4?: string;
   assessmentDate4?: string;
-  remarks?: string; // This is for displaying existing remarks from GET (tooltip).
-  // remarks1-4 removed
-  sessions?: number; // Number of assessment sessions completed
+  remarks?: string;
+  sessions?: number;
 }
 
 /**
@@ -154,8 +153,8 @@ export class AssessmentsComponent implements OnInit {
     child_ids: [],
     competency_id: 0,
     observation: '',
-    assessment_date: new Date().toISOString().split('T')[0]
-    // currentAssessmentRemarks removed
+    assessment_date: new Date().toISOString().split('T')[0],
+    remarks: ''
   };
   currentUserAnganwadiId: number | null = null;
   allStudents: Student[] = [];
@@ -402,6 +401,33 @@ export class AssessmentsComponent implements OnInit {
     ).pipe(
       tap(rawAssessmentData => {
       console.log('[AssessmentsComponent] Raw data from assessmentService.getAssessmentsByAnganwadiAndCompetency:', JSON.parse(JSON.stringify(rawAssessmentData)));
+      
+      // Extract general assessment remarks from the first assessment if available
+      if (rawAssessmentData && rawAssessmentData.length > 0) {
+        // First check if there's a top-level remarks field in the first assessment
+        if (rawAssessmentData[0].remarks) {
+          this.assessment.remarks = rawAssessmentData[0].remarks;
+          console.log('Loaded general assessment remarks from top-level field:', this.assessment.remarks);
+        } 
+        // If no top-level remarks, check if the latest session has remarks
+        else {
+          const firstAssessment = rawAssessmentData[0];
+          // Check session 4 first (most recent), then 3, 2, 1
+          if (firstAssessment.session_4 && typeof firstAssessment.session_4 === 'object' && firstAssessment.session_4.remarks) {
+            this.assessment.remarks = firstAssessment.session_4.remarks;
+            console.log('Loaded general assessment remarks from session 4:', this.assessment.remarks);
+          } else if (firstAssessment.session_3 && typeof firstAssessment.session_3 === 'object' && firstAssessment.session_3.remarks) {
+            this.assessment.remarks = firstAssessment.session_3.remarks;
+            console.log('Loaded general assessment remarks from session 3:', this.assessment.remarks);
+          } else if (firstAssessment.session_2 && typeof firstAssessment.session_2 === 'object' && firstAssessment.session_2.remarks) {
+            this.assessment.remarks = firstAssessment.session_2.remarks;
+            console.log('Loaded general assessment remarks from session 2:', this.assessment.remarks);
+          } else if (firstAssessment.session_1 && typeof firstAssessment.session_1 === 'object' && firstAssessment.session_1.remarks) {
+            this.assessment.remarks = firstAssessment.session_1.remarks;
+            console.log('Loaded general assessment remarks from session 1:', this.assessment.remarks);
+          }
+        }
+      }
     }),
     map((assessmentStudents: any[]) => {
         console.log('Loaded assessments:', assessmentStudents);
@@ -677,7 +703,7 @@ export class AssessmentsComponent implements OnInit {
         competency_id: this.assessment.competency_id,
         observation: currentObservationForSubmission,
         assessment_date: this.assessment.assessment_date,
-        // remarks: this.assessment.currentAssessmentRemarks || '', // Removed
+        remarks: this.assessment.remarks || '', // Added remarks field
         anganwadi_id: anganwadiId,
         attempt_number: attemptNumber
       };
@@ -689,6 +715,9 @@ export class AssessmentsComponent implements OnInit {
     this.assessmentService.submitMultipleAssessments(submissions).subscribe({
       next: (response) => {
         this.showMessage('Assessment saved successfully!');
+        
+        // Reload assessments from the server to ensure we have the latest data
+        this.loadAssessments();
 
         // Update student assessment status locally
         this.students = this.students.map(student => {
@@ -855,6 +884,7 @@ export class AssessmentsComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result: string | false) => { // result is 'newRemarksValue'
       if (result !== false && this.currentStudent) {
         this.currentStudent.remarks = result as string; // This updates the local student object's remarks
+        // Note: We no longer update assessment.remarks here since that's for the general assessment remarks
         this.updateDataSource(); // Ensure the table reflects this local change
       }
     });
@@ -929,24 +959,24 @@ export class AssessmentsComponent implements OnInit {
     // Set level descriptions based on competency type
     if (competencyName.includes('gross motor')) {
       this.levelDescriptions = [
-        { level: 'Beginner', description: 'Learning to maintain balance in gross motor activities, e.g., jumping.', color: '#FFD657' },
-        { level: 'Progressing', description: 'Maintaining balance in gross motor activities.', color: '#FFC067' },
-        { level: 'Advanced', description: 'Maintaining and controlling body while moving quickly', color: '#AFD588' },
-        { level: 'PSR', description: 'Balances and coordinates well in a game such as throwing a ball.', color: '#9FDFF8' }
+        { level: 'Beginner', description: 'Limited balance in gross motor activities, e.g., jumping', color: '#FFD657' },
+        { level: 'Progressing', description: 'Maintains balance in gross motor activities', color: '#FFC067' },
+        { level: 'Advanced', description: 'Maintains balance and controls body while moving quickly', color: '#AFD588' },
+        { level: 'PSR', description: 'Balances and coordinates well in a variety of activities, such as throwing a ball with aim or kicking a ball at a given target', color: '#9FDFF8' }
       ];
     } else if (competencyName.includes('fine motor')) {
       this.levelDescriptions = [
-        { level: 'Beginner', description: 'The child struggles to hold a pencil and makes random marks. Assess as Beginner if they need constant guidance.', color: '#FFD657' },
-        { level: 'Progressing', description: 'The child holds a pencil and draws basic shapes with help. Assess as Progressing if they show some control.', color: '#FFC067' },
-        { level: 'Advanced', description: 'The child draws recognizable shapes or letters independently. Assess as Advanced if they demonstrate precision.', color: '#AFD588' },
-        { level: 'PSR', description: 'The child writes simple words or copies text accurately. Assess as PSR if they are ready for writing tasks.', color: '#9FDFF8' }
+        { level: 'Beginner', description: 'Limited coordination of small muscles in fine motor activities', color: '#FFD657' },
+        { level: 'Progressing', description: 'Maintains coordination of small muscles in fine motor activities', color: '#FFC067' },
+        { level: 'Advanced', description: 'Maintains coordination of small muscles while manipulating objects', color: '#AFD588' },
+        { level: 'PSR', description: 'Controls and coordinates well in a variety of small muscle activities', color: '#9FDFF8' }
       ];
     } else if (competencyName.includes('vocabulary') || competencyName.includes('expression')) {
       this.levelDescriptions = [
-        { level: 'Beginner', description: 'Uses single words or short phrases. Limited vocabulary and expression.', color: '#FFD657' },
-        { level: 'Progressing', description: 'Uses simple sentences. Growing vocabulary with some errors.', color: '#FFC067' },
-        { level: 'Advanced', description: 'Uses complex sentences. Good vocabulary with minor errors.', color: '#AFD588' },
-        { level: 'PSR', description: 'Uses varied vocabulary and complex sentences correctly.', color: '#9FDFF8' }
+        { level: 'Beginner', description: 'Uses gestures to express/describe any event', color: '#FFD657' },
+        { level: 'Progressing', description: 'Uses words to express/describe any event', color: '#FFC067' },
+        { level: 'Advanced', description: 'Uses incomplete sentences to express/describe any event', color: '#AFD588' },
+        { level: 'PSR', description: 'Uses complete sentences to express/describe any event', color: '#9FDFF8' }
       ];
     } else if (competencyName.includes('reading')) {
       this.levelDescriptions = [
@@ -957,45 +987,87 @@ export class AssessmentsComponent implements OnInit {
       ];
     } else if (competencyName.includes('listening')) {
       this.levelDescriptions = [
-        { level: 'Beginner', description: 'Follows simple one-step instructions. Limited attention span.', color: '#FFD657' },
-        { level: 'Progressing', description: 'Follows two-step instructions. Shows improved attention.', color: '#FFC067' },
-        { level: 'Advanced', description: 'Follows complex instructions. Good attention and recall.', color: '#AFD588' },
-        { level: 'PSR', description: 'Follows detailed instructions. Excellent attention and comprehension.', color: '#9FDFF8' }
+        { level: 'Beginner', description: 'Does not pay attention to a story/conversation', color: '#FFD657' },
+        { level: 'Progressing', description: 'Listens actively to a story/conversation', color: '#FFC067' },
+        { level: 'Advanced', description: 'Understands a story/conversation – responds to simple/close-ended questions (e.g., what, when, who)', color: '#AFD588' },
+        { level: 'PSR', description: 'Understands a story/conversation –responds to complex/open-ended questions (e.g., why and how)', color: '#9FDFF8' }
       ];
-    } else if (competencyName.includes('seriation') || competencyName.includes('classification')) {
+    } else if (competencyName.includes('classification')) {
       this.levelDescriptions = [
-        { level: 'Beginner', description: 'Sorts objects by one attribute. Needs guidance for patterns.', color: '#FFD657' },
-        { level: 'Progressing', description: 'Sorts by multiple attributes. Creates simple patterns.', color: '#FFC067' },
-        { level: 'Advanced', description: 'Creates complex patterns. Understands relationships.', color: '#AFD588' },
-        { level: 'PSR', description: 'Applies patterns to new situations. Shows logical thinking.', color: '#9FDFF8' }
+        { level: 'Beginner', description: 'Unable to sort objects based on any characteristic', color: '#FFD657' },
+        { level: 'Progressing', description: 'Sorts objects based on any one characteristic', color: '#FFC067' },
+        { level: 'Advanced', description: 'Classifies objects based on any two characteristics', color: '#AFD588' },
+        { level: 'PSR', description: 'Classifies objects based on three characteristics', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('creative') || competencyName.includes('representation')) {
+      this.levelDescriptions = [
+        { level: 'Beginner', description: 'Unable to create something to represent an idea or object (e.g., by using arts and crafts, dance or music)', color: '#FFD657' },
+        { level: 'Progressing', description: 'Creates something with an adult\'s assistance', color: '#FFC067' },
+        { level: 'Advanced', description: 'Creates something on her/his own', color: '#AFD588' },
+        { level: 'PSR', description: 'Creates something innovative to represent an idea or object', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('writing')) {
+      this.levelDescriptions = [
+        { level: 'Beginner', description: 'Scribbles to represent writing', color: '#FFD657' },
+        { level: 'Progressing', description: 'Draws shapes to represent writing', color: '#FFC067' },
+        { level: 'Advanced', description: 'Engages in make-believe writing by using a combination of drawing and writing to express an idea', color: '#AFD588' },
+        { level: 'PSR', description: 'Uses inventive spelling (based on phonics) to write words that are connected to a given topic', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('seriation') || competencyName.includes('pattern')) {
+      this.levelDescriptions = [
+        { level: 'Beginner', description: 'Unable to copy patterns', color: '#FFD657' },
+        { level: 'Progressing', description: 'Copies patterns', color: '#FFC067' },
+        { level: 'Advanced', description: 'Completes simple alternating patterns', color: '#AFD588' },
+        { level: 'PSR', description: 'Completes complex patterns', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('sequencing') || competencyName.includes('ordering')) {
+      this.levelDescriptions = [
+        { level: 'Beginner', description: 'Unable to compare two objects in terms of size, length, or quantity', color: '#FFD657' },
+        { level: 'Progressing', description: 'Compares two similar objects based on size, length, or quantity', color: '#FFC067' },
+        { level: 'Advanced', description: 'Arranges up to three objects by size, length, or quantity', color: '#AFD588' },
+        { level: 'PSR', description: 'Arranges up to five objects by size, length, or quantity', color: '#9FDFF8' }
       ];
     } else if (competencyName.includes('number')) {
       this.levelDescriptions = [
-        { level: 'Beginner', description: 'Counts to 10. Recognizes basic numbers.', color: '#FFD657' },
-        { level: 'Progressing', description: 'Counts to 20. Understands basic addition.', color: '#FFC067' },
-        { level: 'Advanced', description: 'Counts to 100. Solves simple problems.', color: '#AFD588' },
-        { level: 'PSR', description: 'Understands place value. Solves complex problems.', color: '#9FDFF8' }
+        { level: 'Beginner', description: 'Unable to compare quantities', color: '#FFD657' },
+        { level: 'Progressing', description: 'Connects a number with an object and counts each object with understanding', color: '#FFC067' },
+        { level: 'Advanced', description: 'Identifies numerals and can link them with concrete objects', color: '#AFD588' },
+        { level: 'PSR', description: 'Identifies both the smallest and the largest numerals within 1 to 10', color: '#9FDFF8' }
       ];
-    } else if (competencyName.includes('emotional') || competencyName.includes('regulation')) {
+    } else if (competencyName.includes('emotional') || competencyName.includes('regulation') || competencyName.includes('focus')) {
       this.levelDescriptions = [
-        { level: 'Beginner', description: 'Shows basic emotions. Needs help with regulation.', color: '#FFD657' },
-        { level: 'Progressing', description: 'Expresses emotions appropriately. Learning self-regulation.', color: '#FFC067' },
-        { level: 'Advanced', description: 'Manages emotions well. Shows empathy.', color: '#AFD588' },
-        { level: 'PSR', description: 'Demonstrates emotional intelligence. Helps others regulate.', color: '#9FDFF8' }
+        { level: 'Beginner', description: 'Focuses on play activities for a short period of time (about 5 minutes)', color: '#FFD657' },
+        { level: 'Progressing', description: 'Engages in play activities for about 10 minutes', color: '#FFC067' },
+        { level: 'Advanced', description: 'Sustains focus in play activities for about 15 minutes', color: '#AFD588' },
+        { level: 'PSR', description: 'Sustains focus in play activities for at least 20-25 minutes, even if there are distractions', color: '#9FDFF8' }
       ];
-    } else if (competencyName.includes('interaction') || competencyName.includes('sharing')) {
+    } else if (competencyName.includes('interaction') || competencyName.includes('social play')) {
       this.levelDescriptions = [
-        { level: 'Beginner', description: 'Plays alongside others. Limited interaction.', color: '#FFD657' },
-        { level: 'Progressing', description: 'Plays with others. Shares with prompting.', color: '#FFC067' },
-        { level: 'Advanced', description: 'Cooperates well. Shares willingly.', color: '#AFD588' },
-        { level: 'PSR', description: 'Leads group activities. Shows strong social skills.', color: '#9FDFF8' }
+        { level: 'Beginner', description: 'Plays alongside or near others but not with others', color: '#FFD657' },
+        { level: 'Progressing', description: 'Starts to play with others', color: '#FFC067' },
+        { level: 'Advanced', description: 'Plays with others to make/create something jointly', color: '#AFD588' },
+        { level: 'PSR', description: 'Engages in games with rules with other children', color: '#9FDFF8' }
       ];
     } else if (competencyName.includes('imagination'))  {
       this.levelDescriptions = [
         { level: 'Beginner', description: 'Unable to answer questions about what would happen next in a story', color: '#FFD657' },
-        { level: 'Progressing', description: ' Answers questions about what would happen next in a story', color: '#FFC067' },
-        { level: 'Advanced', description: ' Role-plays characters in a story or uses props to tell a story', color: '#AFD588' },
-        { level: 'PSR', description: 'Leads group activities. Shows strong social skills.', color: '#9FDFF8' }
+        { level: 'Progressing', description: 'Answers questions about what would happen next in a story', color: '#FFC067' },
+        { level: 'Advanced', description: 'Role-plays characters in a story or uses props to tell a story', color: '#AFD588' },
+        { level: 'PSR', description: 'Makes up and tells own story', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('initiative')) {
+      this.levelDescriptions = [
+        { level: 'Beginner', description: 'Does not take action even after being asked to do something', color: '#FFD657' },
+        { level: 'Progressing', description: 'Begins to take initiative when encouraged', color: '#FFC067' },
+        { level: 'Advanced', description: 'Takes initiative in some activities which she/he likes', color: '#AFD588' },
+        { level: 'PSR', description: 'Takes initiative readily in most/all of the classroom activities', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('sharing')) {
+      this.levelDescriptions = [
+        { level: 'Beginner', description: 'Shares unwillingly with peers and only when asked', color: '#FFD657' },
+        { level: 'Progressing', description: 'Begins to share selectively when encouraged', color: '#FFC067' },
+        { level: 'Advanced', description: 'Comes forward and shares with selected/few peers', color: '#AFD588' },
+        { level: 'PSR', description: 'Comes forward and shares with all/any peers on her/his own', color: '#9FDFF8' }
       ];
     } else {
       // Default fallback for other competencies
