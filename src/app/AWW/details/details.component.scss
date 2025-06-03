@@ -46,9 +46,17 @@ h2, h3 {
   object-fit: contain;
   border-radius: var(--border-radius-sm);
 }
-
+.form-check-input {
+  background-color: #E1E1E1;
+}
+.form-check-input:checked {
+  background-color: #6366f1;
+  border-color: #6366f1;
+}
 .form-check {
   margin-bottom: var(--spacing-md);
+
+  
   
   .form-check-label {
     font-size: var(--font-size-base);

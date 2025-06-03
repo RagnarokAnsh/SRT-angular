@@ -310,7 +310,7 @@ export class AWWGuard implements CanActivate {
   }
 }
 
-// Composite guards for hierarchical access
+// guards foraccess
 @Injectable({
   providedIn: 'root'
 })

@@ -14,7 +14,6 @@ export interface AnganwadiCenter {
   district_id: number;
   created_at?: string;
   updated_at?: string;
-  // For display purposes
   country_name?: string;
   state_name?: string;
   district_name?: string;
@@ -49,7 +48,6 @@ export class AnganwadiService {
   getAnganwadiCenters(): Observable<AnganwadiCenter[]> {
     return this.http.get<AnganwadiCenter[]>(`${this.baseUrl}/anganwadi-centers`).pipe(
       map(centers => {
-        // Enhance centers with location names
         return centers.map(center => ({
           ...center,
           country_name: '',
@@ -63,7 +61,6 @@ export class AnganwadiService {
   getAnganwadiCentersWithNames(): Observable<AnganwadiCenter[]> {
     return this.getAnganwadiCenters().pipe(
       map(centers => {
-        // For now, just return centers with empty names - we'll load them individually
         return centers.map(center => ({
           ...center,
           country_name: 'Loading...',
@@ -74,7 +71,6 @@ export class AnganwadiService {
     );
   }
 
-  // Enhanced method that loads names for each center individually
   getAnganwadiCentersWithNamesDetailed(): Observable<AnganwadiCenter[]> {
     return this.getAnganwadiCenters().pipe(
       map(centers => {
@@ -134,7 +130,6 @@ export class AnganwadiService {
     return this.http.get<District[]>(`${this.baseUrl}/districts/${stateId}`);
   }
 
-  // Helper methods to get all states and districts for name mapping
   private getAllStates(): Observable<State[]> {
     return this.http.get<State[]>(`${this.baseUrl}/states`);
   }

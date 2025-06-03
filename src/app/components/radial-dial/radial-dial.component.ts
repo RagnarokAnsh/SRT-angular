@@ -63,15 +63,15 @@ export class RadialDialComponent implements OnInit {
     },
     {
       name: 'Language and Literacy Development',
-      competencies: ['Vocabulary and expression', 'Listening comprehension', 'Emergent reading – book handling', 'Emergent writing']
+      competencies: ['Vocabulary and exp.', 'Listening comprehension', 'Emergent reading', 'Emergent writing']
     },
     {
       name: 'Physical and Motor Development',
-      competencies: ['Gross motor development', 'Fine motor development']
+      competencies: ['Gross motor', 'Fine motor']
     },
     {
       name: 'Socio-Emotional Development',
-      competencies: ['Interaction', 'Sharing with others', 'Emotional expression and regulation']
+      competencies: ['Interaction', 'Sharing with others', 'Emotional expression ']
     },
     {
       name: 'Approaches towards Learning',
@@ -98,7 +98,6 @@ export class RadialDialComponent implements OnInit {
     const containerHeight = window.innerHeight;
     const minDim = Math.min(containerWidth, containerHeight);
     
-    // Base size calculations with maximum limits
     let baseSize;
     if (window.innerWidth >= 1600) {
       baseSize = 1200;
@@ -110,12 +109,10 @@ export class RadialDialComponent implements OnInit {
       baseSize = Math.min(minDim * 0.8, 800);
     }
     
-    // Adjust center and radius based on screen size
     this.center = Math.max(150, Math.floor(baseSize / 2));
     this.radius = Math.max(75, Math.floor(baseSize / 4));
     this.ringWidth = Math.max(30, Math.floor(baseSize / 8));
     
-    // Additional adjustments for mobile
     if (window.innerWidth <= 480) {
       this.center = Math.max(100, Math.floor(baseSize / 2));
       this.radius = Math.max(50, Math.floor(baseSize / 4));
@@ -178,12 +175,10 @@ export class RadialDialComponent implements OnInit {
     const domain = this.domains[domainIdx];
     const domainCount = this.domains.length;
     
-    // Calculate the domain's start and end angles
     const domainAngle = 360 / domainCount;
     const domainStartAngle = domainIdx * domainAngle;
     const domainEndAngle = domainStartAngle + domainAngle;
     
-    // Calculate equal angles for each competency within the domain's arc
     const competencyCount = domain.competencies.length;
     const competencyAngle = domainAngle / competencyCount;
     
@@ -225,10 +220,8 @@ export class RadialDialComponent implements OnInit {
     return { x: pos.x, y: pos.y, rotation: angle };
   }
 
-  // Event handlers
   onDomainHover(idx: number) {
     if (this.isTouchDevice) {
-      // For touch devices, toggle the domain
       if (this.hoveredDomainIdx === idx) {
         this.onDomainLeave();
       } else {
@@ -236,7 +229,6 @@ export class RadialDialComponent implements OnInit {
         this.hoveredDomainIdx = idx;
       }
     } else {
-      // For mouse devices, use hover behavior
       this.expandedLevel = 'competency';
       this.hoveredDomainIdx = idx;
     }
@@ -259,14 +251,14 @@ export class RadialDialComponent implements OnInit {
   getResponsiveFontSize(sector: any): number {
     const arcAngle = sector.endAngle - sector.startAngle;
     const arcLength = ((arcAngle / 360) * 2 * Math.PI * ((sector.innerRadius + sector.outerRadius) / 2));
-    return Math.max(12, Math.min(arcLength / 6, 32));
+    return Math.min(22, Math.max(arcLength / 6, 32));
   }
 
   // Truncate label if it overflows the arc
   getTruncatedLabel(sector: any): string {
     const arcAngle = sector.endAngle - sector.startAngle;
     const arcLength = ((arcAngle / 360) * 2 * Math.PI * ((sector.innerRadius + sector.outerRadius) / 2));
-    const maxChars = Math.floor(arcLength / 7);
+    const maxChars = Math.floor(arcLength / 12);
     if (sector.label.length > maxChars) {
       return sector.label.slice(0, Math.max(0, maxChars - 1)) + '…';
     }
@@ -304,22 +296,18 @@ export class RadialDialComponent implements OnInit {
     return lines;
   }
 
-  // Calculate max characters per line for a sector
   getMaxCharsPerLine(sector: any): number {
     const arcAngle = sector.endAngle - sector.startAngle;
     const arcLength = ((arcAngle / 360) * 2 * Math.PI * ((sector.innerRadius + sector.outerRadius) / 2));
-    return Math.floor(arcLength / 7);
+    return Math.floor(arcLength / 12);
   }
 
-  // Dynamically calculate max characters per line for vertical text
   getMaxCharsPerLineVertical(sector: any): number {
     const arcAngle = sector.endAngle - sector.startAngle;
     const arcLength = ((arcAngle / 360) * 2 * Math.PI * ((sector.innerRadius + sector.outerRadius) / 2));
-    // Estimate: 10px per character, vertical
     return Math.max(3, Math.floor(arcLength / 10));
   }
 
-  // Split label into lines for vertical text (competencies)
   splitLabelToLinesVertical(label: string): string[] {
     const maxCharsPerLine = 12; 
     const words = label.split(' ');
@@ -346,10 +334,9 @@ export class RadialDialComponent implements OnInit {
     return lines;
   }
 
-  // Get font size based on competency arc size
   getCompetencyFontSize(sector: any): number {
     const arcAngle = sector.endAngle - sector.startAngle;
     const arcLength = ((arcAngle / 360) * 2 * Math.PI * ((sector.innerRadius + sector.outerRadius) / 2));
-    return Math.min(14, Math.max(10, arcLength / 20)); // Between 10 and 14px
+    return Math.min(22, Math.max(20, arcLength / 20));
   }
 }

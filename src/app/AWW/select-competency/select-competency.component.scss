@@ -46,6 +46,7 @@
   transition: box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
+  align-items: center;
 
   &:hover {
     box-shadow: var(--box-shadow-md);
@@ -62,13 +63,14 @@
     border-radius: var(--border-radius-sm);
     margin-bottom: var(--spacing-sm);
     cursor: pointer;
+    max-width: 125px;
   }
 
   p {
     margin: 0;
     font-size: 0.9rem;
     font-weight: var(--font-weight-medium);
-    color: var(--text-color); // Using global text color
+    color: var(--text-color); 
   }
   
   .competency-actions {
@@ -136,12 +138,12 @@
 // Responsive adjustments
 @media (min-width: 768px) {
   .competency-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(20%, 1fr));
   }
 }
 
 @media (min-width: 1200px) {
   .competency-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(20%, 1fr));
   }
 }

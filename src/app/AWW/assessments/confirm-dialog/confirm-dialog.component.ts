@@ -23,8 +23,8 @@ import { MatIconModule } from '@angular/material/icon';
         </div>
       </mat-dialog-content>
       <mat-dialog-actions align="end">
-        <button mat-button [mat-dialog-close]="false">Cancel</button>
-        <button mat-raised-button color="primary" [mat-dialog-close]="true">{{ data.confirmText }}</button>
+        <button type="button" class="btn btn-outline-secondary me-3" [mat-dialog-close]="false">Cancel</button>
+        <button type="button" class="btn btn-primary" [mat-dialog-close]="true">{{ data.confirmText }}</button>
       </mat-dialog-actions>
     </div>
   `,

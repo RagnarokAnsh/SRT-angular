@@ -64,15 +64,19 @@ interface Student {
   assessed: boolean;
   assessmentLevel: string;
   assessmentDate?: string;
+  remarks1?: string;
   assessed2?: boolean;
   assessmentLevel2?: string;
   assessmentDate2?: string;
+  remarks2?: string;
   assessed3?: boolean;
   assessmentLevel3?: string;
   assessmentDate3?: string;
+  remarks3?: string;
   assessed4?: boolean;
   assessmentLevel4?: string;
   assessmentDate4?: string;
+  remarks4?: string;
   remarks?: string;
   sessions?: number;
 }
@@ -144,8 +148,8 @@ export class AssessmentsComponent implements OnInit {
   currentAudio: HTMLAudioElement | null = null;
   students: Student[] = [];
   filteredStudents: Student[] = [];
-  displayedColumns: string[] = ['select', 'name', 'age', 'gender', 'assessmentInfo', 'remarks'];
-  maxSessions: number = 1; // Track the maximum number of sessions any student has
+  displayedColumns: string[] = ['select', 'name', 'age', 'gender', 'assessmentInfo']; // 'remarks' column temporarily removed
+  maxSessions: number = 1;
   dataSource = new MatTableDataSource<Student>();
   selection = new SelectionModel<Student>(true, []);
   levelDescriptions: LevelDescription[] = [];
@@ -174,11 +178,11 @@ export class AssessmentsComponent implements OnInit {
     private route: ActivatedRoute,
     private dialog: MatDialog,
     private cdr: ChangeDetectorRef,
-    private competencyService: CompetencyService, // Inject the competency service
-    private studentService: StudentService, // Inject the student service
-    private messageService: MessageService, // Inject the message service
-    private assessmentService: AssessmentService, // Inject the assessment service
-    private userService: UserService // Inject the user service
+    private competencyService: CompetencyService,
+    private studentService: StudentService,
+    private messageService: MessageService,
+    private assessmentService: AssessmentService,
+    private userService: UserService
   ) {}
 
   /**
@@ -208,7 +212,6 @@ export class AssessmentsComponent implements OnInit {
 
     // Load students
     this.loadStudents();
-    // checkAndLoadAssessments will be called from within loadStudents and competency loading methods
   }
 
   loadStudents() {
@@ -225,16 +228,15 @@ export class AssessmentsComponent implements OnInit {
       next: (data: ServiceStudent[]) => {
         this.students = data.map(serviceStudent => {
           const day = serviceStudent.dateOfBirth.getDate().toString().padStart(2, '0');
-          const month = (serviceStudent.dateOfBirth.getMonth() + 1).toString().padStart(2, '0'); // Month is 0-indexed
+          const month = (serviceStudent.dateOfBirth.getMonth() + 1).toString().padStart(2, '0');
           const year = serviceStudent.dateOfBirth.getFullYear();
           const birthDateString = `${day}/${month}/${year}`;
 
           return {
-            // Fields from serviceStudent, potentially renamed or formatted
             id: serviceStudent.id,
-            first_name: serviceStudent.firstName, // Map to snake_case
-            last_name: serviceStudent.lastName,   // Map to snake_case
-            birth_date: birthDateString,         // Formatted date string
+            first_name: serviceStudent.firstName,
+            last_name: serviceStudent.lastName,
+            birth_date: birthDateString,
             symbol: serviceStudent.symbol,
             height: serviceStudent.height,
             weight: serviceStudent.weight,
@@ -248,10 +250,8 @@ export class AssessmentsComponent implements OnInit {
             assessed2: false, assessmentLevel2: '', assessmentDate2: '',
             assessed3: false, assessmentLevel3: '', assessmentDate3: '',
             assessed4: false, assessmentLevel4: '', assessmentDate4: '',
-            remarks: '', // Initialize remarks, as it's not on serviceStudent
-            sessionCount: 0, // Initialize sessionCount
-            // Ensure any other fields expected by ComponentStudent are added here
-            // For example, if 'name' is a direct property and not a getter:
+            remarks: '',
+            sessionCount: 0,
             name: `${serviceStudent.firstName} ${serviceStudent.lastName}`.trim()
           };
         });
@@ -259,7 +259,7 @@ export class AssessmentsComponent implements OnInit {
         this.updateDataSource();
         this.isLoading = false;
         console.log('Students loaded and processed.');
-        this.checkAndLoadAssessments(); // Crucial call after students are ready
+        this.checkAndLoadAssessments();
       },
       error: (err: any) => {
         console.error('Error loading students:', err);
@@ -268,7 +268,7 @@ export class AssessmentsComponent implements OnInit {
         this.allStudents = [];
         this.updateDataSource();
         this.isLoading = false;
-        this.checkAndLoadAssessments(); // Attempt even on error, might have partial data or clear state
+        this.checkAndLoadAssessments();
       }
     });
   }
@@ -494,7 +494,7 @@ export class AssessmentsComponent implements OnInit {
                 return false; // No session data at all for this slot
               }
 
-              // Handle object format (expected from API based on logs)
+                // Handle object format (expected from API based on logs)
               if (typeof sessionData === 'object' && sessionData.observation != null && sessionData.created_at != null) {
                 let level = ''; // Default to empty string for level
                 if (sessionData.observation !== '-') {
@@ -507,37 +507,42 @@ export class AssessmentsComponent implements OnInit {
                     console.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
                     updatedStudent.assessmentLevel = level;
                     updatedStudent.assessmentDate = this.formatDateForDisplay(sessionData.created_at);
-                    // updatedStudent.remarks1 = sessionData.remarks || ''; // Removed
+                    // Store session-specific remarks
+                    updatedStudent.remarks1 = sessionData.remarks || '';
+                    console.log(`Session 1 remarks for ${updatedStudent.first_name}:`, updatedStudent.remarks1);
                     break;
                   case 2:
                     updatedStudent.assessed2 = true;
                     console.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
                     updatedStudent.assessmentLevel2 = level;
                     updatedStudent.assessmentDate2 = this.formatDateForDisplay(sessionData.created_at);
-                    // updatedStudent.remarks2 = sessionData.remarks || ''; // Removed
+                    // Store session-specific remarks
+                    updatedStudent.remarks2 = sessionData.remarks || '';
+                    console.log(`Session 2 remarks for ${updatedStudent.first_name}:`, updatedStudent.remarks2);
                     break;
                   case 3:
                     updatedStudent.assessed3 = true;
                     console.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
                     updatedStudent.assessmentLevel3 = level;
                     updatedStudent.assessmentDate3 = this.formatDateForDisplay(sessionData.created_at);
-                    // updatedStudent.remarks3 = sessionData.remarks || ''; // Removed
+                    // Store session-specific remarks
+                    updatedStudent.remarks3 = sessionData.remarks || '';
+                    console.log(`Session 3 remarks for ${updatedStudent.first_name}:`, updatedStudent.remarks3);
                     break;
                   case 4:
                     updatedStudent.assessed4 = true;
                     console.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
                     updatedStudent.assessmentLevel4 = level;
                     updatedStudent.assessmentDate4 = this.formatDateForDisplay(sessionData.created_at);
-                    // updatedStudent.remarks4 = sessionData.remarks || ''; // Removed
+                    // Store session-specific remarks
+                    updatedStudent.remarks4 = sessionData.remarks || '';
+                    console.log(`Session 4 remarks for ${updatedStudent.first_name}:`, updatedStudent.remarks4);
                     break;
                 }
                 return true; // Session processed, contributes to sessionCount
               } else if (typeof sessionData === 'string' && sessionData !== '-') {
-                // Fallback for unexpected string format - less likely given current logs
-                // This part might need adjustment if API can return strings for assessed levels directly
                 let level = sessionData;
                 let date = this.formatDateForDisplay(new Date().toISOString()); // Or a placeholder date
-                // Assuming string sessionData doesn't include remarks in this fallback
                 switch (sessionNumber) {
                   case 1: updatedStudent.assessed = true; updatedStudent.assessmentLevel = level; updatedStudent.assessmentDate = date; break; // remarks1 removed
                   case 2: updatedStudent.assessed2 = true; updatedStudent.assessmentLevel2 = level; updatedStudent.assessmentDate2 = date; break; // remarks2 removed
@@ -556,13 +561,9 @@ export class AssessmentsComponent implements OnInit {
             if (processSession(assessmentData.session_3, 3)) sessionCount = Math.max(sessionCount, 3);
             if (processSession(assessmentData.session_4, 4)) sessionCount = Math.max(sessionCount, 4);
             
-            // Update max sessions if this student has more
             if (sessionCount > this.maxSessions) {
               this.maxSessions = sessionCount;
             }
-            // The top-level assessmentData.remarks is for the "i" button tooltip,
-            // representing the latest overall remark if backend provides it this way.
-            // Per-session remarks are now stored in remarks1, remarks2 etc.
             updatedStudent.remarks = assessmentData.remarks || '';
             updatedStudent.sessions = sessionCount;
           }
@@ -607,8 +608,8 @@ export class AssessmentsComponent implements OnInit {
       this.displayedColumns.push(`assessmentInfo${i > 1 ? i : ''}`);
     }
     
-    // Add remarks column at the end
-    this.displayedColumns.push('remarks');
+    // Add remarks column at the end - temporarily disabled
+    // this.displayedColumns.push('remarks');
     
     console.log('Updated displayed columns:', this.displayedColumns);
   }
@@ -627,6 +628,17 @@ export class AssessmentsComponent implements OnInit {
 
     if (this.selection.selected.length === 0) {
       this.showMessage('Please select at least one student.', true);
+      return;
+    }
+    
+    // Check if any selected student already has 4 sessions completed
+    if (this.hasMaxSessionsReached()) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Maximum Sessions Reached',
+        detail: 'You have already submitted assessments for all 4 sessions for one or more selected students. Please select another competency to assess.',
+        life: 5000
+      });
       return;
     }
 
@@ -699,11 +711,11 @@ export class AssessmentsComponent implements OnInit {
       console.log(`[Debug] For child ${childId}, attempt ${attemptNumber}, captured observation for submission payload: '${currentObservationForSubmission}'`); // Log message updated, variable updated
       
       return {
-        children: [childId], // Use children array with the child ID
+        children: [childId], //  array with the child ID
         competency_id: this.assessment.competency_id,
         observation: currentObservationForSubmission,
         assessment_date: this.assessment.assessment_date,
-        remarks: this.assessment.remarks || '', // Added remarks field
+        remarks: this.assessment.remarks || '', 
         anganwadi_id: anganwadiId,
         attempt_number: attemptNumber
       };
@@ -732,35 +744,25 @@ export class AssessmentsComponent implements OnInit {
               updatedStudent.assessed = true;
               updatedStudent.assessmentLevel = this.assessment.observation;
               updatedStudent.assessmentDate = today;
-              // updatedStudent.remarks1 = this.assessment.currentAssessmentRemarks || ''; // Removed
               updatedStudent.sessions = 1;
             } else if (!student.assessed2) {
               // Second assessment
               updatedStudent.assessed2 = true;
               updatedStudent.assessmentLevel2 = this.assessment.observation;
               updatedStudent.assessmentDate2 = today;
-              // updatedStudent.remarks2 = this.assessment.currentAssessmentRemarks || ''; // Removed
               updatedStudent.sessions = 2;
             } else if (!student.assessed3) {
               // Third assessment
               updatedStudent.assessed3 = true;
               updatedStudent.assessmentLevel3 = this.assessment.observation;
               updatedStudent.assessmentDate3 = today;
-              // updatedStudent.remarks3 = this.assessment.currentAssessmentRemarks || ''; // Removed
               updatedStudent.sessions = 3;
             } else if (!student.assessed4) {
               // Fourth assessment
               updatedStudent.assessed4 = true;
               updatedStudent.assessmentLevel4 = this.assessment.observation;
               updatedStudent.assessmentDate4 = today;
-              // updatedStudent.remarks4 = this.assessment.currentAssessmentRemarks || ''; // Removed
             }
-            
-            // The general student.remarks (for tooltip) is populated from backend GET.
-            // No need to update it here from batch remarks as that feature is removed.
-            // if (this.assessment.currentAssessmentRemarks) {
-            //      updatedStudent.remarks = this.assessment.currentAssessmentRemarks;
-            // }
             
             return updatedStudent;
           }
@@ -778,7 +780,6 @@ export class AssessmentsComponent implements OnInit {
 
         // Reset form for next assessment
         this.assessment.observation = '';
-        // this.assessment.currentAssessmentRemarks = ''; // Removed
         this.selection.clear();
 
         // Redirect back to the student selection tab
@@ -813,6 +814,36 @@ export class AssessmentsComponent implements OnInit {
   setActiveTab(tab: 'students' | 'levels') {
     this.activeTab = tab;
     this.cdr.detectChanges();
+  }
+
+  /**
+   * Check if any selected student has already completed 4 sessions
+   * @returns true if any selected student has 4 sessions completed
+   */
+  hasMaxSessionsReached(): boolean {
+    if (!this.selection || this.selection.selected.length === 0) {
+      return false;
+    }
+    
+    // Check if any selected student already has 4 sessions completed
+    return this.selection.selected.some(student => {
+      return student.assessed && student.assessed2 && student.assessed3 && student.assessed4;
+    });
+  }
+
+  /**
+   * Check if all selected students have completed all 4 sessions
+   * @returns true if all selected students have completed all 4 sessions
+   */
+  areAllSessionsCompleted(): boolean {
+    if (!this.selection || this.selection.selected.length === 0) {
+      return false;
+    }
+    
+    // Check if all selected students have completed all 4 sessions
+    return this.selection.selected.every(student => {
+      return student.assessed && student.assessed2 && student.assessed3 && student.assessed4;
+    });
   }
 
   /**
@@ -881,16 +912,13 @@ export class AssessmentsComponent implements OnInit {
     this.currentRemarks = student.remarks || '';
     
     const dialogRef = this.dialog.open(this.remarksDialog);
-    dialogRef.afterClosed().subscribe((result: string | false) => { // result is 'newRemarksValue'
+    dialogRef.afterClosed().subscribe((result: string | false) => { 
       if (result !== false && this.currentStudent) {
-        this.currentStudent.remarks = result as string; // This updates the local student object's remarks
-        // Note: We no longer update assessment.remarks here since that's for the general assessment remarks
-        this.updateDataSource(); // Ensure the table reflects this local change
+        this.currentStudent.remarks = result as string; 
+        this.updateDataSource(); 
       }
     });
   }
-
-  // private formatDateForApi ... // This helper function is removed
 
   /**
    * Show message with auto-fade

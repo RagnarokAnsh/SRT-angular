@@ -23,9 +23,9 @@ export interface SessionData {
 export interface AssessmentSubmission {
   children: number[];
   competency_id: number;
-  observation: string; // Changed from score to observation
+  observation: string; 
   assessment_date: string;
-  remarks?: string; // Added back to match backend API
+  remarks?: string; 
   anganwadi_id: number;
   attempt_number: number;
 }
@@ -89,7 +89,7 @@ export class AssessmentService {
     const submissionObservables = assessments.map(assessment =>
       this.http.post<any>(`${this.apiUrl}/assessments/`, assessment, { // Original endpoint
         headers,
-        observe: 'response' // Get the full response including headers and status
+        observe: 'response' 
       }).pipe(
         catchError(err => {
           console.error(`Error submitting assessment for children ${assessment.children}:`, err);

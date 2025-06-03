@@ -81,6 +81,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Disabled button styles */
+.btn-primary:disabled,
+button.btn-primary:disabled {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 /* Button Styles */
 .btn-primary {
   background-color: var(--primary-color);

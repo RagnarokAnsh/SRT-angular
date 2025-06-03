@@ -127,12 +127,9 @@ export class UserService {
   createUser(user: CreateUserRequest): Observable<User> {
     console.log('Creating user with data:', user);
     
-    // Create a copy of the user data to avoid modifying the original
     const userData = { ...user };
     
-    // Format the data according to the API expectations
     if (userData.anganwadi_id !== undefined && userData.anganwadi_id !== null) {
-      // Ensure anganwadi_id is a number
       userData.anganwadi_id = Number(userData.anganwadi_id);
     }
     
@@ -142,12 +139,9 @@ export class UserService {
   updateUser(id: number, user: UpdateUserRequest): Observable<User> {
     console.log('Updating user with data:', user);
     
-    // Create a copy of the user data to avoid modifying the original
     const userData = { ...user };
     
-    // Format the data according to the API expectations
     if (userData.anganwadi_id !== undefined && userData.anganwadi_id !== null) {
-      // Ensure anganwadi_id is a number
       userData.anganwadi_id = Number(userData.anganwadi_id);
     }
     

@@ -1,12 +1,14 @@
 <div class="assessment-container">
   <!-- Header with competency name and progress indicator -->
-  <header class="assessment-header">
-    <h1>{{ selectedCompetency || 'Loading Competency...' }}</h1>
-    <div class="assessment-steps">
+  
+    <h1 class="heading-heading" style="text-align: center;">
+      <span class="heading-highlight">{{ selectedCompetency.split(' ')[0] }}</span> {{ selectedCompetency.split(' ').slice(1).join(' ') }}
+    </h1>
+    <!-- <div class="assessment-steps">
       <div class="step" [class.active]="activeTab === 'students'" (click)="setActiveTab('students')">1. Select Students</div>
       <div class="step" [class.active]="activeTab === 'levels'" (click)="setActiveTab('levels')">2. Choose Level</div>
-    </div>
-  </header>
+    </div> -->
+
 
   <!-- Main content area with tabs -->
   <div class="assessment-content">
@@ -15,7 +17,7 @@
       <button class="tab-button" [class.active]="activeTab === 'students'" (click)="setActiveTab('students')">
         <mat-icon>people</mat-icon> Select Students
       </button>
-      <button class="tab-button" [class.active]="activeTab === 'levels'" (click)="setActiveTab('levels')">
+      <button class="tab-button" [class.active]="activeTab === 'levels'" [class.disabled]="!selection.hasValue()" (click)="selection.hasValue() && setActiveTab('levels')">
         <mat-icon>assessment</mat-icon> Assessment Level
       </button>
     </div>
@@ -78,6 +80,9 @@
                 <div *ngIf="student.assessed" class="assessment-cell">
                   <div class="assessment-level">{{ student.assessmentLevel }}</div>
                   <div class="assessment-date" *ngIf="student.assessmentDate">{{ student.assessmentDate }}</div>
+                  <div class="remarks-icon" [matTooltip]="student.remarks1 || student.remarks || 'No remarks available'" matTooltipClass="remarks-tooltip">
+                    <mat-icon class="info-icon">info</mat-icon>
+                  </div>
                 </div>
                 <span *ngIf="!student.assessed" class="not-assessed">Not assessed</span>
               </td>
@@ -90,6 +95,9 @@
                 <div *ngIf="student.assessed2" class="assessment-cell">
                   <div class="assessment-level">{{ student.assessmentLevel2 }}</div>
                   <div class="assessment-date" *ngIf="student.assessmentDate2">{{ student.assessmentDate2 }}</div>
+                  <div class="remarks-icon" [matTooltip]="student.remarks2 || student.remarks || 'No remarks available'" matTooltipClass="remarks-tooltip">
+                    <mat-icon class="info-icon">info</mat-icon>
+                  </div>
                 </div>
                 <span *ngIf="!student.assessed2" class="not-assessed">Not assessed</span>
               </td>
@@ -102,6 +110,9 @@
                 <div *ngIf="student.assessed3" class="assessment-cell">
                   <div class="assessment-level">{{ student.assessmentLevel3 }}</div>
                   <div class="assessment-date" *ngIf="student.assessmentDate3">{{ student.assessmentDate3 }}</div>
+                  <div class="remarks-icon" [matTooltip]="student.remarks3 || student.remarks || 'No remarks available'" matTooltipClass="remarks-tooltip">
+                    <mat-icon class="info-icon">info</mat-icon>
+                  </div>
                 </div>
                 <span *ngIf="!student.assessed3" class="not-assessed">Not assessed</span>
               </td>
@@ -114,12 +125,16 @@
                 <div *ngIf="student.assessed4" class="assessment-cell">
                   <div class="assessment-level">{{ student.assessmentLevel4 }}</div>
                   <div class="assessment-date" *ngIf="student.assessmentDate4">{{ student.assessmentDate4 }}</div>
+                  <div class="remarks-icon" [matTooltip]="student.remarks4 || student.remarks || 'No remarks available'" matTooltipClass="remarks-tooltip">
+                    <mat-icon class="info-icon">info</mat-icon>
+                  </div>
                 </div>
                 <span *ngIf="!student.assessed4" class="not-assessed">Not assessed</span>
               </td>
             </ng-container>
 
             <!-- Remarks Column -->
+            <!-- Remarks Column (temporarily disabled)
             <ng-container matColumnDef="remarks">
               <th mat-header-cell *matHeaderCellDef> Remarks </th>
               <td mat-cell *matCellDef="let student">
@@ -133,6 +148,7 @@
                 </span>
               </td>
             </ng-container>
+            -->
 
             <!-- Header and Row Declarations -->
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
@@ -147,11 +163,11 @@
         </div>
 
         <div class="tab-actions">
-          <button mat-button (click)="backToVideos()">
-            <mat-icon>arrow_back</mat-icon> Back to Videos
+          <button class="btn btn-primary d-flex align-items-center" (click)="backToVideos()">
+            <mat-icon class="me-1">arrow_back</mat-icon> Back to Videos
           </button>
-          <button mat-raised-button color="primary" [disabled]="!selection.hasValue()" (click)="setActiveTab('levels')">
-            Continue to Assessment <mat-icon>arrow_forward</mat-icon>
+          <button class="btn btn-primary d-flex align-items-center" [disabled]="!selection.hasValue()" (click)="setActiveTab('levels')">
+            Continue to Assessment <mat-icon class="ms-1">arrow_forward</mat-icon>
           </button>
         </div>
       </div>
@@ -212,13 +228,23 @@
           </mat-form-field>
         </div>
 
+        <!-- Error message for max sessions reached -->
+        <!-- <div *ngIf="hasMaxSessionsReached()" class="max-sessions-error">
+          <mat-icon>warning</mat-icon>
+          <span>You have already submitted assessments for all 4 sessions for one or more selected students. Please select another competency to assess.</span>
+        </div> -->
+        
         <div class="tab-actions">
-          <button mat-button (click)="setActiveTab('students')">
-            <mat-icon>arrow_back</mat-icon> Back to Students
+          <button class="btn btn-primary d-flex align-items-center" (click)="setActiveTab('students')">
+            <mat-icon class="me-1">arrow_back</mat-icon> Back to Students
           </button>
-          <button mat-raised-button color="primary" [disabled]="!assessment.observation" (click)="onSubmit()"> <!-- Changed disabled binding -->
-            Submit Assessment <mat-icon>check</mat-icon>
+          <button *ngIf="!areAllSessionsCompleted()" class="btn btn-primary d-flex align-items-center" [disabled]="!assessment.observation || hasMaxSessionsReached()" (click)="onSubmit()">
+            Submit Assessment <mat-icon class="ms-1">check</mat-icon>
           </button>
+          <div *ngIf="areAllSessionsCompleted()" class="all-sessions-complete-message">
+            <mat-icon class="me-1">check_circle</mat-icon>
+            All 4 sessions completed for selected students
+          </div>
         </div>
       </div>
     </div>
@@ -290,7 +316,7 @@
 </ng-template> -->
 
 <!-- Remarks Dialog -->
-<ng-template #remarksDialog>
+<!-- <ng-template #remarksDialog>
   <div class="remarks-dialog">
     <h2 mat-dialog-title>Student Remarks</h2>
     <mat-dialog-content>
@@ -304,4 +330,4 @@
       <button mat-raised-button color="primary" [mat-dialog-close]="currentRemarks">Save</button>
     </mat-dialog-actions>
   </div>
-</ng-template>
+</ng-template> -->

@@ -53,7 +53,6 @@ export class AnganwadiListComponent implements OnInit {
   }
 
   loadAnganwadiCenters() {
-    // First, try to load centers with names, if that fails, load basic centers
     this.anganwadiService.getAnganwadiCentersWithNamesDetailed().subscribe({
       next: (centers) => {
         this.dataSource.data = centers;

@@ -43,7 +43,6 @@ export class CreateEditAnganwadiComponent implements OnInit {
   loadingDistricts = false;
   submitting = false;
 
-  // Store original values for edit mode
   private originalCountryId?: number;
   private originalStateId?: number;
   private originalDistrictId?: number;
@@ -90,7 +89,6 @@ export class CreateEditAnganwadiComponent implements OnInit {
   }
 
   onCountryChange(countryId: number) {
-    // Only reset if this is not during initial load for edit mode
     if (!this.isEditMode || countryId !== this.originalCountryId) {
       this.anganwadiForm.patchValue({
         state_id: '',
@@ -108,7 +106,6 @@ export class CreateEditAnganwadiComponent implements OnInit {
           this.states = states;
           this.loadingStates = false;
           
-          // If in edit mode and this is the original country, restore the original state
           if (this.isEditMode && countryId === this.originalCountryId && this.originalStateId) {
             this.anganwadiForm.patchValue({ state_id: this.originalStateId });
             this.onStateChange(this.originalStateId);
@@ -123,7 +120,6 @@ export class CreateEditAnganwadiComponent implements OnInit {
   }
 
   onStateChange(stateId: number) {
-    // Only reset if this is not during initial load for edit mode
     if (!this.isEditMode || stateId !== this.originalStateId) {
       this.anganwadiForm.patchValue({
         district_id: ''
@@ -139,7 +135,6 @@ export class CreateEditAnganwadiComponent implements OnInit {
           this.districts = districts;
           this.loadingDistricts = false;
           
-          // If in edit mode and this is the original state, restore the original district
           if (this.isEditMode && stateId === this.originalStateId && this.originalDistrictId) {
             this.anganwadiForm.patchValue({ district_id: this.originalDistrictId });
           }
@@ -155,15 +150,12 @@ export class CreateEditAnganwadiComponent implements OnInit {
   loadAnganwadiData(id: number) {
     this.anganwadiService.getAnganwadiCenter(id).subscribe({
       next: (center) => {
-        // Store original values
         this.originalCountryId = center.country_id;
         this.originalStateId = center.state_id;
         this.originalDistrictId = center.district_id;
         
-        // Patch the form with center data
         this.anganwadiForm.patchValue(center);
         
-        // Load dependent dropdowns
         if (center.country_id) {
           this.onCountryChange(center.country_id);
         }
