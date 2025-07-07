@@ -148,7 +148,7 @@ export class AssessmentsComponent implements OnInit {
   currentAudio: HTMLAudioElement | null = null;
   students: Student[] = [];
   filteredStudents: Student[] = [];
-  displayedColumns: string[] = ['select', 'name', 'age', 'gender', 'assessmentInfo']; // 'remarks' column temporarily removed
+  displayedColumns: string[] = ['select', 'name', 'assessmentInfo']; // 'remarks' column temporarily removed
   maxSessions: number = 1;
   dataSource = new MatTableDataSource<Student>();
   selection = new SelectionModel<Student>(true, []);
@@ -601,7 +601,7 @@ export class AssessmentsComponent implements OnInit {
    */
   updateDisplayedColumns() {
     // Start with the base columns
-    this.displayedColumns = ['select', 'name', 'age', 'gender'];
+    this.displayedColumns = ['select', 'name'];
     
     // Add session columns based on max sessions
     for (let i = 1; i <= this.maxSessions; i++) {

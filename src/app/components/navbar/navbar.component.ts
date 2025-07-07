@@ -61,7 +61,7 @@ import { UserService, User } from '../../services/user.service';
             
             <a routerLink="/select-competency" class="nav-link" routerLinkActive="active" (click)="closeMenu()">
               <mat-icon class="nav-icon">school</mat-icon>
-              Competency
+              Domains of Development
             </a>
             <a (click)="logout()" class="nav-link" style="cursor: pointer;">
               <mat-icon class="nav-icon">logout</mat-icon>
@@ -127,7 +127,7 @@ import { UserService, User } from '../../services/user.service';
     }
     .navbar-links {
       display: flex;
-      gap: 2rem;
+      gap: 1rem;
       align-items: center;
       transition: right 0.3s;
     }
