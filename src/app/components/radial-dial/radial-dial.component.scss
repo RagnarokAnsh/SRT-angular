@@ -5,37 +5,62 @@ $red-gradient: linear-gradient(135deg, #e74c3c, #c0392b);
 $green-gradient: linear-gradient(135deg, #27ae60, #219653);
 $purple-gradient: linear-gradient(135deg, #9b59b6, #8e44ad);
 
+// Mobile-first base styles
 .radial-dial-container {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 100%;
-  min-height: 600px;
-  max-height: 800px;
+  height: 100vh;
+  min-height: 100vh;
+  max-height: 100vh;
   position: relative;
-  padding: 2rem;
+  padding: 0.5rem;
   box-sizing: border-box;
-  margin: 2rem auto;
+  margin: 0;
+  overflow: hidden;
+}
+
+.radial-dial-svg-container {
+  width: 100%;
+  height: 100%;
+  max-width: 100vw;
+  max-height: 100vh;
+  margin: 0;
+  padding: 0.5rem;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  box-sizing: border-box;
+
+  svg {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    margin: 0 auto;
+  }
 }
 
 .main-dial {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background: $blue-gradient;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
   z-index: 10;
   
   &.open {
-    width: 120px;
-    height: 120px;
+    width: 70px;
+    height: 70px;
     background: $blue-gradient-open;
   }
   
@@ -43,24 +68,24 @@ $purple-gradient: linear-gradient(135deg, #9b59b6, #8e44ad);
     color: white;
     font-weight: bold;
     text-align: center;
-    font-size: 14px;
-    padding: 8px;
+    font-size: 10px;
+    padding: 4px;
     max-width: 90%;
-    line-height: 1.2;
+    line-height: 1.1;
   }
 }
 
 .close-button {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 30px;
-  height: 30px;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
   border: none;
   color: white;
-  font-size: 20px;
+  font-size: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -70,7 +95,6 @@ $purple-gradient: linear-gradient(135deg, #9b59b6, #8e44ad);
 
   &:hover {
     background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.1);
   }
 }
 
@@ -82,7 +106,6 @@ $purple-gradient: linear-gradient(135deg, #9b59b6, #8e44ad);
   left: 0;
 }
 
-// Merge .sub-domains-container and .competencies-container
 .sub-domains-container, .competencies-container {
   position: absolute;
   width: 1px;
@@ -91,50 +114,50 @@ $purple-gradient: linear-gradient(135deg, #9b59b6, #8e44ad);
   left: 50%;
 }
 
-// Merge .sub-domain-item and .competency-item
 .sub-domain-item, .competency-item {
   position: absolute;
   transform-origin: 0 0;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   z-index: 4;
   &.active { z-index: 5; }
   &.selected { z-index: 6; }
 }
 
-// Angle and translateX for each
 .sub-domain-item {
   --angle: calc(60deg / var(--total) * var(--index) - 30deg);
-  transform: rotate(var(--angle)) translateX(100px);
+  transform: rotate(var(--angle)) translateX(40px);
 }
+
 .competency-item {
   --angle: calc(45deg / var(--total) * var(--index) - 22.5deg);
-  transform: rotate(var(--angle)) translateX(100px);
+  transform: rotate(var(--angle)) translateX(40px);
   animation: fadeIn 0.3s forwards;
 }
 
-// Merge .sub-domain-content and .competency-content
 .sub-domain-content, .competency-content {
   color: white;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   transform: rotate(calc(-1 * var(--angle)));
   &:hover {
-    transform: scale(1.05) rotate(calc(-1 * var(--angle)));
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    opacity: 0.8;
   }
 }
+
 .sub-domain-content {
   background: $green-gradient;
-  padding: 8px 12px;
-  border-radius: 15px;
-  max-width: 150px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  max-width: 60px;
+  font-size: 10px;
 }
+
 .competency-content {
   background: $purple-gradient;
-  padding: 6px 10px;
-  border-radius: 12px;
-  max-width: 120px;
+  padding: 2px 4px;
+  border-radius: 6px;
+  max-width: 50px;
+  font-size: 9px;
 }
 
 .domain-item {
@@ -143,8 +166,8 @@ $purple-gradient: linear-gradient(135deg, #9b59b6, #8e44ad);
   left: 50%;
   transform-origin: 0 0;
   --angle: calc(360deg / var(--total) * var(--index));
-  transform: rotate(var(--angle)) translateX(200px);
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: rotate(var(--angle)) translateX(80px);
+  transition: all 0.3s ease;
   z-index: 5;
   
   &.active {
@@ -158,17 +181,15 @@ $purple-gradient: linear-gradient(135deg, #9b59b6, #8e44ad);
   .domain-content {
     background: $red-gradient;
     color: white;
-    padding: 10px 15px;
-    border-radius: 20px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    padding: 4px 8px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    max-width: 200px;
+    transition: all 0.3s ease;
+    max-width: 80px;
     transform: rotate(calc(-1 * var(--angle)));
     
     &:hover {
-      transform: scale(1.05) rotate(calc(-1 * var(--angle)));
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      opacity: 0.8;
     }
   }
   
@@ -176,7 +197,7 @@ $purple-gradient: linear-gradient(135deg, #9b59b6, #8e44ad);
     writing-mode: vertical-rl;
     white-space: nowrap;
     font-weight: 500;
-    font-size: 0.9rem;
+    font-size: 11px;
     overflow: hidden;
     text-overflow: ellipsis;
     height: 100%;
@@ -186,18 +207,418 @@ $purple-gradient: linear-gradient(135deg, #9b59b6, #8e44ad);
   }
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.8) rotate(var(--angle)) translateX(100px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) rotate(var(--angle)) translateX(100px);
+.dial-sector {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover, &.active {
+    opacity: 0.8;
   }
 }
 
-// Responsive adjustments
+.domain-sector {
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.competency-sector {
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) rotate(var(--angle)) translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(var(--angle)) translateX(40px);
+  }
+}
+
+// Responsive text adjustments - mobile first
+text {
+  font-size: 10px;
+}
+
+text[tspan] {
+  font-size: 12px;
+}
+
+// Small mobile devices (320px and up)
+@media (min-width: 320px) {
+  .radial-dial-container {
+    padding: 0.75rem;
+  }
+  
+  .main-dial {
+    width: 65px;
+    height: 65px;
+    
+    &.open {
+      width: 75px;
+      height: 75px;
+    }
+    
+    .center-text {
+      font-size: 11px;
+    }
+  }
+  
+  .domain-item {
+    transform: rotate(var(--angle)) translateX(85px);
+    
+    .domain-content {
+      max-width: 85px;
+    }
+  }
+  
+  .sub-domain-item {
+    transform: rotate(var(--angle)) translateX(45px);
+    
+    .sub-domain-content {
+      max-width: 65px;
+      font-size: 10px;
+    }
+  }
+  
+  .competency-item {
+    transform: rotate(var(--angle)) translateX(45px);
+    
+    .competency-content {
+      max-width: 55px;
+      font-size: 9px;
+    }
+  }
+  
+  text {
+    font-size: 11px;
+  }
+}
+
+// Medium mobile devices (375px and up)
+@media (min-width: 375px) {
+  .radial-dial-container {
+    padding: 1rem;
+  }
+  
+  .main-dial {
+    width: 70px;
+    height: 70px;
+    
+    &.open {
+      width: 80px;
+      height: 80px;
+    }
+    
+    .center-text {
+      font-size: 12px;
+    }
+  }
+  
+  .domain-item {
+    transform: rotate(var(--angle)) translateX(90px);
+    
+    .domain-content {
+      padding: 5px 9px;
+      max-width: 90px;
+    }
+    
+    .vertical-text {
+      font-size: 12px;
+    }
+  }
+  
+  .sub-domain-item {
+    transform: rotate(var(--angle)) translateX(50px);
+    
+    .sub-domain-content {
+      padding: 4px 7px;
+      max-width: 70px;
+      font-size: 11px;
+    }
+  }
+  
+  .competency-item {
+    transform: rotate(var(--angle)) translateX(50px);
+    
+    .competency-content {
+      padding: 3px 5px;
+      max-width: 60px;
+      font-size: 10px;
+    }
+  }
+  
+  text {
+    font-size: 12px;
+  }
+  
+  text[tspan] {
+    font-size: 14px;
+  }
+}
+
+// Large mobile devices (414px and up)
+@media (min-width: 414px) {
+  .main-dial {
+    width: 75px;
+    height: 75px;
+    
+    &.open {
+      width: 85px;
+      height: 85px;
+    }
+    
+    .center-text {
+      font-size: 13px;
+    }
+  }
+  
+  .domain-item {
+    transform: rotate(var(--angle)) translateX(95px);
+    
+    .domain-content {
+      padding: 6px 10px;
+      max-width: 95px;
+    }
+  }
+  
+  .sub-domain-item {
+    transform: rotate(var(--angle)) translateX(55px);
+    
+    .sub-domain-content {
+      padding: 5px 8px;
+      max-width: 75px;
+      font-size: 12px;
+    }
+  }
+  
+  .competency-item {
+    transform: rotate(var(--angle)) translateX(55px);
+    
+    .competency-content {
+      padding: 4px 6px;
+      max-width: 65px;
+      font-size: 11px;
+    }
+  }
+}
+
+// Extra large mobile / small tablet (480px and up)
+@media (min-width: 480px) {
+  .radial-dial-container {
+    min-height: 500px;
+    max-height: 600px;
+    padding: 1.5rem;
+  }
+  
+  .radial-dial-svg-container {
+    min-height: 500px;
+    max-height: 600px;
+  }
+  
+  .main-dial {
+    width: 80px;
+    height: 80px;
+    
+    &.open {
+      width: 90px;
+      height: 90px;
+    }
+    
+    .center-text {
+      font-size: 14px;
+      padding: 6px;
+    }
+  }
+  
+  .domain-item {
+    transform: rotate(var(--angle)) translateX(100px);
+    
+    .domain-content {
+      padding: 7px 11px;
+      max-width: 100px;
+    }
+    
+    .vertical-text {
+      font-size: 13px;
+    }
+  }
+  
+  .sub-domain-item {
+    transform: rotate(var(--angle)) translateX(60px);
+    
+    .sub-domain-content {
+      padding: 6px 9px;
+      max-width: 80px;
+      font-size: 13px;
+    }
+  }
+  
+  .competency-item {
+    transform: rotate(var(--angle)) translateX(60px);
+    
+    .competency-content {
+      padding: 5px 7px;
+      max-width: 70px;
+      font-size: 12px;
+    }
+  }
+  
+  text {
+    font-size: 13px;
+  }
+  
+  text[tspan] {
+    font-size: 15px;
+  }
+}
+
+// Tablet portrait (768px and up)
+@media (min-width: 768px) {
+  .radial-dial-container {
+    min-height: 600px;
+    max-height: 700px;
+    padding: 2rem;
+    margin: 1rem auto;
+  }
+  
+  .radial-dial-svg-container {
+    min-height: 600px;
+    max-height: 700px;
+  }
+  
+  .main-dial {
+    width: 90px;
+    height: 90px;
+    
+    &.open {
+      width: 100px;
+      height: 100px;
+    }
+    
+    .center-text {
+      font-size: 15px;
+      padding: 7px;
+    }
+  }
+  
+  .domain-item {
+    transform: rotate(var(--angle)) translateX(120px);
+    
+    .domain-content {
+      padding: 8px 12px;
+      max-width: 120px;
+    }
+    
+    .vertical-text {
+      font-size: 14px;
+    }
+  }
+  
+  .sub-domain-item {
+    transform: rotate(var(--angle)) translateX(70px);
+    
+    .sub-domain-content {
+      padding: 7px 10px;
+      max-width: 90px;
+      font-size: 14px;
+    }
+  }
+  
+  .competency-item {
+    transform: rotate(var(--angle)) translateX(70px);
+    
+    .competency-content {
+      padding: 6px 8px;
+      max-width: 80px;
+      font-size: 13px;
+    }
+  }
+  
+  text {
+    font-size: 14px;
+  }
+  
+  text[tspan] {
+    font-size: 16px;
+  }
+}
+
+// Tablet landscape / small desktop (992px and up)
+@media (min-width: 992px) {
+  .radial-dial-container {
+    min-height: 700px;
+    max-height: 800px;
+    padding: 2rem;
+    margin: 2rem auto;
+  }
+  
+  .radial-dial-svg-container {
+    max-width: 800px;
+  }
+  
+  .main-dial {
+    width: 100px;
+    height: 100px;
+    
+    &.open {
+      width: 120px;
+      height: 120px;
+    }
+    
+    .center-text {
+      font-size: 16px;
+      padding: 8px;
+    }
+  }
+  
+  .domain-item {
+    transform: rotate(var(--angle)) translateX(150px);
+    
+    .domain-content {
+      padding: 9px 13px;
+      max-width: 140px;
+    }
+    
+    .vertical-text {
+      font-size: 15px;
+    }
+  }
+  
+  .sub-domain-item {
+    transform: rotate(var(--angle)) translateX(80px);
+    
+    .sub-domain-content {
+      padding: 8px 11px;
+      max-width: 100px;
+      font-size: 15px;
+    }
+  }
+  
+  .competency-item {
+    transform: rotate(var(--angle)) translateX(80px);
+    
+    .competency-content {
+      padding: 7px 9px;
+      max-width: 90px;
+      font-size: 14px;
+    }
+  }
+  
+  text {
+    font-size: 15px;
+  }
+  
+  text[tspan] {
+    font-size: 17px;
+  }
+}
+
+// Desktop (1200px and up)
 @media (min-width: 1200px) {
   .radial-dial-container {
     max-width: 1200px;
@@ -218,11 +639,53 @@ $purple-gradient: linear-gradient(135deg, #9b59b6, #8e44ad);
     }
     
     .center-text {
+      font-size: 18px;
+    }
+  }
+  
+  .domain-item {
+    transform: rotate(var(--angle)) translateX(200px);
+    
+    .domain-content {
+      padding: 10px 15px;
+      max-width: 200px;
+    }
+    
+    .vertical-text {
       font-size: 16px;
     }
   }
+  
+  .sub-domain-item {
+    transform: rotate(var(--angle)) translateX(100px);
+    
+    .sub-domain-content {
+      padding: 8px 12px;
+      max-width: 150px;
+      font-size: 16px;
+    }
+  }
+  
+  .competency-item {
+    transform: rotate(var(--angle)) translateX(100px);
+    
+    .competency-content {
+      padding: 6px 10px;
+      max-width: 120px;
+      font-size: 15px;
+    }
+  }
+  
+  text {
+    font-size: 16px;
+  }
+  
+  text[tspan] {
+    font-size: 18px;
+  }
 }
 
+// Large desktop (1600px and up)
 @media (min-width: 1600px) {
   .radial-dial-container {
     max-width: 1400px;
@@ -232,185 +695,116 @@ $purple-gradient: linear-gradient(135deg, #9b59b6, #8e44ad);
   .radial-dial-svg-container {
     max-width: 1200px;
   }
-}
-
-@media (max-width: 767px) {
-  .radial-dial-container {
-    min-height: 500px;
-    max-height: 600px;
-    padding: 1rem;
-    margin: 1rem auto;
-  }
-
-  .radial-dial-svg-container {
-    min-height: 500px;
-    max-height: 600px;
-  }
-
-  .main-dial {
-    width: 80px;
-    height: 80px;
-    
-    &.open {
-      width: 100px;
-      height: 100px;
-    }
-    
-    .center-text {
-      font-size: 1rem;
-      padding: 6px;
-    }
+  
+  text {
+    font-size: 18px;
   }
   
-  .domain-item {
-    transform: rotate(var(--angle)) translateX(120px);
-    
-    .domain-content {
-      padding: 6px 10px;
-      max-width: 120px;
-    }
-    
-    .vertical-text {
-      font-size: 0.8rem;
-    }
-  }
-  
-  .sub-domain-item {
-    transform: rotate(var(--angle)) translateX(60px);
-    
-    .sub-domain-content {
-      padding: 5px 8px;
-      max-width: 90px;
-      font-size: 0.8rem;
-    }
-  }
-  
-  .competency-item {
-    transform: rotate(var(--angle)) translateX(60px);
-    
-    .competency-content {
-      padding: 4px 6px;
-      max-width: 80px;
-      font-size: 0.8rem;
-    }
+  text[tspan] {
+    font-size: 20px;
   }
 }
 
-@media (max-width: 480px) {
+// Landscape orientation adjustments for mobile
+@media (max-height: 500px) and (orientation: landscape) {
   .radial-dial-container {
-    min-height: 400px;
-    max-height: 500px;
+    min-height: 100vh;
+    max-height: 100vh;
     padding: 0.5rem;
-    margin: 0.5rem auto;
   }
-
+  
   .radial-dial-svg-container {
-    min-height: 400px;
-    max-height: 500px;
+    min-height: 100%;
+    max-height: 100%;
   }
-
+  
   .main-dial {
     width: 60px;
     height: 60px;
     
     &.open {
-      width: 80px;
-      height: 80px;
+      width: 70px;
+      height: 70px;
     }
     
     .center-text {
-      font-size: 0.9rem;
-      padding: 4px;
+      font-size: 10px;
     }
   }
   
   .domain-item {
-    transform: rotate(var(--angle)) translateX(90px);
+    transform: rotate(var(--angle)) translateX(70px);
     
     .domain-content {
-      padding: 4px 8px;
-      max-width: 90px;
+      padding: 3px 6px;
+      max-width: 70px;
     }
     
     .vertical-text {
-      font-size: 0.8rem;
+      font-size: 10px;
     }
   }
   
   .sub-domain-item, .competency-item {
-    transform: rotate(var(--angle)) translateX(50px);
+    transform: rotate(var(--angle)) translateX(40px);
     
     .sub-domain-content, .competency-content {
-      padding: 3px 6px;
-      max-width: 70px;
-      font-size: 0.8rem;
+      padding: 2px 4px;
+      max-width: 50px;
+      font-size: 9px;
     }
   }
 }
 
-.radial-dial-svg-container {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 1rem;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 600px;
-  max-height: 800px;
-  position: relative;
-  box-sizing: border-box;
-
-  svg {
-    width: 100%;
-    height: auto;
-    max-width: 800px;
-    display: block;
-    margin: 0 auto;
-    transform: translateX(0);
+// Very small screens (below 320px)
+@media (max-width: 319px) {
+  .radial-dial-container {
+    padding: 0.25rem;
   }
-}
-
-.dial-sector {
-  cursor: pointer;
-  transition: all 0.3s ease;
   
-  &:hover, &.active {
-    filter: brightness(1.1);
+  .main-dial {
+    width: 50px;
+    height: 50px;
+    
+    &.open {
+      width: 60px;
+      height: 60px;
+    }
+    
+    .center-text {
+      font-size: 9px;
+      padding: 2px;
+    }
   }
-}
-
-.domain-sector {
-  &:hover {
-    transform: scale(1.02);
+  
+  .domain-item {
+    transform: rotate(var(--angle)) translateX(70px);
+    
+    .domain-content {
+      padding: 2px 4px;
+      max-width: 60px;
+    }
+    
+    .vertical-text {
+      font-size: 9px;
+    }
   }
-}
-
-.competency-sector {
-  &:hover {
-    transform: scale(1.01);
+  
+  .sub-domain-item, .competency-item {
+    transform: rotate(var(--angle)) translateX(35px);
+    
+    .sub-domain-content, .competency-content {
+      padding: 1px 3px;
+      max-width: 40px;
+      font-size: 8px;
+    }
   }
-}
-
-// Responsive text adjustments
-text {
-  @media (max-width: 767px) {
-    font-size: 14px;
+  
+  text {
+    font-size: 9px;
   }
-
-  @media (max-width: 480px) {
-    font-size: 12px;
-  }
-}
-
-// Center text adjustments
-text[tspan] {
-  @media (max-width: 767px) {
-    font-size: 16px;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 14px;
+  
+  text[tspan] {
+    font-size: 10px;
   }
 }

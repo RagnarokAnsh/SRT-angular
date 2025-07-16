@@ -18,6 +18,9 @@ export interface SessionData {
   observation: string;
   created_at: string;
   remarks?: string;
+  age?: string; // Age at the time of assessment (e.g., '5 years 2 months')
+  height?: string; // Height at the time of assessment
+  weight?: string; // Weight at the time of assessment
 }
 
 export interface AssessmentSubmission {
@@ -28,6 +31,9 @@ export interface AssessmentSubmission {
   remarks?: string; 
   anganwadi_id: number;
   attempt_number: number;
+  age?: string; // Age at the time of assessment (to be sent in POST)
+  height?: string; // Height at the time of assessment (optional)
+  weight?: string; // Weight at the time of assessment (optional)
 }
 
 // StudentRemarkSubmission interface removed
@@ -87,7 +93,7 @@ export class AssessmentService {
 
     // Create an array of observables, one for each assessment submission
     const submissionObservables = assessments.map(assessment =>
-      this.http.post<any>(`${this.apiUrl}/assessments/`, assessment, { // Original endpoint
+      this.http.post<any>(`${this.apiUrl}/assessments/`, assessment, { 
         headers,
         observe: 'response' 
       }).pipe(

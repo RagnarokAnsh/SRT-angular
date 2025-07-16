@@ -61,6 +61,18 @@
               <td mat-cell *matCellDef="let student"> {{ student.first_name }} </td>
             </ng-container>
 
+            <!-- Height Column (only for gross/fine motor) -->
+            <ng-container *ngIf="showHeightWeightColumns" matColumnDef="height">
+              <th mat-header-cell *matHeaderCellDef> Height </th>
+              <td mat-cell *matCellDef="let student">{{ student.height || '-' }}</td>
+            </ng-container>
+
+            <!-- Weight Column (only for gross/fine motor) -->
+            <ng-container *ngIf="showHeightWeightColumns" matColumnDef="weight">
+              <th mat-header-cell *matHeaderCellDef> Weight </th>
+              <td mat-cell *matCellDef="let student">{{ student.weight || '-' }}</td>
+            </ng-container>
+
             <!-- Assessment Session 1 Column -->
             <ng-container matColumnDef="assessmentInfo">
               <th mat-header-cell *matHeaderCellDef> Assessment 1 </th>
@@ -68,6 +80,7 @@
                 <div *ngIf="student.assessed" class="assessment-cell">
                   <div class="assessment-level">{{ student.assessmentLevel }}</div>
                   <div class="assessment-date" *ngIf="student.assessmentDate">{{ student.assessmentDate }}</div>
+                  <div class="assessment-date" *ngIf="student.age1">Age: {{ student.age1 }}</div>
                   <div class="remarks-icon" [matTooltip]="student.remarks1 || student.remarks || 'No remarks available'" matTooltipClass="remarks-tooltip">
                     <mat-icon class="info-icon">info</mat-icon>
                   </div>
@@ -83,6 +96,7 @@
                 <div *ngIf="student.assessed2" class="assessment-cell">
                   <div class="assessment-level">{{ student.assessmentLevel2 }}</div>
                   <div class="assessment-date" *ngIf="student.assessmentDate2">{{ student.assessmentDate2 }}</div>
+                  <div class="assessment-date" *ngIf="student.age2">Age: {{ student.age2 }}</div>
                   <div class="remarks-icon" [matTooltip]="student.remarks2 || student.remarks || 'No remarks available'" matTooltipClass="remarks-tooltip">
                     <mat-icon class="info-icon">info</mat-icon>
                   </div>
@@ -98,6 +112,7 @@
                 <div *ngIf="student.assessed3" class="assessment-cell">
                   <div class="assessment-level">{{ student.assessmentLevel3 }}</div>
                   <div class="assessment-date" *ngIf="student.assessmentDate3">{{ student.assessmentDate3 }}</div>
+                  <div class="assessment-date" *ngIf="student.age3">Age: {{ student.age3 }}</div>
                   <div class="remarks-icon" [matTooltip]="student.remarks3 || student.remarks || 'No remarks available'" matTooltipClass="remarks-tooltip">
                     <mat-icon class="info-icon">info</mat-icon>
                   </div>
@@ -113,6 +128,7 @@
                 <div *ngIf="student.assessed4" class="assessment-cell">
                   <div class="assessment-level">{{ student.assessmentLevel4 }}</div>
                   <div class="assessment-date" *ngIf="student.assessmentDate4">{{ student.assessmentDate4 }}</div>
+                  <div class="assessment-date" *ngIf="student.age4">Age: {{ student.age4 }}</div>
                   <div class="remarks-icon" [matTooltip]="student.remarks4 || student.remarks || 'No remarks available'" matTooltipClass="remarks-tooltip">
                     <mat-icon class="info-icon">info</mat-icon>
                   </div>

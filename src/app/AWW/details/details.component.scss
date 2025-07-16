@@ -3,21 +3,48 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: var(--spacing-xs);
+  
+  @media (min-width: 480px) {
+    padding: var(--spacing-sm);
+  }
+  
+  @media (min-width: 768px) {
+    padding: var(--spacing-md);
+  }
 }
 
 .competency-image {
   width: 100%;
-  max-height: 200px;
+  max-height: 150px;
   object-fit: contain;
   border-radius: var(--border-radius-md);
-  max-width: 125px;
+  max-width: 100px;
+  
+  @media (min-width: 768px) {
+    max-height: 200px;
+    max-width: 125px;
+  }
 }
+
 h2, h3 {
   text-align: center;
   position: relative;
   display: inline-block;
-  padding-bottom: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
+  font-size: 1.125rem;
+  
+  @media (min-width: 480px) {
+    padding-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    font-size: 1.25rem;
+  }
+  
+  @media (min-width: 768px) {
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-md);
+  }
   
   &::after {
     content: '';
@@ -33,11 +60,16 @@ h2, h3 {
 
 .details-image-container {
   height: 100%;
-  min-height: 400px;
+  min-height: 250px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm);
+  
+  @media (min-width: 768px) {
+    min-height: 400px;
+    padding: var(--spacing-md);
+  }
 }
 
 .details-image {
@@ -46,30 +78,56 @@ h2, h3 {
   object-fit: contain;
   border-radius: var(--border-radius-sm);
 }
+
 .form-check-input {
   background-color: #E1E1E1;
+  width: 18px;
+  height: 18px;
+  
+  @media (min-width: 768px) {
+    width: 20px;
+    height: 20px;
+  }
 }
+
 .form-check-input:checked {
   background-color: #6366f1;
   border-color: #6366f1;
 }
-.form-check {
-  margin-bottom: var(--spacing-md);
 
+.form-check {
+  margin-bottom: var(--spacing-sm);
   
+  @media (min-width: 768px) {
+    margin-bottom: var(--spacing-md);
+  }
   
   .form-check-label {
-    font-size: var(--font-size-base);
+    font-size: 0.875rem;
     color: var(--text-color);
+    line-height: 1.4;
+    padding-left: var(--spacing-sm);
+    
+    @media (min-width: 768px) {
+      font-size: var(--font-size-base);
+      padding-left: var(--spacing-md);
+    }
   }
 }
 
 .btn-primary, .btn-disabled {
-  padding: var(--spacing-sm) var(--spacing-lg);
-  font-size: var(--font-size-base);
-  min-width: 200px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.875rem;
+  min-width: 150px;
   border-radius: var(--border-radius-md);
   box-shadow: var(--box-shadow-sm);
+  min-height: 44px; /* Touch-friendly minimum */
+  
+  @media (min-width: 768px) {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    font-size: var(--font-size-base);
+    min-width: 200px;
+  }
   
   &:hover {
     box-shadow: var(--box-shadow-md);
@@ -80,8 +138,38 @@ h2, h3 {
   opacity: 1;
 }
 
-// Responsive adjustments
-@media (max-width: 991.98px) {
+// Responsive adjustments - Mobile First
+@media (max-width: 767.98px) {
+  .details-image-container {
+    min-height: 200px;
+    margin-top: var(--spacing-md);
+  }
+  
+  .competency-image {
+    max-height: 120px;
+  }
+  
+  .btn-primary {
+    width: 100%;
+    min-width: unset;
+  }
+  
+  .container {
+    padding: var(--spacing-sm);
+  }
+  
+  .row {
+    margin: 0;
+  }
+  
+  .col-lg-8 {
+    // padding: var(--spacing-sm);
+  margin-top: 0%;
+  margin-bottom: var(--spacing-sm);
+  }
+}
+
+@media (min-width: 768px) {
   .details-image-container {
     min-height: 300px;
     margin-top: var(--spacing-lg);
@@ -92,25 +180,14 @@ h2, h3 {
   }
 }
 
-@media (max-width: 767.98px) {
-  .details-image-container {
-    min-height: 250px;
-  }
-  
-  .competency-image {
-    max-height: 200px;
-  }
-  
-  .btn-primary {
-    width: 100%;
-    min-width: unset;
-  }
-}
-
-// Swiper styles
+// Swiper styles - Mobile First
 .video-swiper {
   width: 100%;
-  padding: var(--spacing-md) 0;
+  padding: var(--spacing-sm) 0;
+  
+  @media (min-width: 768px) {
+    padding: var(--spacing-md) 0;
+  }
   
   swiper-slide {
     height: auto;
@@ -131,12 +208,21 @@ h2, h3 {
   .swiper-button-next,
   .swiper-button-prev {
     background-color: rgba(248, 69, 37, 0.1);
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     
+    @media (min-width: 768px) {
+      width: 40px;
+      height: 40px;
+    }
+    
     &::after {
-      font-size: 20px;
+      font-size: 16px;
+      
+      @media (min-width: 768px) {
+        font-size: 20px;
+      }
     }
 
     &:hover {
@@ -146,8 +232,13 @@ h2, h3 {
   
   .swiper-pagination-bullet {
     opacity: 0.5;
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
+    
+    @media (min-width: 768px) {
+      width: 8px;
+      height: 8px;
+    }
     
     &-active {
       opacity: 1;
@@ -156,5 +247,141 @@ h2, h3 {
 
   .swiper-pagination {
     bottom: 0;
+  }
+}
+
+// Video container improvements for mobile
+.embed-responsive {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  
+  &::before {
+    display: block;
+    content: "";
+    padding-top: 56.25%; /* 16:9 aspect ratio */
+  }
+  
+  .embed-responsive-item {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+}
+
+// Mobile-specific improvements
+@media (max-width: 767.98px) {
+  .mt-5 {
+    margin-top: var(--spacing-md) !important;
+  }
+  
+  .mb-4 {
+    margin-bottom: var(--spacing-sm) !important;
+  }
+  
+  .mb-3 {
+    margin-bottom: var(--spacing-sm) !important;
+  }
+  
+  .text-end {
+    text-align: center !important;
+  }
+  
+  .d-none.d-md-flex {
+    display: none !important;
+  }
+  
+  .d-md-none {
+    display: block !important;
+  }
+}
+
+// --- MOBILE-FIRST IMPROVEMENTS ---
+
+// Reduce top margin/gap before the main image on mobile
+@media (max-width: 767.98px) {
+  .container {
+    padding: var(--spacing-xs) !important;
+    margin-top: var(--spacing-sm) !important;
+  }
+  .mt-5 {
+    margin-top: var(--spacing-sm) !important;
+  }
+  .competency-content {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+  .details-image-container {
+    margin-top: var(--spacing-sm) !important;
+    min-height: 140px;
+    padding: var(--spacing-xs) !important;
+  }
+  .competency-image {
+    margin-bottom: var(--spacing-xs) !important;
+    max-height: 90px;
+    max-width: 80px;
+  }
+  h2, h3 {
+    font-size: 1.1rem;
+    margin-bottom: var(--spacing-xs);
+    padding-bottom: var(--spacing-xs);
+  }
+  .mb-4 {
+    margin-bottom: var(--spacing-xs) !important;
+    margin-top: var(--spacing-sm);
+  }
+  .mb-3 {
+    margin-bottom: var(--spacing-xs) !important;
+  }
+  .video-swiper {
+    margin-bottom: var(--spacing-sm);
+  }
+  // Add more space below the main image and above the checkboxes section
+  .details-image-container {
+    margin-bottom: var(--spacing-sm) !important;
+  }
+  // Add more space between each checkbox
+  .form-check {
+    margin-bottom: var(--spacing-xs) !important;
+    padding-bottom: 0.25rem;
+  }
+  // Add more space between the last checkbox and the button
+  .form-check:last-of-type {
+    margin-bottom: var(--spacing-md) !important;
+  }
+  // Make the button full width on mobile and add top margin
+  .text-end {
+    text-align: center !important;
+    margin-top: var(--spacing-sm);
+  }
+  .btn-primary {
+    width: 100%;
+    margin-top: var(--spacing-md);
+    max-width: 200px;
+    font-size: 0.65rem;
+    padding: 0.75rem 1rem;
+  }
+  // Ensure checkboxes and labels are not cramped
+  .form-check-input {
+    width: 20px;
+    height: 20px;
+    margin-top: 0.1rem;
+  }
+  .form-check-label {
+    font-size: 0.95rem;
+    padding-left: 0.5rem;
+    line-height: 1.5;
+  }
+}
+
+// Prevent horizontal scrolling/overflow on mobile
+@media (max-width: 767.98px) {
+  html, body, .container {
+    overflow-x: hidden !important;
   }
 }

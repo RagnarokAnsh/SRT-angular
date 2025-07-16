@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../services/user.service';
 
@@ -11,76 +11,85 @@ import { UserService } from '../services/user.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   showPassword: boolean = false;
   email: string = '';
   password: string = '';
   error: string = '';
   success: string = '';
   isLoading: boolean = false;
+  returnUrl: string = '';
 
   constructor(
     private userService: UserService,
-    private router: Router
-  ) {
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
+
+  ngOnInit(): void {
+    // Get return URL from route parameters or default to appropriate dashboard
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '';
+    
     // Redirect if already authenticated
     if (this.userService.isAuthenticated()) {
-      const user = this.userService.getCurrentUser();
-      if (user) {
-        this.redirectBasedOnRole();
-      }
+      this.redirectAfterLogin();
     }
   }
 
-  private redirectBasedOnRole(): void {
-    if (this.userService.isAdmin()) {
-      this.router.navigate(['/admin/dashboard']);
-    } else if (this.userService.isStateOfficial()) {
-      this.router.navigate(['/state/dashboard']);
-    } else if (this.userService.isDPO()) {
-      this.router.navigate(['/dpo/dashboard']);
-    } else if (this.userService.isCDPO()) {
-      this.router.navigate(['/cdpo/dashboard']);
-    } else if (this.userService.isSupervisor()) {
-      this.router.navigate(['/supervisor/dashboard']);
-    } else if (this.userService.isAWW()) {
-      this.router.navigate(['/select-competency']);
-    } else {
-      this.router.navigate(['/home']);
-    }
-  }
-
-  togglePassword() {
-    this.showPassword = !this.showPassword;
-  }
-
-  onLogin() {
-    this.error = '';
-    this.success = '';
-    this.isLoading = true;
-
+  onSubmit(): void {
     if (!this.email || !this.password) {
       this.error = 'Please enter both email and password';
-      this.isLoading = false;
       return;
     }
 
+    this.isLoading = true;
+    this.error = '';
+    this.success = '';
+
     this.userService.login(this.email, this.password).subscribe({
-      next: (response: any) => {
-        if (response.token && response.user) {
-          this.success = 'Login successful! Redirecting...';
-          // UserService handles the routing based on role automatically
-          this.isLoading = false;
-        } else {
-          this.error = 'Invalid response from server';
-          this.isLoading = false;
-        }
-      },
-      error: (err: any) => {
-        console.error('Login error:', err);
-        this.error = err.error?.message || 'Login failed. Please check your credentials and try again.';
+      next: (response) => {
         this.isLoading = false;
+        this.success = 'Login successful! Redirecting...';
+        
+        // Redirect after successful login
+        setTimeout(() => {
+          this.redirectAfterLogin();
+        }, 1000);
+      },
+      error: (error) => {
+        this.isLoading = false;
+        if (error.status === 401) {
+          this.error = 'Invalid email or password';
+        } else if (error.status === 422) {
+          this.error = 'Please check your email and password format';
+        } else if (error.status === 0) {
+          this.error = 'Unable to connect to server. Please check your internet connection.';
+        } else {
+          this.error = error.error?.message || 'Login failed. Please try again.';
+        }
       }
     });
+  }
+
+  private redirectAfterLogin(): void {
+    if (this.returnUrl && this.returnUrl !== '/login') {
+      // Redirect to the original requested URL
+      this.router.navigateByUrl(this.returnUrl);
+    } else {
+      // Redirect based on user role
+      this.userService.redirectToUserDashboard();
+    }
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  clearError(): void {
+    this.error = '';
+  }
+
+  clearSuccess(): void {
+    this.success = '';
   }
 }

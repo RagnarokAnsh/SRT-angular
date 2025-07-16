@@ -27,12 +27,7 @@
   }
 }
 
-// Define the order of layers. Styles in later layers take precedence.
 @layer primeng, material-theme;
-/* You can add global styles to this file, and also import other style files */
-/* Import Bootstrap */
-
-
 
 /* Import Google Fonts */
 @import url('https://fonts.bunny.net/css?family=figtree:400,500,600');
@@ -208,8 +203,45 @@ button.btn-primary:disabled {
     max-width: 1320px;
   }
 }
+
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Mobile-first improvements */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  // Enhanced touch targets for mobile
+  button, 
+  .mat-mdc-button,
+  .mat-mdc-icon-button,
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  // Prevent zoom on iOS for input fields
+  input, 
+  select, 
+  textarea {
+    font-size: 16px !important;
+  }
+  
+  // Better spacing for mobile
+  .row {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+  }
+  
+  .col, .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, 
+  .col-7, .col-8, .col-9, .col-10, .col-11, .col-12 {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
 
 /* PrimeNG Overrides for Transparency */
 
@@ -232,13 +264,13 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   .p-paginator-element,
   .p-dropdown-label,
   .p-dropdown-trigger,
-  .p-inputtext { // More specific paginator parts
+  .p-inputtext {  
     background-color: transparent !important;
-    color: var(--text-color) !important; // Ensure text/icons in paginator are visible
+    color: var(--text-color) !important; 
   }
-  .p-highlight { // For active page number
-    background-color: var(--primary-color) !important; // Or another suitable highlight color
-    color: white !important; // Or a contrasting color for the highlight
+  .p-highlight { 
+    background-color: var(--primary-color) !important; 
+    color: white !important;  
   }
 }
 
@@ -307,5 +339,77 @@ table.mat-mdc-table {
 @media (max-width: 768px) {
   .mat-mdc-cell, .mat-mdc-header-cell {
     padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  // Mobile-optimized table scrolling
+  .table-responsive {
+    &::-webkit-scrollbar {
+      height: 4px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 2px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: var(--primary-color);
+      border-radius: 2px;
+    }
+  }
+}
+
+// Mobile-specific improvements
+@media (max-width: 576px) {
+  // Smaller headings for mobile
+  .heading-heading {
+    font-size: 1.5rem;
+    padding: var(--spacing-sm) var(--spacing-xs);
+    
+    .heading-highlight {
+      font-size: 1.4rem;
+      padding: 0.25rem 0.5rem;
+    }
+  }
+  
+  // Compact button styling
+  .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  // Better form field spacing
+  .mat-mdc-form-field {
+    margin-bottom: 0.5rem;
+  }
+}
+
+// Enhanced mobile navigation
+@media (max-width: 768px) {
+  // Improve mobile navigation touch targets
+  .mat-mdc-tab-group {
+    .mat-mdc-tab-header {
+      .mat-mdc-tab-label-container {
+        .mat-mdc-tab-label {
+          min-width: 80px;
+          padding: 0 1rem;
+        }
+      }
+    }
+  }
+  
+  // Better mobile card spacing
+  .card {
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+  }
+  
+  // Mobile-optimized pagination
+  .mat-mdc-paginator {
+    .mat-mdc-paginator-container {
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
   }
 }

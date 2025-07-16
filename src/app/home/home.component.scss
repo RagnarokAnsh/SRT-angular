@@ -1,10 +1,48 @@
+.home-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 var(--spacing-md);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+    padding: 0 var(--spacing-lg);
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  @media (min-width: 992px) {
+    gap: 3rem;
+  }
+
+  @media (min-width: 1200px) {
+    gap: 4rem;
+  }
+}
+
+.content-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  
+  @media (min-width: 768px) {
+    flex: 1;
+    max-width: 60%;
+  }
+}
+
 .school-readiness-header {
   text-align: center;
   margin-top: var(--spacing-xl);
   margin-bottom: var(--spacing-lg);
   padding: 0;
-  flex-basis: 60%;
-  flex-shrink: 0;
+  width: 100%;
 
   @media (min-width: 576px) {
     margin-top: calc(var(--spacing-xl) * 1.5);
@@ -15,11 +53,6 @@
     text-align: left;
     margin-top: 0;
     margin-bottom: 0;
-    flex-basis: 50%;
-  }
-
-  @media (min-width: 992px) {
-    flex-basis: 50%;
   }
 
   h1 {
@@ -59,35 +92,153 @@
       padding: 0;
       max-width: none;
     }
+    @media (max-width: 600px) {
+      font-size: 0.8rem;
+    }
   }
 }
 
-.home-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0 var(--spacing-md);
+.school-readiness-footer {
+  text-align: center;
+  margin-top: var(--spacing-lg);
+  padding: 0;
+  width: 100%;
+
+  @media (min-width: 576px) {
+    margin-top: var(--spacing-xl);
+  }
 
   @media (min-width: 768px) {
-    flex-direction: row;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 3rem;
-    padding: 0 var(--spacing-lg);
+    text-align: left;
+    margin-top: 0;
+  }
+
+  .lead {
+    max-width: 800px;
+    margin: 0 auto;
+    color: var(--text, #333);
+    font-size: 1rem;
+    line-height: 1.6;
+    padding: 0 var(--spacing-sm);
+
+    @media (min-width: 576px) {
+      font-size: 1.1rem;
+      padding: 0 var(--spacing-md);
+    }
+
+    @media (min-width: 768px) {
+      font-size: 1.15rem;
+      padding: 0;
+      max-width: none;
+    }
+  }
+}
+
+/* Mobile layout for screens below 426px */
+@media (max-width: 425px) {
+  .home-container {
+    flex-direction: column;
+    // gap: 2rem;
+    padding: 0 var(--spacing-sm);
+  }
+
+  .content-section {
+    flex-direction: column;
+  }
+
+  .school-readiness-header {
+    margin-bottom: 2rem;
+    
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .lead {
+      font-size: 0.75rem;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+  }
+
+  .school-readiness-footer {
+    margin-top: 2rem;
+    
+    .lead {
+      font-size: 0.75rem;
+      font-weight: 400;
+      line-height: 1.5;
+      margin-bottom: var(--spacing-sm);
+    }
+  }
+}
+
+/* Desktop layout - combine content sections */
+@media (min-width: 768px) {
+  .home-container {
+    .content-section:first-child {
+      flex: 1;
+      max-width: 60%;
+    }
+    
+    .content-section:last-child {
+      display: none; /* Hide the second content section on desktop */
+    }
+  }
+}
+
+/* Mobile layout - show mobile footer, hide desktop footer */
+@media (max-width: 767px) {
+  .home-container {
+    .desktop-footer {
+      display: none; /* Hide the desktop footer on mobile */
+    }
+    
+    .mobile-footer {
+      display: block; /* Show the mobile footer */
+    }
   }
 }
 
 /* Add styles for radial dial within the home container */
 .home-container app-radial-dial {
-  flex-basis: 40%; // Allow the radial dial to take up 40% of the space
-  flex-shrink: 0; // Prevent shrinking
-  display: block; // Ensure it behaves as a block element in flex
-
+  width: 100%;
+  max-width: 100%;
+  
   @media (min-width: 768px) {
-    flex-basis: 40%; // Adjust flex basis for larger screens
+    flex: 0 0 40%;
+    max-width: 40%;
   }
 
-  @media (min-width: 992px) {
-    flex-basis: 40%; // Keep 40% for even larger screens
+  /* Mobile specific styles for radial dial */
+  @media (max-width: 425px) {
+    width: 100%;
+    max-width: 350px;
+    margin: 1rem auto;
   }
+}
+
+.school-title {
+  color: var(--primary, #2c3e50);
+  font-weight: 700;
+  margin-bottom: 5rem;
+  text-align: center;
+}
+
+.school-lead {
+  max-width: 1100px;
+  margin: 0 auto 3rem auto;
+  color: var(--text, #333);
+  font-size: 1.15rem;
+  text-align: justify;
+}
+
+.desktop-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.mobile-footer .school-readiness-footer {
+  text-align: center;
+  margin-top: 1.5rem;
 }

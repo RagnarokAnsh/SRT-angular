@@ -1,27 +1,25 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withInterceptors, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { NGX_ECHARTS_CONFIG } from 'ngx-echarts';
 import { HttpRequest, HttpHandlerFn } from '@angular/common/http';
 import { providePrimeNG } from 'primeng/config';
 import { MessageService } from 'primeng/api';
 import Lara from '@primeng/themes/lara';
+import { inject } from '@angular/core';
 
 import { routes } from './app.routes';
+import { AuthInterceptor, createAuthInterceptor } from './auth/auth.interceptor';
+import { UserService } from './services/user.service';
+import { Router } from '@angular/router';
 
-// Functional interceptor for Angular 19
+// Enhanced functional interceptor for Angular 19
 export function authInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn) {
-  const token = localStorage.getItem('token');
+  const userService = inject(UserService);
+  const router = inject(Router);
   
-  if (token) {
-    const authReq = req.clone({
-      headers: req.headers.set('Authorization', `Bearer ${token}`)
-    });
-    return next(authReq);
-  }
-  
-  return next(req);
+  return createAuthInterceptor(userService, router)(req, next);
 }
 
 export const appConfig: ApplicationConfig = {
@@ -29,6 +27,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }), 
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
+    // Alternative: Use class-based interceptor (comment above and uncomment below)
+    // provideHttpClient(),
+    // { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     provideAnimations(), // Added for PrimeNG animations
     providePrimeNG({
       theme: {
@@ -43,6 +44,7 @@ export const appConfig: ApplicationConfig = {
       }
     }),
     MessageService,
+    UserService, // Ensure UserService is provided
     {
       provide: NGX_ECHARTS_CONFIG,
       useValue: {

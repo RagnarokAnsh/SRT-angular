@@ -63,7 +63,7 @@ export class UserService {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
     
-    if (token && userData) {
+    if (token && userData && this.isTokenValid(token)) {
       try {
         const user = JSON.parse(userData);
         this.isAuthenticatedSubject.next(true);
@@ -72,13 +72,15 @@ export class UserService {
         // If user data is corrupted, clear storage
         this.logout();
       }
+    } else {
+      this.logout();
     }
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap((response: LoginResponse) => {
-        if (response.token && response.user) {
+        if (response.token && response.user && this.isTokenValid(response.token)) {
           // Store token and user data with roles
           localStorage.setItem('token', response.token);
           localStorage.setItem('user', JSON.stringify(response.user));
@@ -89,6 +91,8 @@ export class UserService {
           
           // Route user based on their role immediately
           this.routeUserBasedOnRole(response.user);
+        } else {
+          this.logout();
         }
       })
     );
@@ -103,7 +107,26 @@ export class UserService {
   }
 
   isAuthenticated(): boolean {
-    return this.isAuthenticatedSubject.value;
+    const token = localStorage.getItem('token');
+    return !!token && this.isTokenValid(token);
+  }
+
+  // Utility: Decode JWT and check expiration
+  private decodeToken(token: string): any {
+    try {
+      const payload = token.split('.')[1];
+      return JSON.parse(atob(payload));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  private isTokenValid(token: string): boolean {
+    if (!token) return false;
+    const decoded = this.decodeToken(token);
+    if (!decoded || !decoded.exp) return false;
+    const now = Math.floor(Date.now() / 1000);
+    return decoded.exp > now;
   }
 
   getCurrentUser(): User | null {
@@ -174,7 +197,41 @@ export class UserService {
     return Math.min(...roles.map(role => rolePriorities[role as keyof typeof rolePriorities] || 999));
   }
 
-  private routeUserBasedOnRole(user: User): void {
+  // Permission-based access control
+  hasPermission(permission: string): boolean {
+    const user = this.getCurrentUser();
+    if (!user) return false;
+
+    // Define role-based permissions
+    const rolePermissions: { [key: string]: string[] } = {
+      'admin': ['*'], // Admin has all permissions
+      'stateofficial': ['view_reports', 'manage_districts', 'view_analytics'],
+      'dpo': ['view_reports', 'manage_cdpos', 'view_district_analytics'],
+      'cdpo': ['view_reports', 'manage_supervisors', 'view_cdpo_analytics'],
+      'supervisor': ['view_reports', 'manage_awws', 'view_supervisor_analytics'],
+      'aww': ['manage_students', 'conduct_assessments', 'view_student_reports']
+    };
+
+    const userRoles = this.getUserRoles();
+    
+    // Check if user has admin role (all permissions)
+    if (userRoles.includes('admin')) return true;
+
+    // Check specific permissions for user roles
+    return userRoles.some(role => {
+      const permissions = rolePermissions[role] || [];
+      return permissions.includes(permission) || permissions.includes('*');
+    });
+  }
+
+  // Centralized dashboard redirection logic
+  redirectToUserDashboard(): void {
+    const user = this.getCurrentUser();
+    if (!user) {
+      this.router.navigate(['/home']);
+      return;
+    }
+
     const roles = user.roles.map(role => role.name);
     
     // Route based on highest priority role
@@ -189,11 +246,14 @@ export class UserService {
     } else if (roles.includes('supervisor')) {
       this.router.navigate(['/supervisor/dashboard']);
     } else if (roles.includes('aww')) {
-      this.router.navigate(['/select-competency']);
+      this.router.navigate(['/dashboard']);
     } else {
-      // Default route for users without specific roles
       this.router.navigate(['/home']);
     }
+  }
+
+  private routeUserBasedOnRole(user: User): void {
+    this.redirectToUserDashboard();
   }
 
   // Get all users (for admin functionality) - Keep this if still needed elsewhere

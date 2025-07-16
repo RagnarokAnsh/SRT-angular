@@ -11,6 +11,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { StudentService, Student } from '../student.service';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { HostListener } from '@angular/core';
 
 @Component({
   selector: 'app-students-list',
@@ -32,6 +33,8 @@ import { MessageService } from 'primeng/api';
 export class StudentsListComponent implements OnInit {
   dataSource = new MatTableDataSource<Student>([]);
   displayedColumns: string[] = ['name', 'age', 'gender', 'dateOfBirth', 'symbol', 'height', 'weight', 'language', 'anganwadi', 'actions'];
+  allColumns: string[] = ['name', 'age', 'gender', 'dateOfBirth', 'symbol', 'height', 'weight', 'language', 'anganwadi', 'actions'];
+  mobileColumns: string[] = ['name', 'age', 'gender', 'actions'];
   
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -40,7 +43,9 @@ export class StudentsListComponent implements OnInit {
     private router: Router,
     private dialog: MatDialog,
     private messageService: MessageService
-  ) {}
+  ) {
+    this.updateDisplayedColumns();
+  }
 
   ngOnInit() {
     this.loadStudents();
@@ -48,6 +53,19 @@ export class StudentsListComponent implements OnInit {
   
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    this.updateDisplayedColumns();
+  }
+
+  updateDisplayedColumns() {
+    if (window.innerWidth < 768) {
+      this.displayedColumns = this.mobileColumns;
+    } else {
+      this.displayedColumns = this.allColumns;
+    }
   }
 
   loadStudents() {

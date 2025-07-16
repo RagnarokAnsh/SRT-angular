@@ -41,15 +41,15 @@ import { UserService, User } from '../../services/user.service';
               <div class="dropdown-menu" [class.show]="isDropdownOpen">
                 <a class="dropdown-item" routerLink="/admin/users" (click)="closeMenu()">
                   <mat-icon class="nav-icon">people</mat-icon>
-                  Users Management
+                  Users 
                 </a>
                 <a class="dropdown-item" routerLink="/admin/anganwadi" (click)="closeMenu()">
                   <mat-icon class="nav-icon">business</mat-icon>
-                  Anganwadi Management
+                  Anganwadi 
                 </a>
                 <a class="dropdown-item" routerLink="/students" (click)="closeMenu()">
                   <mat-icon class="nav-icon">school</mat-icon>
-                  Students Management
+                  Students
                 </a>
               </div>
             </div>
@@ -85,18 +85,37 @@ import { UserService, User } from '../../services/user.service';
       backdrop-filter: blur(2px);
       border-radius: 1.5rem;
       margin: 0 auto 0;
-      // max-width: 1200px;
-      padding: 0.5rem 1.5rem;
+      padding: 0.25rem 0.5rem;
       position: sticky;
-      top: 1rem;
+      top: 0.5rem;
       z-index: 100;
       transition: box-shadow 0.2s;
+      min-height: 48px;
+      
+      @media (min-width: 480px) {
+        padding: 0.5rem 1rem;
+        top: 1rem;
+        min-height: 56px;
+      }
+      
+      @media (min-width: 768px) {
+        padding: 0.5rem 1.5rem;
+        min-height: 64px;
+      }
     }
     .navbar-container {
       display: flex;
       align-items: center;
       justify-content: space-between;
       width: 100%;
+      min-height: 48px;
+      
+      @media (min-width: 480px) {
+        min-height: 56px;
+      }
+      @media (min-width: 768px) {
+        min-height: 64px;
+      }
     }
     .navbar-brand {
       display: flex;
@@ -105,12 +124,15 @@ import { UserService, User } from '../../services/user.service';
       text-decoration: none;
     }
     .navbar-logo {
-      
-      background: transparent;
-      box-shadow: none;
-      height: 56px;
+      height: 36px;
       width: auto;
       display: block;
+      @media (min-width: 480px) {
+        height: 48px;
+      }
+      @media (min-width: 768px) {
+        height: 56px;
+      }
     }
     .navbar-heading {
       font-weight: 700;
@@ -127,18 +149,33 @@ import { UserService, User } from '../../services/user.service';
     }
     .navbar-links {
       display: flex;
-      gap: 1rem;
+      gap: 0.5rem;
       align-items: center;
       transition: right 0.3s;
+      font-size: 0.9rem;
+      
+      @media (min-width: 480px) {
+        gap: 1rem;
+        font-size: 1rem;
+      }
     }
     .nav-link {
       color: #373a47;
       text-decoration: none;
       font-weight: 500;
-      font-size: 1rem;
-      padding: 0.5rem 1rem;
+      font-size: 0.6rem;
+      padding: 0.4rem 0.75rem;
       border-radius: 0.5rem;
       transition: background 0.2s, color 0.2s;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      @media (min-width: 480px) {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        gap: 0.5rem;
+      }
     }
     .nav-link:hover, .nav-link.active {
       background: #6366f1;
@@ -148,37 +185,43 @@ import { UserService, User } from '../../services/user.service';
       display: none;
       flex-direction: column;
       justify-content: center;
-      gap: 0.3rem;
-      width: 2.2rem;
-      height: 2.2rem;
+      gap: 0.2rem;
+      width: 2rem;
+      height: 2rem;
       background: none;
       border: none;
       cursor: pointer;
       z-index: 110;
+      @media (max-width: 700px) {
+        display: flex;
+      }
     }
     .navbar-toggle span {
       display: block;
       height: 3px;
-      width: 28px;
+      width: 22px;
       background: #6366f1;
       border-radius: 2px;
       transition: 0.3s;
+      @media (min-width: 480px) {
+        width: 28px;
+      }
     }
     .navbar-toggle span.open:nth-child(1) {
-      transform: translateY(8px) rotate(45deg);
+      transform: translateY(7px) rotate(45deg);
     }
     .navbar-toggle span.open:nth-child(2) {
       opacity: 0;
     }
     .navbar-toggle span.open:nth-child(3) {
-      transform: translateY(-8px) rotate(-45deg);
+      transform: translateY(-7px) rotate(-45deg);
     }
     @media (max-width: 900px) {
       .navbar {
-        padding: 0.5rem 0.5rem;
+        padding: 0.25rem 0.25rem;
       }
       .navbar-links {
-        gap: 1rem;
+        gap: 0.5rem;
       }
     }
     @media (max-width: 700px) {
@@ -189,33 +232,38 @@ import { UserService, User } from '../../services/user.service';
         position: fixed;
         top: 4.5rem;
         right: 0;
-        background: rgba(255,255,255,0.98);
-        box-shadow: 0 8px 32px rgba(80, 80, 180, 0.10);
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 8px 32px rgba(80, 80, 180, 0.1);
         border-radius: 1rem;
         flex-direction: column;
         align-items: flex-start;
-        width: 80vw;
+        width: 40vw;
         max-width: 320px;
-        padding: 1.5rem 1rem;
+        padding: 1rem 0.5rem;
         z-index: 99;
         display: none;
+        font-size: 1rem;
+    
       }
       .navbar-links.open {
         display: flex;
       }
-      .navbar-toggle {
-        display: flex;
-      }
     }
     .nav-icon {
-      margin-right: 0.5rem;
+      margin-right: 0.25rem;
       color: #373a47;
       transition: color 0.2s;
       vertical-align: middle;
-      font-size: 20px;
-      height: 20px;
-      width: 20px;
-      line-height: 20px;
+      font-size: 18px;
+      height: 18px;
+      width: 18px;
+      line-height: 18px;
+      @media (min-width: 480px) {
+        font-size: 20px;
+        height: 20px;
+        width: 20px;
+        line-height: 20px;
+      }
     }
     .nav-link:hover .nav-icon {
       color: #fff;

@@ -105,18 +105,24 @@ export class RadialDialComponent implements OnInit {
       baseSize = 1000;
     } else if (window.innerWidth >= 992) {
       baseSize = 800;
+    } else if (window.innerWidth >= 768) {
+      baseSize = 600;
+    } else if (window.innerWidth >= 426) {
+      baseSize = Math.min(minDim * 0.8, 500);
     } else {
-      baseSize = Math.min(minDim * 0.8, 800);
+      // Mobile screens below 426px
+      baseSize = Math.min(minDim * 0.9, 400);
     }
     
     this.center = Math.max(150, Math.floor(baseSize / 2));
     this.radius = Math.max(75, Math.floor(baseSize / 4));
     this.ringWidth = Math.max(30, Math.floor(baseSize / 8));
     
-    if (window.innerWidth <= 480) {
-      this.center = Math.max(100, Math.floor(baseSize / 2));
-      this.radius = Math.max(50, Math.floor(baseSize / 4));
-      this.ringWidth = Math.max(20, Math.floor(baseSize / 8));
+    // Special handling for very small screens
+    if (window.innerWidth <= 425) {
+      this.center = Math.max(175, Math.floor(baseSize / 2));
+      this.radius = Math.max(85, Math.floor(baseSize / 4));
+      this.ringWidth = Math.max(35, Math.floor(baseSize / 8));
     }
   }
 
@@ -251,14 +257,31 @@ export class RadialDialComponent implements OnInit {
   getResponsiveFontSize(sector: any): number {
     const arcAngle = sector.endAngle - sector.startAngle;
     const arcLength = ((arcAngle / 360) * 2 * Math.PI * ((sector.innerRadius + sector.outerRadius) / 2));
-    return Math.min(22, Math.max(arcLength / 6, 32));
+    
+    // Better responsive font sizing for mobile
+    if (window.innerWidth <= 425) {
+      return Math.min(14, Math.max(10, arcLength / 10));
+    } else if (window.innerWidth <= 768) {
+      return Math.min(16, Math.max(12, arcLength / 8));
+    } else {
+      return Math.min(20, Math.max(14, arcLength / 6));
+    }
   }
 
   // Truncate label if it overflows the arc
   getTruncatedLabel(sector: any): string {
     const arcAngle = sector.endAngle - sector.startAngle;
     const arcLength = ((arcAngle / 360) * 2 * Math.PI * ((sector.innerRadius + sector.outerRadius) / 2));
-    const maxChars = Math.floor(arcLength / 12);
+    
+    let maxChars;
+    if (window.innerWidth <= 425) {
+      maxChars = Math.floor(arcLength / 12);
+    } else if (window.innerWidth <= 768) {
+      maxChars = Math.floor(arcLength / 14);
+    } else {
+      maxChars = Math.floor(arcLength / 16);
+    }
+    
     if (sector.label.length > maxChars) {
       return sector.label.slice(0, Math.max(0, maxChars - 1)) + '…';
     }
@@ -299,13 +322,27 @@ export class RadialDialComponent implements OnInit {
   getMaxCharsPerLine(sector: any): number {
     const arcAngle = sector.endAngle - sector.startAngle;
     const arcLength = ((arcAngle / 360) * 2 * Math.PI * ((sector.innerRadius + sector.outerRadius) / 2));
-    return Math.floor(arcLength / 12);
+    
+    if (window.innerWidth <= 425) {
+      return Math.max(3, Math.floor(arcLength / 12));
+    } else if (window.innerWidth <= 768) {
+      return Math.max(5, Math.floor(arcLength / 14));
+    } else {
+      return Math.floor(arcLength / 16);
+    }
   }
 
   getMaxCharsPerLineVertical(sector: any): number {
     const arcAngle = sector.endAngle - sector.startAngle;
     const arcLength = ((arcAngle / 360) * 2 * Math.PI * ((sector.innerRadius + sector.outerRadius) / 2));
-    return Math.max(3, Math.floor(arcLength / 10));
+    
+    if (window.innerWidth <= 425) {
+      return Math.max(2, Math.floor(arcLength / 10));
+    } else if (window.innerWidth <= 768) {
+      return Math.max(3, Math.floor(arcLength / 12));
+    } else {
+      return Math.max(3, Math.floor(arcLength / 12));
+    }
   }
 
   splitLabelToLinesVertical(label: string): string[] {
@@ -337,6 +374,13 @@ export class RadialDialComponent implements OnInit {
   getCompetencyFontSize(sector: any): number {
     const arcAngle = sector.endAngle - sector.startAngle;
     const arcLength = ((arcAngle / 360) * 2 * Math.PI * ((sector.innerRadius + sector.outerRadius) / 2));
-    return Math.min(22, Math.max(20, arcLength / 20));
+    
+    if (window.innerWidth <= 425) {
+      return Math.min(12, Math.max(8, arcLength / 30));
+    } else if (window.innerWidth <= 768) {
+      return Math.min(14, Math.max(10, arcLength / 25));
+    } else {
+      return Math.min(18, Math.max(12, arcLength / 20));
+    }
   }
 }

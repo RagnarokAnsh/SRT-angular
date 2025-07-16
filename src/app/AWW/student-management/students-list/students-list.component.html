@@ -1,90 +1,105 @@
 <p-toast></p-toast>
 
 <div class="container">
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
-    <h2 class="heading-heading mb-3 mb-md-0">
+  <!-- Mobile-first header with single line layout -->
+  <div class="header-section mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <h2 class="heading-heading mb-0">
       <span class="heading-highlight">Students</span> List
     </h2>
-    <button color="primary" routerLink="create" class="btn btn-primary d-flex align-items-center">
+      <button color="primary" routerLink="create" class="btn btn-primary add-btn d-flex align-items-center">
       <mat-icon class="me-1">add</mat-icon>
-      <span class="d-none d-sm-inline">Add New Student</span>
+        <span class="btn-text">Add New</span>
     </button>
+    </div>
   </div>
 
+  <!-- Mobile-optimized table container -->
+  <div class="table-container">
   <div class="table-responsive">
-    <table mat-table [dataSource]="dataSource" class="mat-elevation-z2 w-100">
+      <table mat-table [dataSource]="dataSource" class="mat-elevation-z2 w-100 mobile-table">
       <!-- Name Column -->
       <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>Name</th>
-        <td mat-cell *matCellDef="let student">{{student.firstName}} {{student.lastName}}</td>
+          <th mat-header-cell *matHeaderCellDef class="mobile-header">Name</th>
+          <td mat-cell *matCellDef="let student" class="mobile-cell">{{student.firstName}} {{student.lastName}}</td>
       </ng-container>
 
       <!-- Age Column -->
       <ng-container matColumnDef="age">
-        <th mat-header-cell *matHeaderCellDef>Age</th>
-        <td mat-cell *matCellDef="let student">{{calculateAge(student.dateOfBirth)}}</td>
+          <th mat-header-cell *matHeaderCellDef class="mobile-header">Age</th>
+          <td mat-cell *matCellDef="let student" class="mobile-cell">{{calculateAge(student.dateOfBirth)}}</td>
       </ng-container>
 
       <!-- Date of Birth Column -->
       <ng-container matColumnDef="dateOfBirth">
-        <th mat-header-cell *matHeaderCellDef >Date of Birth</th>
-        <td mat-cell *matCellDef="let student" >{{student.dateOfBirth | date}}</td>
+          <th mat-header-cell *matHeaderCellDef class="mobile-header">Date of Birth</th>
+          <td mat-cell *matCellDef="let student" class="mobile-cell">{{student.dateOfBirth | date:'shortDate'}}</td>
       </ng-container>
 
       <!-- Symbol Column -->
       <ng-container matColumnDef="symbol">
-        <th mat-header-cell *matHeaderCellDef >Symbol</th>
-        <td mat-cell *matCellDef="let student" >{{student.symbol}}</td>
+          <th mat-header-cell *matHeaderCellDef class="mobile-header">Symbol</th>
+          <td mat-cell *matCellDef="let student" class="mobile-cell">{{student.symbol}}</td>
       </ng-container>
 
       <!-- Height Column -->
       <ng-container matColumnDef="height">
-        <th mat-header-cell *matHeaderCellDef >Height (cm)</th>
-        <td mat-cell *matCellDef="let student" >{{student.height}}</td>
+          <th mat-header-cell *matHeaderCellDef class="mobile-header">Height (cm)</th>
+          <td mat-cell *matCellDef="let student" class="mobile-cell">{{student.height}}</td>
       </ng-container>
 
       <!-- Weight Column -->
       <ng-container matColumnDef="weight">
-        <th mat-header-cell *matHeaderCellDef >Weight (kg)</th>
-        <td mat-cell *matCellDef="let student" >{{student.weight}}</td>
+          <th mat-header-cell *matHeaderCellDef class="mobile-header">Weight (kg)</th>
+          <td mat-cell *matCellDef="let student" class="mobile-cell">{{student.weight}}</td>
       </ng-container>
 
       <!-- Language Column -->
       <ng-container matColumnDef="language">
-        <th mat-header-cell *matHeaderCellDef >Home Language</th>
-        <td mat-cell *matCellDef="let student" >{{student.language}}</td>
+          <th mat-header-cell *matHeaderCellDef class="mobile-header">Home Language</th>
+          <td mat-cell *matCellDef="let student" class="mobile-cell">{{student.language}}</td>
       </ng-container>
 
       <!-- Gender Column -->
       <ng-container matColumnDef="gender">
-        <th mat-header-cell *matHeaderCellDef>Gender</th>
-        <td mat-cell *matCellDef="let student">{{student.gender}}</td>
+          <th mat-header-cell *matHeaderCellDef class="mobile-header">Gender</th>
+          <td mat-cell *matCellDef="let student" class="mobile-cell">{{student.gender}}</td>
       </ng-container>
 
       <!-- Anganwadi Column -->
       <ng-container matColumnDef="anganwadi">
-        <th mat-header-cell *matHeaderCellDef >Anganwadi Center</th>
-        <td mat-cell *matCellDef="let student" >{{student.anganwadi?.name || '-'}}</td>
+          <th mat-header-cell *matHeaderCellDef class="mobile-header">Anganwadi Center</th>
+          <td mat-cell *matCellDef="let student" class="mobile-cell">{{student.anganwadi?.name || '-'}}</td>
       </ng-container>
 
       <!-- Actions Column -->
       <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef>Actions</th>
-        <td mat-cell *matCellDef="let student">
-          <div class="d-flex gap-2 justify-content-center">
-            <button mat-icon-button color="primary" [routerLink]="['edit', student.id]" matTooltip="Edit">
+          <th mat-header-cell *matHeaderCellDef class="mobile-header">Actions</th>
+          <td mat-cell *matCellDef="let student" class="mobile-cell">
+            <div class="d-flex gap-1 justify-content-center">
+              <button mat-icon-button color="primary" [routerLink]="['edit', student.id]" matTooltip="Edit" class="action-btn">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="warn" (click)="openDeleteDialog(student)" matTooltip="Delete">
+              <button mat-icon-button color="warn" (click)="openDeleteDialog(student)" matTooltip="Delete" class="action-btn">
               <mat-icon>delete</mat-icon>
             </button>
           </div>
         </td>
       </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns" class="mobile-header-row"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="mobile-row"></tr>
     </table>
-    <mat-paginator [pageSizeOptions]="[5, 10, 25, 50]" showFirstLastButtons aria-label="Select page of students"></mat-paginator>
+    </div>
+    
+    <!-- Mobile-optimized paginator -->
+    <div class="paginator-container">
+      <mat-paginator 
+        [pageSizeOptions]="[5, 10, 25, 50]" 
+        showFirstLastButtons 
+        aria-label="Select page of students"
+        class="mobile-paginator">
+      </mat-paginator>
+    </div>
   </div>
 </div>

@@ -2,14 +2,18 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  height: 100vh;
 }
 
 .main-content {
   flex: 1 0 auto;
-  padding-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
 }
 
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
+  height: 100vh;
 }

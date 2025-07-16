@@ -1,21 +1,25 @@
 <p-toast></p-toast>
 
 <div class="container">
-  <h2 class="heading-heading mb-4">
+  <!-- Mobile-first header -->
+  <div class="header-section mb-4">
+    <h2 class="heading-heading mb-0">
     <span class="heading-highlight">{{isEditMode ? 'Edit' : 'Add'}}</span> Student
   </h2>
+  </div>
   
-  <div *ngIf="isLoading" class="text-center my-4">
+  <div *ngIf="isLoading" class="loading-container">
     <div class="spinner-border text-primary" role="status">
       <span class="visually-hidden">Loading...</span>
     </div>
     <p class="mt-2">Loading data...</p>
   </div>
 
-  <form [formGroup]="studentForm" (ngSubmit)="onSubmit()" *ngIf="!isLoading">
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        <mat-form-field appearance="outline" class="w-100">
+  <form [formGroup]="studentForm" (ngSubmit)="onSubmit()" *ngIf="!isLoading" class="student-form">
+    <div class="form-container">
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
           <mat-label>First Name</mat-label>
           <input matInput formControlName="firstName" placeholder="Enter first name">
           <mat-error *ngIf="studentForm.get('firstName')?.hasError('required')">
@@ -24,8 +28,8 @@
         </mat-form-field>
       </div>
 
-      <div class="col-md-6 mb-3">
-        <mat-form-field appearance="outline" class="w-100">
+        <div class="col-12 col-md-6">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
           <mat-label>Last Name</mat-label>
           <input matInput formControlName="lastName" placeholder="Enter last name">
           <mat-error *ngIf="studentForm.get('lastName')?.hasError('required')">
@@ -34,8 +38,8 @@
         </mat-form-field>
       </div>
 
-      <div class="col-md-6 mb-3">
-        <mat-form-field appearance="outline" class="w-100">
+        <div class="col-12 col-md-6">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
           <mat-label>Date of Birth</mat-label>
           <input matInput [matDatepicker]="picker" formControlName="dateOfBirth">
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
@@ -46,8 +50,8 @@
         </mat-form-field>
       </div>
 
-      <div class="col-md-6 mb-3">
-        <mat-form-field appearance="outline" class="w-100">
+        <div class="col-12 col-md-6">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
           <mat-label>Symbol</mat-label>
           <input matInput formControlName="symbol" placeholder="Enter symbol">
           <mat-error *ngIf="studentForm.get('symbol')?.hasError('required')">
@@ -56,8 +60,8 @@
         </mat-form-field>
       </div>
 
-      <div class="col-md-6 mb-3">
-        <mat-form-field appearance="outline" class="w-100">
+        <div class="col-12 col-md-6">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
           <mat-label>Height (cm)</mat-label>
           <input matInput type="number" formControlName="height" placeholder="Enter height">
           <mat-error *ngIf="studentForm.get('height')?.hasError('required')">
@@ -69,8 +73,8 @@
         </mat-form-field>
       </div>
 
-      <div class="col-md-6 mb-3">
-        <mat-form-field appearance="outline" class="w-100">
+        <div class="col-12 col-md-6">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
           <mat-label>Weight (kg)</mat-label>
           <input matInput type="number" formControlName="weight" placeholder="Enter weight">
           <mat-error *ngIf="studentForm.get('weight')?.hasError('required')">
@@ -82,8 +86,8 @@
         </mat-form-field>
       </div>
 
-      <div class="col-md-6 mb-3">
-        <mat-form-field appearance="outline" class="w-100">
+        <div class="col-12 col-md-6">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
           <mat-label>Home Language</mat-label>
           <input matInput formControlName="language" placeholder="Enter home language">
           <mat-error *ngIf="studentForm.get('language')?.hasError('required')">
@@ -92,8 +96,8 @@
         </mat-form-field>
       </div>
 
-      <div class="col-md-6 mb-3">
-        <mat-form-field appearance="outline" class="w-100">
+        <div class="col-12 col-md-6">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
           <mat-label>Gender</mat-label>
           <mat-select formControlName="gender" placeholder="Select gender">
             <mat-option value="Boy">Boy</mat-option>
@@ -106,8 +110,8 @@
         </mat-form-field>
       </div>
 
-      <div class="col-md-6 mb-3">
-        <mat-form-field appearance="outline" class="w-100">
+        <div class="col-12 col-md-6">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
           <mat-label>Anganwadi Center</mat-label>
           <input matInput [value]="currentAnganwadiName" readonly>
           <mat-hint *ngIf="!isEditMode">Student will be assigned to your center</mat-hint>
@@ -116,20 +120,21 @@
         <input type="hidden" formControlName="anganwadiId">
       </div>
 
-      <div class="col-md-6 mb-3">
-        <mat-form-field appearance="outline" class="w-100">
+        <div class="col-12 col-md-6">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
           <mat-label>Assigned Worker</mat-label>
           <input matInput [value]="currentUserName" readonly>
           <mat-hint *ngIf="!isEditMode">Student will be assigned to you</mat-hint>
         </mat-form-field>
         <!-- Hidden field to store the AWW ID -->
         <input type="hidden" formControlName="awwId">
+        </div>
       </div>
     </div>
 
-    <div class="d-flex justify-content-end gap-2 mt-4">
-      <button class="btn btn-primary" type="button" (click)="goBack()">Cancel</button>
-      <button type="submit" [disabled]="studentForm.invalid" [ngClass]="{'btn-secondary': studentForm.invalid, 'btn-primary': !studentForm.invalid}" class="btn">
+    <div class="form-actions">
+      <button class="btn btn-outline-secondary" type="button" (click)="goBack()">Cancel</button>
+      <button type="submit" [disabled]="studentForm.invalid" [ngClass]="{'btn-secondary': studentForm.invalid, 'btn-primary': !studentForm.invalid}" class="btn submit-btn">
         {{isEditMode ? 'Update' : 'Create'}} Student
       </button>
     </div>
