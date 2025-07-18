@@ -36,6 +36,7 @@ import { Student as ServiceStudent } from '../student-management/student.service
 import { StudentService } from '../student-management/student.service';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { AssessmentService, AssessmentSubmission } from './assessment.service';
 import { UserService } from '../../services/user.service';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
@@ -79,9 +80,16 @@ interface Student {
   remarks4?: string;
   remarks?: string;
   sessions?: number;
-  // New fields for height/weight and age at each assessment
-  height?: string;
-  weight?: string;
+  // Height/weight per session for competency 10 and 11
+  height1?: string;
+  weight1?: string;
+  height2?: string;
+  weight2?: string;
+  height3?: string;
+  weight3?: string;
+  height4?: string;
+  weight4?: string;
+  // Age per session
   age1?: string;
   age2?: string;
   age3?: string;
@@ -121,7 +129,8 @@ interface LevelDescription {
     MatTooltipModule,
     MatSortModule,
     MatPaginatorModule,
-    ToastModule
+    ToastModule,
+    InputNumberModule
   ],
   templateUrl: './assessments.component.html',
   styleUrls: ['./assessments.component.scss'],
@@ -171,6 +180,8 @@ export class AssessmentsComponent implements OnInit {
   allStudents: Student[] = [];
   isLoading: boolean = false;
   showHeightWeightColumns: boolean = false;
+  showHeightWeightInputs: boolean = false;
+  isGrossOrFineMotor: boolean = false;
 
   // UI feedback messages
   createSuccess: string = '';
@@ -387,6 +398,8 @@ export class AssessmentsComponent implements OnInit {
    * Load existing assessments from API
    */
   loadAssessments() {
+    // Always clear remarks when loading new assessments
+    this.assessment.remarks = '';
     if (!this.currentUserAnganwadiId || !this.assessment.competency_id) {
       console.warn('Cannot load assessments: missing anganwadi ID or competency ID');
       // Clear existing assessment data from students if competency changes to nothing valid
@@ -508,6 +521,12 @@ export class AssessmentsComponent implements OnInit {
                 if (sessionData.observation !== '-') {
                   level = String(sessionData.observation);
                 }
+                
+                // Extract age from session data if available
+                if (sessionData.age) {
+                  (updatedStudent as any)[`age${sessionNumber}`] = sessionData.age;
+                }
+                
                 // Session exists, so set assessed flags and date
                 switch (sessionNumber) {
                   case 1:
@@ -577,8 +596,31 @@ export class AssessmentsComponent implements OnInit {
           }
           // Add height/weight if available (for gross/fine motor)
           if (assessmentData) {
-            updatedStudent.height = assessmentData.height || '';
-            updatedStudent.weight = assessmentData.weight || '';
+            // Store height/weight per session if available
+            if (assessmentData.session_1 && assessmentData.session_1.height) {
+              (updatedStudent as any).height1 = assessmentData.session_1.height;
+            }
+            if (assessmentData.session_1 && assessmentData.session_1.weight) {
+              (updatedStudent as any).weight1 = assessmentData.session_1.weight;
+            }
+            if (assessmentData.session_2 && assessmentData.session_2.height) {
+              (updatedStudent as any).height2 = assessmentData.session_2.height;
+            }
+            if (assessmentData.session_2 && assessmentData.session_2.weight) {
+              (updatedStudent as any).weight2 = assessmentData.session_2.weight;
+            }
+            if (assessmentData.session_3 && assessmentData.session_3.height) {
+              (updatedStudent as any).height3 = assessmentData.session_3.height;
+            }
+            if (assessmentData.session_3 && assessmentData.session_3.weight) {
+              (updatedStudent as any).weight3 = assessmentData.session_3.weight;
+            }
+            if (assessmentData.session_4 && assessmentData.session_4.height) {
+              (updatedStudent as any).height4 = assessmentData.session_4.height;
+            }
+            if (assessmentData.session_4 && assessmentData.session_4.weight) {
+              (updatedStudent as any).weight4 = assessmentData.session_4.weight;
+            }
           }
           return updatedStudent;
         });
@@ -615,14 +657,17 @@ export class AssessmentsComponent implements OnInit {
   updateDisplayedColumns() {
     // Start with the base columns
     this.displayedColumns = ['select', 'name'];
-    // Add height/weight columns for gross/fine motor
-    if (this.showHeightWeightColumns) {
-      this.displayedColumns.push('height', 'weight');
+    
+    // Add height/weight input columns for competency 10 and 11
+    if (this.showHeightWeightInputs) {
+      this.displayedColumns.push('heightInput', 'weightInput');
     }
+    
     // Add session columns based on max sessions
     for (let i = 1; i <= this.maxSessions; i++) {
       this.displayedColumns.push(`assessmentInfo${i > 1 ? i : ''}`);
     }
+    
     // Add remarks column at the end - temporarily disabled
     // this.displayedColumns.push('remarks');
     console.log('Updated displayed columns:', this.displayedColumns);
@@ -632,45 +677,29 @@ export class AssessmentsComponent implements OnInit {
    * Handle form submission
    */
   onSubmit() {
-    console.log('Submitting assessment:', this.assessment);
-
-    // Validation
-    if (!this.assessment.observation) { // Changed from score to observation
-      this.showMessage('Please select a level.', true);
-      return;
-    }
-
-    if (this.selection.selected.length === 0) {
-      this.showMessage('Please select at least one student.', true);
-      return;
-    }
+    console.log('onSubmit called');
     
-    // Check if any selected student already has 4 sessions completed
-    if (this.hasMaxSessionsReached()) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Maximum Sessions Reached',
-        detail: 'You have already submitted assessments for all 4 sessions for one or more selected students. Please select another competency to assess.',
-        life: 5000
-      });
+    if (!this.assessment.observation) {
+      this.showMessage('Please select an assessment level.', true);
       return;
     }
 
-    // Show confirmation dialog
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
-      data: {
-        title: 'Confirm Assessment Submission',
-        message: 'Once submitted, this assessment cannot be edited. Are you sure you want to proceed?',
-        confirmText: 'Submit Assessment'
+    // Validate height/weight if required
+    if (this.isGrossOrFineMotor) {
+      const validation = this.validateHeightWeightInputs();
+      if (!validation.isValid) {
+        this.showMessage(validation.message, true);
+        return;
       }
-    });
+    }
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.submitAssessment();
-      }
-    });
+    // Set assessment date to today
+    this.assessment.assessment_date = new Date().toISOString().split('T')[0];
+    
+    console.log('Submitting assessment with data:', this.assessment);
+    
+    // Call the submit assessment method
+    this.submitAssessment();
   }
 
   /**
@@ -720,9 +749,11 @@ export class AssessmentsComponent implements OnInit {
         }
         // Calculate age at assessment
         ageString = this.calculateAgeString(student.birth_date, this.assessment.assessment_date);
-        // Use height/weight if available (for gross/fine motor)
-        height = student.height || '';
-        weight = student.weight || '';
+        // Use height/weight for the current session if available (for gross/fine motor)
+        // For submission, we use the session number that matches the input fields
+        const currentSessionNumber = this.getCurrentSessionForInput();
+        height = (student as any)[`height${currentSessionNumber}`] || '';
+        weight = (student as any)[`weight${currentSessionNumber}`] || '';
       }
       const currentObservationForSubmission = this.assessment.observation;
       return {
@@ -739,86 +770,35 @@ export class AssessmentsComponent implements OnInit {
       };
     });
     
-    console.log('Submitting assessments (payload to service):', submissions);
-
-    // Submit assessments to API
+    console.log('Submitting assessments:', submissions);
+    
+    // Submit assessments using the multiple assessments method
     this.assessmentService.submitMultipleAssessments(submissions).subscribe({
       next: (response) => {
-        this.showMessage('Assessment saved successfully!');
+        console.log('All assessments submitted successfully');
+        this.showMessage('Assessment submitted successfully!', false);
         
-        // Reload assessments from the server to ensure we have the latest data
-        this.loadAssessments();
-
-        // Update student assessment status locally
-        this.students = this.students.map(student => {
-          if (selectedStudentIds.includes(student.id)) {
-            // Get today's date for the assessment
-            const today = new Date().toISOString().split('T')[0];
-            const updatedStudent = { ...student };
-            
-            // Determine which session to update based on existing data
-            if (!student.assessed) {
-              // First assessment
-              updatedStudent.assessed = true;
-              updatedStudent.assessmentLevel = this.assessment.observation;
-              updatedStudent.assessmentDate = today;
-              updatedStudent.sessions = 1;
-            } else if (!student.assessed2) {
-              // Second assessment
-              updatedStudent.assessed2 = true;
-              updatedStudent.assessmentLevel2 = this.assessment.observation;
-              updatedStudent.assessmentDate2 = today;
-              updatedStudent.sessions = 2;
-            } else if (!student.assessed3) {
-              // Third assessment
-              updatedStudent.assessed3 = true;
-              updatedStudent.assessmentLevel3 = this.assessment.observation;
-              updatedStudent.assessmentDate3 = today;
-              updatedStudent.sessions = 3;
-            } else if (!student.assessed4) {
-              // Fourth assessment
-              updatedStudent.assessed4 = true;
-              updatedStudent.assessmentLevel4 = this.assessment.observation;
-              updatedStudent.assessmentDate4 = today;
-            }
-            
-            return updatedStudent;
-          }
-          return student;
-        });
+        // Reset height/weight inputs after successful submission
+        this.resetHeightWeightInputs();
         
-        // Update max sessions and displayed columns
-        const maxSessionsFound = Math.max(...this.students.map(s => s.sessions || 0));
-        if (maxSessionsFound > this.maxSessions) {
-          this.maxSessions = maxSessionsFound;
-          this.updateDisplayedColumns();
-        }
-
-        this.updateDataSource();
-
-        // Reset form for next assessment
-        this.assessment.observation = '';
+        // Clear selection
         this.selection.clear();
+        
+        // Reload assessments to show updated data
+        this.loadAssessments();
+        
+        // Update local student data after successful submission
+        this.updateLocalStudentData(selectedStudentIds);
 
-        // Redirect back to the student selection tab
+        // Clear assessment form after submission
+        this.clearAssessmentForm();
+        
+        // Reset to students tab
         this.setActiveTab('students');
       },
-      error: (err) => {
-        console.error('Error submitting assessment:', err);
-        
-        // Extract the error message from the error object
-        let errorMessage = 'Failed to save assessment. Please try again.';
-        
-        if (err.message) {
-          errorMessage = err.message;
-        }
-        
-        // Log additional details for debugging
-        if (err.error) {
-          console.error('Error details:', err.error);
-        }
-        
-        this.showMessage(errorMessage, true);
+      error: (error) => {
+        console.error('Error submitting assessments:', error);
+        this.showMessage('Error submitting assessment. Please try again.', true);
       }
     });
   }
@@ -831,6 +811,9 @@ export class AssessmentsComponent implements OnInit {
    */
   setActiveTab(tab: 'students' | 'levels') {
     this.activeTab = tab;
+    if (tab === 'students') {
+      this.clearAssessmentForm();
+    }
     this.cdr.detectChanges();
   }
 
@@ -915,11 +898,12 @@ export class AssessmentsComponent implements OnInit {
    * Toggle all rows selection
    */
   masterToggle() {
-    if (this.isAllSelected()) {
-      this.selection.clear();
-    } else {
-      this.filteredStudents.forEach(row => this.selection.select(row));
-    }
+    this.isAllSelected() ?
+      this.selection.clear() :
+      this.students.forEach(row => this.selection.select(row));
+    
+    // Trigger change detection to update button state
+    this.onStudentSelectionChange();
   }
 
   /**
@@ -965,34 +949,34 @@ export class AssessmentsComponent implements OnInit {
   }
   
   /**
-   * Navigate back to the details page for the current competency
+   * Reset component state when navigating back
+   */
+  resetComponentState(): void {
+    this.selection.clear();
+    this.activeTab = 'students';
+    this.assessment.observation = '';
+    this.assessment.remarks = '';
+    this.clearAllHeightWeightInputs();
+    this.createSuccess = '';
+    this.createError = '';
+  }
+
+  /**
+   * Handle navigation back to videos
    */
   backToVideos() {
-    if (this.competencyId) {
-      this.router.navigate(['/details', this.competencyId]);
-    } else {
-      // If no competency ID is available, navigate to the select competency page
-      this.router.navigate(['/select-competency']);
-    }
+    this.resetComponentState();
+    this.router.navigate(['/AWW/select-competency']);
   }
 
   /**
    * Calculate age from birth date
    */
-  calculateAge(birthDate: string): number {
-    if (!birthDate) return 0;
-    
+  calculateAge(birthDate: string): string {
+    if (!birthDate) return '';
     const today = new Date();
-    const birthDateObj = new Date(birthDate);
-    
-    let age = today.getFullYear() - birthDateObj.getFullYear();
-    const monthDiff = today.getMonth() - birthDateObj.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) {
-      age--;
-    }
-    
-    return age;
+    const todayStr = `${today.getFullYear()}-${(today.getMonth()+1).toString().padStart(2,'0')}-${today.getDate().toString().padStart(2,'0')}`;
+    return this.calculateAgeString(birthDate, todayStr);
   }
 
   /**
@@ -1002,36 +986,58 @@ export class AssessmentsComponent implements OnInit {
     const competencyId = this.assessment.competency_id;
     const competencyName = this.selectedCompetency.toLowerCase();
     
-    // Set level descriptions based on competency type
+    // Check if it's gross or fine motor (competency IDs 10 and 11)
+    const wasGrossOrFineMotor = this.isGrossOrFineMotor;
+    this.isGrossOrFineMotor = competencyId === 10 || competencyId === 11;
+    this.showHeightWeightInputs = this.isGrossOrFineMotor;
+    
+    // Clear height/weight inputs when switching competencies
+    if (wasGrossOrFineMotor !== this.isGrossOrFineMotor) {
+      this.clearAllHeightWeightInputs();
+    }
+    
+    // Clear assessment form (including remarks) when switching competencies
+    this.clearAssessmentForm();
+
     if (competencyName.includes('gross motor')) {
       this.levelDescriptions = [
-        { level: 'Beginner', description: 'Limited balance in gross motor activities, e.g., jumping', color: '#FFD657' },
-        { level: 'Progressing', description: 'Maintains balance in gross motor activities', color: '#FFC067' },
-        { level: 'Advanced', description: 'Maintains balance and controls body while moving quickly', color: '#AFD588' },
+        { level: 'Beginner', description: 'Balances and coordinates well in a variety of activities, such as throwing a ball with aim or kicking a ball at a given target', color: '#FFD657' },
+        { level: 'Progressing', description: 'Balances and coordinates well in a variety of activities, such as throwing a ball with aim or kicking a ball at a given target', color: '#FFC067' },
+        { level: 'Advanced', description: 'Balances and coordinates well in a variety of activities, such as throwing a ball with aim or kicking a ball at a given target', color: '#AFD588' },
         { level: 'PSR', description: 'Balances and coordinates well in a variety of activities, such as throwing a ball with aim or kicking a ball at a given target', color: '#9FDFF8' }
       ];
-      this.showHeightWeightColumns = true; // Enable height/weight columns for gross motor
     } else if (competencyName.includes('fine motor')) {
       this.levelDescriptions = [
-        { level: 'Beginner', description: 'Limited coordination of small muscles in fine motor activities', color: '#FFD657' },
-        { level: 'Progressing', description: 'Maintains coordination of small muscles in fine motor activities', color: '#FFC067' },
-        { level: 'Advanced', description: 'Maintains coordination of small muscles while manipulating objects', color: '#AFD588' },
+        { level: 'Beginner', description: 'Controls and coordinates well in a variety of small muscle activities', color: '#FFD657' },
+        { level: 'Progressing', description: 'Controls and coordinates well in a variety of small muscle activities', color: '#FFC067' },
+        { level: 'Advanced', description: 'Controls and coordinates well in a variety of small muscle activities', color: '#AFD588' },
         { level: 'PSR', description: 'Controls and coordinates well in a variety of small muscle activities', color: '#9FDFF8' }
       ];
-      this.showHeightWeightColumns = true; // Enable height/weight columns for fine motor
     } else {
       this.levelDescriptions = [
         { level: 'Beginner', description: 'The child shows initial attempts with limited success. Assess based on effort and support needed.', color: '#FFD657' },
-        { level: 'Progressing', description: 'The child improves with practice but needs guidance. Assess based on progress shown.', color: '#FFC067' },
-        { level: 'Advanced', description: 'The child performs the task with confidence. Assess based on consistency and skill.', color: '#AFD588' },
+        { level: 'Progressing', description: 'The child shows improvement with some support. Assess based on progress and guidance needed.', color: '#FFC067' },
+        { level: 'Advanced', description: 'The child shows good understanding and application. Assess based on mastery and independence.', color: '#AFD588' },
         { level: 'PSR', description: 'The child masters the task and applies it in context. Assess based on readiness for next stage.', color: '#9FDFF8' }
       ];
-      this.showHeightWeightColumns = false; // Disable height/weight columns for other competencies
     }
   }
 
   /**
+   * Clear all height/weight inputs for all students and all sessions
+   */
+  clearAllHeightWeightInputs(): void {
+    this.students.forEach(student => {
+      for (let i = 1; i <= 4; i++) {
+        (student as any)[`height${i}`] = '';
+        (student as any)[`weight${i}`] = '';
+      }
+    });
+  }
+
+  /**
    * Calculate age string in years and months from birth date and assessment date
+   * Always returns in '3y 2m' format, or '' if invalid.
    */
   private calculateAgeString(birthDate: string, assessmentDate: string): string {
     if (!birthDate || !assessmentDate) return '';
@@ -1057,9 +1063,9 @@ export class AssessmentsComponent implements OnInit {
         months += 12;
       }
     }
-    if (years < 0) years = 0;
-    if (months < 0) months = 0;
-    return `${years} years ${months} months`;
+    // If any value is NaN or negative, return empty string
+    if (isNaN(years) || isNaN(months) || years < 0 || months < 0) return '';
+    return `${years}y ${months}m`;
   }
 
   private formatDateForDisplay(dateString: string | null | undefined): string {
@@ -1101,5 +1107,238 @@ export class AssessmentsComponent implements OnInit {
       console.error('Error formatting date:', dateString, e);
       return dateString;
     }
+  }
+
+  /**
+   * Get current session number for input fields
+   */
+  getCurrentSessionForInput(): number {
+    const selectedStudents = this.selection.selected;
+    if (selectedStudents.length === 0) return 1;
+    
+    // Determine the session number based on the most common assessment status
+    return this.getCurrentSessionNumber();
+  }
+
+  /**
+   * Check if height and weight are entered for all selected students
+   */
+  areHeightWeightEntered(): boolean {
+    if (!this.isGrossOrFineMotor) return true;
+    
+    const selectedStudents = this.selection.selected;
+    if (selectedStudents.length === 0) return false;
+    
+    // For input validation, we check session 1 since that's what we're entering
+    const sessionNumber = this.getCurrentSessionForInput();
+    
+    return selectedStudents.every(student => {
+      const height = (student as any)[`height${sessionNumber}`];
+      const weight = (student as any)[`weight${sessionNumber}`];
+      return height && weight && height.toString().trim() !== '' && weight.toString().trim() !== '';
+    });
+  }
+
+  /**
+   * Reset height and weight inputs for all students
+   */
+  resetHeightWeightInputs(): void {
+    const sessionNumber = this.getCurrentSessionForInput();
+    this.students.forEach(student => {
+      (student as any)[`height${sessionNumber}`] = '';
+      (student as any)[`weight${sessionNumber}`] = '';
+    });
+  }
+
+  /**
+   * Handle student selection change
+   */
+  onStudentSelectionChange(): void {
+    // Clear height/weight inputs when selection changes to prevent showing old data
+    this.clearHeightWeightInputsForUnselectedStudents();
+    
+    // Force change detection to update button state
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Clear height/weight inputs for unselected students
+   */
+  clearHeightWeightInputsForUnselectedStudents(): void {
+    const sessionNumber = this.getCurrentSessionForInput();
+    this.students.forEach(student => {
+      if (!this.selection.isSelected(student)) {
+        (student as any)[`height${sessionNumber}`] = '';
+        (student as any)[`weight${sessionNumber}`] = '';
+      }
+    });
+  }
+
+  /**
+   * Toggle individual student selection
+   */
+  toggleStudent(student: Student) {
+    this.selection.toggle(student);
+    this.onStudentSelectionChange();
+  }
+
+  /**
+   * Get current session number based on selected students' assessment status
+   */
+  private getCurrentSessionNumber(): number {
+    const selectedStudents = this.selection.selected;
+    if (selectedStudents.length === 0) return 1;
+    
+    // Check the most common session number among selected students
+    const sessionCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    
+    selectedStudents.forEach(student => {
+      if (student.assessed && student.assessed2 && student.assessed3 && student.assessed4) {
+        sessionCounts[4]++;
+      } else if (student.assessed && student.assessed2 && student.assessed3) {
+        sessionCounts[4]++;
+      } else if (student.assessed && student.assessed2) {
+        sessionCounts[3]++;
+      } else if (student.assessed) {
+        sessionCounts[2]++;
+      } else {
+        sessionCounts[1]++;
+      }
+    });
+    
+    // Return the session with the highest count
+    let maxSession = 1;
+    let maxCount = sessionCounts[1];
+    
+    if (sessionCounts[2] > maxCount) {
+      maxSession = 2;
+      maxCount = sessionCounts[2];
+    }
+    if (sessionCounts[3] > maxCount) {
+      maxSession = 3;
+      maxCount = sessionCounts[3];
+    }
+    if (sessionCounts[4] > maxCount) {
+      maxSession = 4;
+    }
+    
+    return maxSession;
+  }
+
+  /**
+   * Get button disabled state
+   */
+  getButtonDisabledState(): { hasSelection: boolean, heightWeightValid: boolean, isDisabled: boolean } {
+    const hasSelection = this.selection.hasValue();
+    const heightWeightValid = this.isGrossOrFineMotor ? this.areHeightWeightEntered() : true;
+    const isDisabled = !hasSelection || (this.isGrossOrFineMotor && !heightWeightValid);
+    
+    return { hasSelection, heightWeightValid, isDisabled };
+  }
+
+  /**
+   * Update local student data after successful submission
+   */
+  updateLocalStudentData(selectedStudentIds: number[]): void {
+    const currentSessionNumber = this.getCurrentSessionForInput();
+    
+    this.students = this.students.map(student => {
+      if (selectedStudentIds.includes(student.id)) {
+        const updatedStudent = { ...student };
+        
+        // Update the appropriate session based on current session number
+        switch (currentSessionNumber) {
+          case 1:
+            updatedStudent.assessed = true;
+            updatedStudent.assessmentLevel = this.assessment.observation;
+            updatedStudent.assessmentDate = this.formatDateForDisplay(new Date().toISOString());
+            break;
+          case 2:
+            updatedStudent.assessed2 = true;
+            updatedStudent.assessmentLevel2 = this.assessment.observation;
+            updatedStudent.assessmentDate2 = this.formatDateForDisplay(new Date().toISOString());
+            break;
+          case 3:
+            updatedStudent.assessed3 = true;
+            updatedStudent.assessmentLevel3 = this.assessment.observation;
+            updatedStudent.assessmentDate3 = this.formatDateForDisplay(new Date().toISOString());
+            break;
+          case 4:
+            updatedStudent.assessed4 = true;
+            updatedStudent.assessmentLevel4 = this.assessment.observation;
+            updatedStudent.assessmentDate4 = this.formatDateForDisplay(new Date().toISOString());
+            break;
+        }
+        
+        return updatedStudent;
+      }
+      return student;
+    });
+  }
+
+  /**
+   * Clear assessment form after submission
+   */
+  clearAssessmentForm(): void {
+    this.assessment.observation = '';
+    this.assessment.remarks = '';
+    // Also clear any other form-related state if needed
+  }
+
+  /**
+   * Validate height and weight inputs
+   */
+  validateHeightWeightInputs(): { isValid: boolean; message: string } {
+    if (!this.isGrossOrFineMotor) {
+      return { isValid: true, message: '' };
+    }
+    
+    const selectedStudents = this.selection.selected;
+    if (selectedStudents.length === 0) {
+      return { isValid: false, message: 'Please select at least one student.' };
+    }
+    
+    const sessionNumber = this.getCurrentSessionForInput();
+    const invalidStudents: string[] = [];
+    
+    selectedStudents.forEach(student => {
+      const height = (student as any)[`height${sessionNumber}`];
+      const weight = (student as any)[`weight${sessionNumber}`];
+      
+      if (!height || !weight || height.toString().trim() === '' || weight.toString().trim() === '') {
+        invalidStudents.push(student.first_name);
+      } else {
+        // Validate numeric values
+        const heightNum = parseFloat(height.toString());
+        const weightNum = parseFloat(weight.toString());
+        
+        if (isNaN(heightNum) || heightNum <= 0 || heightNum > 200) {
+          invalidStudents.push(`${student.first_name} (invalid height)`);
+        }
+        if (isNaN(weightNum) || weightNum <= 0 || weightNum > 100) {
+          invalidStudents.push(`${student.first_name} (invalid weight)`);
+        }
+      }
+    });
+    
+    if (invalidStudents.length > 0) {
+      return { 
+        isValid: false, 
+        message: `Please enter valid height and weight for: ${invalidStudents.join(', ')}` 
+      };
+    }
+    
+    return { isValid: true, message: '' };
+  }
+
+  /**
+   * Handle height/weight input change
+   */
+  onHeightWeightInputChange(): void {
+    const validation = this.validateHeightWeightInputs();
+    if (!validation.isValid) {
+      console.log('Height/Weight validation:', validation.message);
+    }
+    this.onStudentSelectionChange();
   }
 }

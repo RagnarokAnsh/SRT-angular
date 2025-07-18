@@ -39,10 +39,11 @@
 
 .school-readiness-header {
   text-align: center;
-  margin-top: var(--spacing-xl);
+  margin-top: var(--spacing-xl) !important;
   margin-bottom: var(--spacing-lg);
   padding: 0;
   width: 100%;
+
 
   @media (min-width: 576px) {
     margin-top: calc(var(--spacing-xl) * 1.5);
@@ -93,7 +94,9 @@
       max-width: none;
     }
     @media (max-width: 600px) {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
+        font-weight: 400;
+        line-height: 1.5;
     }
   }
 }
@@ -135,7 +138,7 @@
 }
 
 /* Mobile layout for screens below 426px */
-@media (max-width: 425px) {
+@media (max-width: 600px) {
   .home-container {
     flex-direction: column;
     // gap: 2rem;

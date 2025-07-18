@@ -54,7 +54,7 @@
         >
           <textPath [attr.xlink:href]="'#domain-arc-' + i" startOffset="50%" text-anchor="middle">
             <title>{{ sector.label }}</title>
-            <ng-container *ngFor="let line of splitLabelToLines(sector.label, getMaxCharsPerLine(sector)); let isFirst = first">
+            <ng-container *ngFor="let line of splitLabelToLines(getTruncatedDomainLabel(sector), getMaxCharsPerLine(sector)); let isFirst = first">
               <tspan x="0" [attr.dy]="isFirst ? '0' : '1.2em'">{{ line }}</tspan>
             </ng-container>
           </textPath>

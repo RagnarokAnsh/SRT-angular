@@ -39,6 +39,11 @@ export const appConfig: ApplicationConfig = {
           cssLayer: {
             name: 'primeng',
             order: 'primeui'
+          },
+          colorScheme: 'light',
+          variables: {
+            primaryColor: '#3B82F6',
+            primaryColorText: '#ffffff'
           }
         }
       }

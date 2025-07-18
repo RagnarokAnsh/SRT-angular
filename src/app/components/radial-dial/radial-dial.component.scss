@@ -295,7 +295,7 @@ text[tspan] {
   }
   
   text {
-    font-size: 11px;
+    font-size: 7px;
   }
 }
 
@@ -353,7 +353,7 @@ text[tspan] {
   }
   
   text {
-    font-size: 12px;
+    font-size: 8px;
   }
   
   text[tspan] {
@@ -806,5 +806,98 @@ text[tspan] {
   
   text[tspan] {
     font-size: 10px;
+  }
+}
+
+// Enhanced text styling
+.domain-label, .competency-label {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: 600;
+  pointer-events: none;
+  
+  tspan {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.center-text {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+// Improved hover states
+.domain-sector:hover {
+  filter: brightness(1.1);
+  cursor: pointer;
+}
+
+.competency-sector:hover {
+  filter: brightness(1.1);
+}
+
+// Better mobile touch targets
+@media (max-width: 768px) {
+  .domain-sector {
+    stroke-width: 3;
+  }
+  
+  .competency-sector {
+    stroke-width: 2;
+  }
+}
+
+// Mobile-specific improvements
+@media (max-width: 425px) {
+  .radial-dial-container {
+    padding: 0.25rem;
+  }
+  
+  .radial-dial-svg-container {
+    padding: 0.25rem;
+  }
+  
+  .domain-sector {
+    stroke-width: 1;
+  }
+  
+  .competency-sector {
+    stroke-width: 0.5;
+  }
+}
+
+@media (max-width: 375px) {
+  .radial-dial-container {
+    padding: 0.2rem;
+  }
+  
+  .radial-dial-svg-container {
+    padding: 0.2rem;
+  }
+  
+  .domain-sector {
+    stroke-width: 0.8;
+  }
+  
+  .competency-sector {
+    stroke-width: 0.4;
+  }
+}
+
+@media (max-width: 320px) {
+  .radial-dial-container {
+    padding: 0.15rem;
+  }
+  
+  .radial-dial-svg-container {
+    padding: 0.15rem;
+  }
+  
+  .domain-sector {
+    stroke-width: 0.6;
+  }
+  
+  .competency-sector {
+    stroke-width: 0.3;
   }
 }

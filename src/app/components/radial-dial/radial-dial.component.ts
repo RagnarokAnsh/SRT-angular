@@ -100,13 +100,13 @@ export class RadialDialComponent implements OnInit {
     
     let baseSize;
     if (window.innerWidth >= 1600) {
-      baseSize = 1200;
-    } else if (window.innerWidth >= 1200) {
       baseSize = 1000;
+    } else if (window.innerWidth >= 1200) {
+      baseSize = 800;
     } else if (window.innerWidth >= 992) {
       baseSize = 800;
     } else if (window.innerWidth >= 768) {
-      baseSize = 600;
+      baseSize = 800;
     } else if (window.innerWidth >= 426) {
       baseSize = Math.min(minDim * 0.8, 500);
     } else {
@@ -123,6 +123,20 @@ export class RadialDialComponent implements OnInit {
       this.center = Math.max(175, Math.floor(baseSize / 2));
       this.radius = Math.max(85, Math.floor(baseSize / 4));
       this.ringWidth = Math.max(35, Math.floor(baseSize / 8));
+    }
+    
+    // Extra small mobile screens
+    if (window.innerWidth <= 375) {
+      this.center = Math.max(150, Math.floor(baseSize / 2));
+      this.radius = Math.max(70, Math.floor(baseSize / 4));
+      this.ringWidth = Math.max(30, Math.floor(baseSize / 8));
+    }
+    
+    // Very small mobile screens
+    if (window.innerWidth <= 320) {
+      this.center = Math.max(140, Math.floor(baseSize / 2));
+      this.radius = Math.max(65, Math.floor(baseSize / 4));
+      this.ringWidth = Math.max(25, Math.floor(baseSize / 8));
     }
   }
 
@@ -259,13 +273,31 @@ export class RadialDialComponent implements OnInit {
     const arcLength = ((arcAngle / 360) * 2 * Math.PI * ((sector.innerRadius + sector.outerRadius) / 2));
     
     // Better responsive font sizing for mobile
-    if (window.innerWidth <= 425) {
+    if (window.innerWidth <= 320) {
+      return Math.min(10, Math.max(8, arcLength / 15));
+    } else if (window.innerWidth <= 375) {
+      return Math.min(12, Math.max(9, arcLength / 12));
+    } else if (window.innerWidth <= 425) {
       return Math.min(14, Math.max(10, arcLength / 10));
     } else if (window.innerWidth <= 768) {
       return Math.min(16, Math.max(12, arcLength / 8));
     } else {
       return Math.min(20, Math.max(14, arcLength / 6));
     }
+  }
+
+  // Truncate domain label after 2 words for mobile screens
+  getTruncatedDomainLabel(sector: any): string {
+    const words = sector.label.split(' ');
+    
+    // For mobile screens, truncate after 2 words
+    if (window.innerWidth <= 768) {
+      if (words.length > 2) {
+        return words.slice(0, 2).join(' ') + '...';
+      }
+    }
+    
+    return sector.label;
   }
 
   // Truncate label if it overflows the arc
@@ -375,7 +407,11 @@ export class RadialDialComponent implements OnInit {
     const arcAngle = sector.endAngle - sector.startAngle;
     const arcLength = ((arcAngle / 360) * 2 * Math.PI * ((sector.innerRadius + sector.outerRadius) / 2));
     
-    if (window.innerWidth <= 425) {
+    if (window.innerWidth <= 320) {
+      return Math.min(10, Math.max(7, arcLength / 35));
+    } else if (window.innerWidth <= 375) {
+      return Math.min(11, Math.max(8, arcLength / 32));
+    } else if (window.innerWidth <= 425) {
       return Math.min(12, Math.max(8, arcLength / 30));
     } else if (window.innerWidth <= 768) {
       return Math.min(14, Math.max(10, arcLength / 25));
