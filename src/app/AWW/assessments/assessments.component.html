@@ -435,18 +435,6 @@
       </section>
     </div>
   </main>
-
-  <!-- Success/Error messages with auto-fade animation -->
-  <div class="toast-messages" aria-live="polite" aria-atomic="true">
-    <div *ngIf="createSuccess" [@fadeAnimation] class="success-message" role="alert">
-      <mat-icon aria-hidden="true">check_circle</mat-icon>
-      <span>{{ createSuccess }}</span>
-    </div>
-    <div *ngIf="createError" [@fadeAnimation] class="error-message" role="alert">
-      <mat-icon aria-hidden="true">error</mat-icon>
-      <span>{{ createError }}</span>
-    </div>
-  </div>
 </div>
 
 <!-- Screen reader only content -->

@@ -4,4 +4,17 @@
     <router-outlet></router-outlet>
   </main>
   <app-footer></app-footer>
+  
+  <!-- Global PrimeNG Toast -->
+  <p-toast 
+    position="top-right" 
+    [style]="{marginTop: '80px'}"
+    [baseZIndex]="5000"
+    [showTransformOptions]="'translateX(100%)'"
+    [hideTransformOptions]="'translateX(100%)'"
+    [showTransitionOptions]="'300ms ease-out'"
+    [hideTransitionOptions]="'300ms ease-in'"
+    [preventOpenDuplicates]="true"
+    [preventDuplicates]="true">
+  </p-toast>
 </div>

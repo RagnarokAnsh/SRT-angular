@@ -1,93 +1,108 @@
-import { Component, OnInit, Inject, ViewChild } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
-import { MatTableModule } from '@angular/material/table';
+import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDialog, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { MatTableDataSource } from '@angular/material/table';
-import { StudentService, Student } from '../student.service';
-import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
-import { HostListener } from '@angular/core';
+import { MatTableModule } from '@angular/material/table';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
+import { Student, StudentService } from '../student.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-students-list',
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule,
-    MatTableModule,
     MatButtonModule,
+    MatCardModule,
     MatIconModule,
-    MatTooltipModule,
-    MatDialogModule,
+    MatTableModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatSelectModule,
     MatPaginatorModule,
-    ToastModule
+    MatSortModule
   ],
   templateUrl: './students-list.component.html',
   styleUrls: ['./students-list.component.scss']
 })
 export class StudentsListComponent implements OnInit {
-  dataSource = new MatTableDataSource<Student>([]);
-  displayedColumns: string[] = ['name', 'age', 'gender', 'dateOfBirth', 'symbol', 'height', 'weight', 'language', 'anganwadi', 'actions'];
-  allColumns: string[] = ['name', 'age', 'gender', 'dateOfBirth', 'symbol', 'height', 'weight', 'language', 'anganwadi', 'actions'];
-  mobileColumns: string[] = ['name', 'age', 'gender', 'actions'];
   
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  students: Student[] = [];
+  filteredStudents: Student[] = [];
+  displayedColumns: string[] = ['name', 'age', 'gender', 'enrollment_date', 'actions'];
+  isLoading = false;
+  searchTerm = '';
+  genderFilter = '';
 
-  constructor(
-    private studentService: StudentService,
-    private router: Router,
-    private dialog: MatDialog,
-    private messageService: MessageService
-  ) {
-    this.updateDisplayedColumns();
-  }
+  private router = inject(Router);
+  private studentService = inject(StudentService);
+  private toastService = inject(ToastService);
 
   ngOnInit() {
     this.loadStudents();
   }
-  
-  ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-  }
 
-  @HostListener('window:resize', ['$event'])
-  onResize() {
-    this.updateDisplayedColumns();
-  }
-
-  updateDisplayedColumns() {
-    if (window.innerWidth < 768) {
-      this.displayedColumns = this.mobileColumns;
-    } else {
-      this.displayedColumns = this.allColumns;
+  async loadStudents() {
+    try {
+      this.isLoading = true;
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      
+      if (currentUser.anganwadi_id) {
+        const students = await this.studentService.getStudentsByAnganwadiId(currentUser.anganwadi_id).toPromise();
+        if (students) {
+          this.students = students;
+          this.filteredStudents = [...students];
+        }
+      }
+    } catch (error) {
+      console.error('Error loading students:', error);
+      this.toastService.error('Failed to load students. Please try again.');
+    } finally {
+      this.isLoading = false;
     }
   }
 
-  loadStudents() {
-    this.studentService.getStudents().subscribe({
-      next: (students) => {
-        this.dataSource.data = students;
-        // No toast on successful loading to avoid too many notifications
-        // Only show toast on initial component load or errors
-      },
-      error: (error) => {
-        console.error('Error loading students:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to load students',
-          life: 3000
-        });
-      }
+  applyFilter() {
+    this.filteredStudents = this.students.filter(student => {
+      const nameMatch = !this.searchTerm || 
+        `${student.first_name} ${student.last_name}`.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const genderMatch = !this.genderFilter || student.gender === this.genderFilter;
+      return nameMatch && genderMatch;
     });
   }
 
-  calculateAge(dateOfBirth: Date): number {
+  editStudent(student: Student) {
+    this.router.navigate(['/students/edit', student.id]);
+  }
+
+  async deleteStudent(student: Student) {
+    if (confirm(`Are you sure you want to delete ${student.first_name} ${student.last_name}?`)) {
+      try {
+        await this.studentService.deleteStudent(student.id).toPromise();
+        this.toastService.deleteSuccess(`Student ${student.first_name} ${student.last_name} deleted successfully!`);
+        this.loadStudents(); // Reload the list
+      } catch (error) {
+        console.error('Error deleting student:', error);
+        this.toastService.error('Failed to delete student. Please try again.');
+      }
+    }
+  }
+
+  viewStudent(student: Student) {
+    this.router.navigate(['/students/view', student.id]);
+  }
+
+  addStudent() {
+    this.router.navigate(['/students/create']);
+  }
+
+  calculateAge(dateOfBirth: string): number {
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
     let age = today.getFullYear() - birthDate.getFullYear();
@@ -99,59 +114,4 @@ export class StudentsListComponent implements OnInit {
     
     return age;
   }
-
-  openDeleteDialog(student: Student) {
-    const dialogRef = this.dialog.open(DeleteConfirmDialog, {
-      width: '300px',
-      data: { name: `${student.firstName} ${student.lastName}` }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.deleteStudent(student.id, `${student.firstName} ${student.lastName}`);
-      }
-    });
-  }
-
-  deleteStudent(id: number, studentName?: string) {
-    this.studentService.deleteStudent(id).subscribe({
-      next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Student Deleted',
-          detail: studentName ? `Student ${studentName} has been successfully deleted` : 'Student has been successfully deleted',
-          life: 3000
-        });
-        this.loadStudents();
-      },
-      error: (error) => {
-        console.error('Error deleting student:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: error.message || 'Failed to delete student',
-          life: 3000
-        });
-      }
-    });
-  }
-}
-
-@Component({
-  selector: 'delete-confirm-dialog',
-  template: `
-    <h2 mat-dialog-title>Delete Student</h2>
-    <mat-dialog-content>
-      Are you sure you want to delete {{data.name}}?
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-    <button type="button" class="btn btn-outline-secondary me-2" mat-dialog-close>Cancel</button>
-    <button type="button" class="btn btn-danger" [mat-dialog-close]="true">Delete</button>
-    </mat-dialog-actions>
-  `,
-  standalone: true,
-  imports: [MatDialogModule, MatButtonModule]
-})
-export class DeleteConfirmDialog {
-  constructor(@Inject(MAT_DIALOG_DATA) public data: { name: string }) {}
 } 

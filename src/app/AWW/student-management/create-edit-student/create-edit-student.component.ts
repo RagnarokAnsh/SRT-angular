@@ -1,19 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { MatSelectModule } from '@angular/material/select';
-import { StudentService, Anganwadi } from '../student.service';
-import { HttpClient } from '@angular/common/http';
-import { UserService } from '../../../services/user.service';
-import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { Student, StudentService } from '../student.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-create-edit-student',
@@ -21,235 +19,182 @@ import { MessageService } from 'primeng/api';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
     MatButtonModule,
-    MatCardModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatSelectModule,
-    ToastModule
+    MatCardModule,
+    MatIconModule
   ],
   templateUrl: './create-edit-student.component.html',
-  styles: []
+  styleUrls: ['./create-edit-student.component.scss']
 })
 export class CreateEditStudentComponent implements OnInit {
+  
   studentForm: FormGroup;
   isEditMode = false;
   studentId: number | null = null;
-  anganwadiCenters: Anganwadi[] = [];
-  isLoading = true;
-  currentAnganwadiId: number | null = null;
-  currentAnganwadiName: string = 'Your Anganwadi Center';
-  currentUserName: string = 'You';
-  currentUserId: number | null = null;
-  errorMessage: string | null = null;
+  isLoading = false;
 
-  constructor(
-    private fb: FormBuilder,
-    private route: ActivatedRoute,
-    private router: Router,
-    private studentService: StudentService,
-    private http: HttpClient,
-    private userService: UserService,
-    private messageService: MessageService
-  ) {
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private studentService = inject(StudentService);
+  private toastService = inject(ToastService);
+
+  constructor() {
     this.studentForm = this.fb.group({
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
-      dateOfBirth: ['', Validators.required],
-      symbol: ['', Validators.required],
-      height: ['', [Validators.required, Validators.min(0)]],
-      weight: ['', [Validators.required, Validators.min(0)]],
-      language: ['', Validators.required],
+      first_name: ['', [Validators.required, Validators.minLength(2)]],
+      last_name: ['', [Validators.required, Validators.minLength(2)]],
+      date_of_birth: ['', Validators.required],
       gender: ['', Validators.required],
-      anganwadiId: ['', Validators.required],
-      awwId: [''] // This will be set to the current user's ID
+      father_name: ['', Validators.required],
+      mother_name: ['', Validators.required],
+      address: ['', Validators.required],
+      phone_number: ['', [Validators.pattern(/^\d{10}$/)]],
+      email: ['', [Validators.email]],
+      emergency_contact: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
+      medical_conditions: [''],
+      allergies: [''],
+      enrollment_date: ['', Validators.required],
+      anganwadi_id: ['', Validators.required]
     });
-    
-    // Get current user information
-    const currentUser = this.userService.getCurrentUser();
-    if (currentUser) {
-      this.currentUserId = currentUser.id;
-      this.currentUserName = currentUser.name || 'You';
-      this.studentForm.patchValue({ awwId: this.currentUserId });
-      
-      // If the user has an anganwadi_id field, use it to set the anganwadi ID in the form
-      if (currentUser.anganwadi_id) {
-        this.currentAnganwadiId = currentUser.anganwadi_id;
-        this.studentForm.patchValue({ anganwadiId: currentUser.anganwadi_id });
-      }
-      
-      // If the user has an anganwadi object, use it to set the anganwadi name
-      if (currentUser.anganwadi && currentUser.anganwadi.name) {
-        this.currentAnganwadiName = currentUser.anganwadi.name;
-      }
-    }
   }
 
   ngOnInit() {
-    this.isLoading = true;
-
-    // currentAnganwadiId and currentAnganwadiName are primarily set in the constructor.
-    if (this.userService.isAWW()) {
-      if (this.currentAnganwadiId) {
-        this.studentForm.patchValue({ anganwadiId: this.currentAnganwadiId });
-        this.studentForm.get('anganwadiId')?.disable();
-        // If currentAnganwadiName is already set from constructor, great.
-        // loadAnganwadiCenters will still run to populate the list for other roles
-        // or if the name wasn't on the currentUser object.
-      } else {
-        // This means an AWW user does not have an anganwadi_id from the constructor.
-        console.error("CreateEditStudentComponent (ngOnInit): AWW user's anganwadi center ID is missing. This is a data issue.");
-        this.errorMessage = "Your anganwadi center information is missing. This is required to manage students. Please contact support.";
-        this.studentForm.get('anganwadiId')?.disable(); // Disable to prevent interaction
-      }
-    }
-
-    // Load all anganwadi centers. For non-AWWs, this populates the dropdown.
-    // For AWWs, it can help confirm the name if not available on currentUser.anganwadi.name.
-    // loadAnganwadiCenters handles setting isLoading to false on its own.
-    this.loadAnganwadiCenters(); 
-
-    // Check if we are in edit mode
-    const idParam = this.route.snapshot.paramMap.get('id');
-    if (idParam) {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
       this.isEditMode = true;
-      this.studentId = +idParam;
-      this.loadStudentData(this.studentId); 
-    } else {
-      // In create mode. If not loading centers (e.g., if loadAnganwadiCenters completed very fast or errored before setting isLoading = false),
-      // ensure isLoading is false. However, loadAnganwadiCenters should robustly handle this.
-      // If not loading anything else, and not in edit mode, then isLoading should be false.
-      // This explicit set is a safeguard if loadAnganwadiCenters hasn't set it.
-      // However, it's better if loadAnganwadiCenters always finalizes isLoading.
-      // For now, we rely on loadAnganwadiCenters to set isLoading = false.
-      // If we reach here and isLoading is still true, it implies loadAnganwadiCenters is still running or errored without setting it.
+      this.studentId = parseInt(id, 10);
+      this.loadStudent();
     }
   }
-  
-  loadAnganwadiCenters() {
-    this.http.get<Anganwadi[]>('http://3.111.249.111/sribackend/api/anganwadi-centers')
-      .subscribe({
-        next: (centers) => {
-          this.anganwadiCenters = centers;
-          
-          // Find the current anganwadi center to display its name
-          if (this.currentAnganwadiId) {
-            const currentCenter = centers.find(center => center.id === this.currentAnganwadiId);
-            if (currentCenter) {
-              this.currentAnganwadiName = currentCenter.name;
-            }
-          }
-          
-          this.isLoading = false;
-        },
-        error: (error) => {
-          console.error('Error loading anganwadi centers:', error);
-          this.isLoading = false;
-        }
-      });
+
+  private async loadStudent() {
+    if (!this.studentId) return;
+    
+    try {
+      this.isLoading = true;
+      const student = await this.studentService.getStudentById(this.studentId).toPromise();
+      if (student) {
+        this.populateForm(student);
+      }
+    } catch (error) {
+      console.error('Error loading student:', error);
+      this.toastService.error('Failed to load student data. Please try again.');
+    } finally {
+      this.isLoading = false;
+    }
   }
 
-  loadStudentData(id: number) {
-    this.studentService.getStudent(id).subscribe({
-      next: (student) => {
-        this.studentForm.patchValue(student);
-        this.messageService.add({
-          severity: 'info',
-          summary: 'Student Loaded',
-          detail: `Successfully loaded student data`,
-          life: 3000
-        });
-      },
-      error: (error) => {
-        console.error('Error loading student:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: error.message || 'Failed to load student data',
-          life: 3000
-        });
-        this.goBack();
-      }
+  private populateForm(student: Student) {
+    this.studentForm.patchValue({
+      first_name: student.first_name,
+      last_name: student.last_name,
+      date_of_birth: new Date(student.date_of_birth),
+      gender: student.gender,
+      father_name: student.father_name,
+      mother_name: student.mother_name,
+      address: student.address,
+      phone_number: student.phone_number,
+      email: student.email,
+      emergency_contact: student.emergency_contact,
+      medical_conditions: student.medical_conditions,
+      allergies: student.allergies,
+      enrollment_date: new Date(student.enrollment_date),
+      anganwadi_id: student.anganwadi_id
     });
   }
 
-  onSubmit() {
+  async onSubmit() {
     if (this.studentForm.valid) {
-      const studentData = this.studentForm.value;
-      console.log('Form data being submitted:', studentData);
-      
-      // Make sure anganwadiId is a number
-      if (studentData.anganwadiId && typeof studentData.anganwadiId === 'string') {
-        studentData.anganwadiId = parseInt(studentData.anganwadiId, 10);
-      }
-      
-      if (this.isEditMode && this.studentId) {
-        this.studentService.updateStudent(this.studentId, studentData).subscribe({
-          next: (response) => {
-            console.log('Update successful:', response);
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Student Updated',
-              detail: `Student ${response.firstName} ${response.lastName}'s information has been successfully updated`,
-              life: 3000
-            });
-            this.goBack();
-          },
-          error: (error) => {
-            console.error('Error updating student:', error);
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: error.message || 'Failed to update student',
-              life: 3000
-            });
-          }
-        });
-      } else {
-        console.log('Creating new student with data:', studentData);
-        this.studentService.createStudent(studentData).subscribe({
-          next: (response) => {
-            console.log('Create successful:', response);
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Student Created',
-              detail: `Student ${response.firstName} ${response.lastName} has been successfully created`,
-              life: 3000
-            });
-            this.goBack();
-          },
-          error: (error) => {
-            console.error('Error creating student:', error);
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: error.message || 'Failed to create student',
-              life: 3000
-            });
-          }
-        });
+      try {
+        this.isLoading = true;
+        const formData = this.prepareFormData();
+        
+        if (this.isEditMode && this.studentId) {
+          await this.studentService.updateStudent(this.studentId, formData).toPromise();
+          this.toastService.formSuccess('Student updated successfully!');
+        } else {
+          await this.studentService.createStudent(formData).toPromise();
+          this.toastService.formSuccess('Student created successfully!');
+        }
+        
+        this.router.navigate(['/students']);
+        
+      } catch (error) {
+        console.error('Error saving student:', error);
+        this.toastService.error(
+          this.isEditMode ? 'Failed to update student. Please try again.' : 'Failed to create student. Please try again.'
+        );
+      } finally {
+        this.isLoading = false;
       }
     } else {
-      console.error('Form is invalid:', this.studentForm.errors);
-      // Mark all form controls as touched to show validation errors
-      Object.keys(this.studentForm.controls).forEach(key => {
-        const control = this.studentForm.get(key);
-        control?.markAsTouched();
-        console.log(`Form control ${key} errors:`, control?.errors);
-      });
-      
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Validation Error',
-        detail: 'Please fill in all required fields correctly',
-        life: 5000
-      });
+      this.markFormGroupTouched();
+      this.toastService.validationError('Please fill in all required fields correctly.');
     }
   }
 
-  goBack() {
+  private prepareFormData(): Partial<Student> {
+    const formValue = this.studentForm.value;
+    return {
+      ...formValue,
+      date_of_birth: formValue.date_of_birth?.toISOString?.() || formValue.date_of_birth,
+      enrollment_date: formValue.enrollment_date?.toISOString?.() || formValue.enrollment_date
+    };
+  }
+
+  private markFormGroupTouched() {
+    Object.keys(this.studentForm.controls).forEach(key => {
+      const control = this.studentForm.get(key);
+      control?.markAsTouched();
+    });
+  }
+
+  onCancel() {
     this.router.navigate(['/students']);
+  }
+
+  getErrorMessage(fieldName: string): string {
+    const control = this.studentForm.get(fieldName);
+    if (control?.errors && control.touched) {
+      if (control.errors['required']) {
+        return `${this.getFieldDisplayName(fieldName)} is required`;
+      }
+      if (control.errors['minlength']) {
+        return `${this.getFieldDisplayName(fieldName)} must be at least ${control.errors['minlength'].requiredLength} characters`;
+      }
+      if (control.errors['pattern']) {
+        if (fieldName === 'phone_number' || fieldName === 'emergency_contact') {
+          return 'Please enter a valid 10-digit phone number';
+        }
+        return 'Please enter a valid format';
+      }
+      if (control.errors['email']) {
+        return 'Please enter a valid email address';
+      }
+    }
+    return '';
+  }
+
+  private getFieldDisplayName(fieldName: string): string {
+    const displayNames: { [key: string]: string } = {
+      first_name: 'First Name',
+      last_name: 'Last Name',
+      date_of_birth: 'Date of Birth',
+      gender: 'Gender',
+      father_name: 'Father\'s Name',
+      mother_name: 'Mother\'s Name',
+      address: 'Address',
+      phone_number: 'Phone Number',
+      email: 'Email',
+      emergency_contact: 'Emergency Contact',
+      enrollment_date: 'Enrollment Date',
+      anganwadi_id: 'Anganwadi'
+    };
+    return displayNames[fieldName] || fieldName;
   }
 } 

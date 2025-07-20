@@ -1,329 +1,307 @@
-import { Injectable } from '@angular/core';
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpResponse, HttpErrorResponse } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { tap, finalize } from 'rxjs/operators';
+import { Injectable, inject } from '@angular/core';
+import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor, HttpResponse, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { tap, catchError, finalize } from 'rxjs/operators';
 import { LoggerService } from '../services/logger.service';
-import { StateManagementService } from '../services/state-management.service';
+import { ToastService } from '../services/toast.service';
+import { environment } from '../../environments/environment';
+
+export interface ApiCallMetrics {
+  url: string;
+  method: string;
+  startTime: number;
+  endTime?: number;
+  duration?: number;
+  status?: number;
+  responseSize?: number;
+  error?: any;
+}
 
 @Injectable()
 export class PerformanceInterceptor implements HttpInterceptor {
-  private readonly slowRequestThreshold = 2000; // 2 seconds
-  private readonly verySlowRequestThreshold = 5000; // 5 seconds
+  
+  private logger = inject(LoggerService);
+  private toastService = inject(ToastService);
+  
+  private readonly SLOW_REQUEST_THRESHOLD = 3000; // 3 seconds
+  private readonly ERROR_RETRY_THRESHOLD = 3; // Number of consecutive errors before showing toast
+  private errorCount = 0;
+  private ongoingRequests = new Map<string, ApiCallMetrics>();
 
-  constructor(
-    private logger: LoggerService,
-    private stateService: StateManagementService
-  ) {}
+  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    if (!environment.enablePerformanceMonitoring) {
+      return next.handle(request);
+    }
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const startTime = performance.now();
     const requestId = this.generateRequestId();
+    const startTime = performance.now();
     
-    // Log request start
-    this.logger.debug(`API Request Started: ${req.method} ${req.url}`, {
-      requestId,
-      method: req.method,
-      url: req.url,
-      headers: this.sanitizeHeaders(req.headers),
-      body: this.sanitizeBody(req.body)
+    const metrics: ApiCallMetrics = {
+      url: this.sanitizeUrl(request.url),
+      method: request.method,
+      startTime,
+    };
+    
+    this.ongoingRequests.set(requestId, metrics);
+    
+    this.logger.debug('API Request started', {
+      method: request.method,
+      url: this.sanitizeUrl(request.url),
+      requestId
     }, 'PerformanceInterceptor');
 
-    return next.handle(req).pipe(
-      tap({
-        next: (event) => {
-          if (event instanceof HttpResponse) {
-            this.handleResponse(event, req, startTime, requestId);
-          }
-        },
-        error: (error) => {
-          if (error instanceof HttpErrorResponse) {
-            this.handleError(error, req, startTime, requestId);
-          }
+    return next.handle(request).pipe(
+      tap((event: HttpEvent<unknown>) => {
+        if (event instanceof HttpResponse) {
+          this.handleSuccessResponse(requestId, event, metrics);
         }
       }),
+      catchError((error: HttpErrorResponse) => {
+        this.handleErrorResponse(requestId, error, metrics);
+        return throwError(() => error);
+      }),
       finalize(() => {
-        // This runs regardless of success or error
-        const duration = performance.now() - startTime;
-        this.logger.debug(`API Request Completed: ${req.method} ${req.url}`, {
-          requestId,
-          duration: Math.round(duration)
-        }, 'PerformanceInterceptor');
+        this.ongoingRequests.delete(requestId);
       })
     );
   }
 
-  private handleResponse(response: HttpResponse<any>, request: HttpRequest<any>, startTime: number, requestId: string): void {
+  private handleSuccessResponse(requestId: string, response: HttpResponse<any>, metrics: ApiCallMetrics): void {
     const endTime = performance.now();
-    const duration = endTime - startTime;
-    const responseSize = this.estimateResponseSize(response);
-
-    // Create API metric
-    const apiMetric = {
-      endpoint: this.sanitizeUrl(request.url),
-      method: request.method,
-      duration: Math.round(duration),
-      status: response.status,
-      timestamp: new Date()
-    };
-
-    // Add to state management
-    this.stateService.addApiMetric(apiMetric);
-
-    // Log based on performance
-    if (duration > this.verySlowRequestThreshold) {
-      this.logger.error(`Very Slow API Response: ${request.method} ${request.url}`, {
-        requestId,
-        duration: Math.round(duration),
-        status: response.status,
-        size: responseSize,
-        url: request.url,
-        method: request.method
-      }, 'PerformanceInterceptor');
-    } else if (duration > this.slowRequestThreshold) {
-      this.logger.warn(`Slow API Response: ${request.method} ${request.url}`, {
-        requestId,
-        duration: Math.round(duration),
-        status: response.status,
-        size: responseSize,
-        url: request.url,
-        method: request.method
-      }, 'PerformanceInterceptor');
-    } else {
-      this.logger.debug(`API Response: ${request.method} ${request.url}`, {
-        requestId,
-        duration: Math.round(duration),
-        status: response.status,
-        size: responseSize
-      }, 'PerformanceInterceptor');
-    }
-
-    // Log using the logger service's API method
+    const duration = endTime - metrics.startTime;
+    
+    metrics.endTime = endTime;
+    metrics.duration = duration;
+    metrics.status = response.status;
+    metrics.responseSize = this.calculateResponseSize(response.body);
+    
+    // Reset error count on successful request
+    this.errorCount = 0;
+    
     this.logger.logApiCall(
-      request.method,
-      this.sanitizeUrl(request.url),
+      metrics.method,
+      metrics.url,
       duration,
-      response.status,
-      responseSize
+      metrics.status,
+      metrics.responseSize || 0
     );
 
-    // Check for performance issues
-    this.checkPerformanceIssues(request, duration, response.status);
-  }
-
-  private handleError(error: HttpErrorResponse, request: HttpRequest<any>, startTime: number, requestId: string): void {
-    const endTime = performance.now();
-    const duration = endTime - startTime;
-
-    // Create API metric for error
-    const apiMetric = {
-      endpoint: this.sanitizeUrl(request.url),
-      method: request.method,
-      duration: Math.round(duration),
-      status: error.status,
-      timestamp: new Date()
-    };
-
-    // Add to state management
-    this.stateService.addApiMetric(apiMetric);
-    this.stateService.incrementErrorCount(`HTTP_${error.status}`);
-
-    // Log error details
-    this.logger.error(`API Error: ${request.method} ${request.url}`, {
-      requestId,
-      duration: Math.round(duration),
-      status: error.status,
-      statusText: error.statusText,
-      message: error.message,
-      url: request.url,
-      method: request.method,
-      errorDetails: this.sanitizeError(error)
-    }, 'PerformanceInterceptor');
-
-    // Log using the logger service's API method
-    this.logger.logApiCall(
-      request.method,
-      this.sanitizeUrl(request.url),
-      duration,
-      error.status
-    );
-
-    // Show user-friendly error notification based on status
-    this.handleUserNotification(error, request);
-  }
-
-  private checkPerformanceIssues(request: HttpRequest<any>, duration: number, status: number): void {
-    // Check for consecutive slow requests
-    const recentMetrics = this.stateService.getCurrentState().performance.apiMetrics
-      .filter(metric => 
-        metric.endpoint === this.sanitizeUrl(request.url) && 
-        Date.now() - metric.timestamp.getTime() < 60000 // Last minute
-      );
-
-    if (recentMetrics.length >= 3 && recentMetrics.every(metric => metric.duration > this.slowRequestThreshold)) {
-      this.logger.warn(`Consistently slow endpoint detected: ${request.url}`, {
-        endpoint: this.sanitizeUrl(request.url),
-        averageDuration: recentMetrics.reduce((sum, metric) => sum + metric.duration, 0) / recentMetrics.length,
-        requestCount: recentMetrics.length
+    // Log slow requests
+    if (duration > this.SLOW_REQUEST_THRESHOLD) {
+      this.logger.warn('Slow API request detected', {
+        ...metrics,
+        threshold: this.SLOW_REQUEST_THRESHOLD
       }, 'PerformanceInterceptor');
 
-      // Show warning to user for very slow responses
-      if (duration > this.verySlowRequestThreshold) {
-        this.stateService.showWarning(
-          'Slow Connection',
-          'The application is experiencing slower than normal response times. Please check your internet connection.'
+      // Show toast for very slow requests (> 5 seconds)
+      if (duration > 5000) {
+        this.toastService.warning(
+          `Request took ${Math.round(duration / 1000)} seconds to complete. Please check your connection.`,
+          'Slow Response'
         );
       }
     }
 
-    // Check for high error rates
-    const errorCount = this.stateService.getCurrentState().performance.errorCounts[`HTTP_${status}`] || 0;
-    if (status >= 500 && errorCount > 3) {
-      this.stateService.showError(
-        'Server Issues',
-        'Multiple server errors detected. Please try again later or contact support if the issue persists.'
-      );
-    }
+    this.logger.debug('API Request completed successfully', {
+      ...metrics,
+      requestId
+    }, 'PerformanceInterceptor');
   }
 
-  private handleUserNotification(error: HttpErrorResponse, request: HttpRequest<any>): void {
-    // Don't show notifications for certain endpoints or status codes
-    const silentEndpoints = ['/api/logs', '/api/analytics'];
-    const silentStatuses = [401, 403]; // These are handled by auth interceptor
+  private handleErrorResponse(requestId: string, error: HttpErrorResponse, metrics: ApiCallMetrics): void {
+    const endTime = performance.now();
+    const duration = endTime - metrics.startTime;
+    
+    metrics.endTime = endTime;
+    metrics.duration = duration;
+    metrics.status = error.status;
+    metrics.error = this.sanitizeErrorData(error);
+    
+    this.errorCount++;
+    
+    this.logger.error('API Request failed', {
+      ...metrics,
+      error: {
+        status: error.status,
+        statusText: error.statusText,
+        message: error.message,
+        url: this.sanitizeUrl(error.url || metrics.url)
+      },
+      requestId
+    }, 'PerformanceInterceptor');
 
-    if (silentEndpoints.some(endpoint => request.url.includes(endpoint)) || 
-        silentStatuses.includes(error.status)) {
-      return;
-    }
+    // Show user-friendly error messages
+    this.showUserFriendlyError(error, metrics);
+  }
 
-    let title = 'Request Failed';
-    let message = 'An error occurred while processing your request.';
+  private showUserFriendlyError(error: HttpErrorResponse, metrics: ApiCallMetrics): void {
+    const errorMessage = this.getErrorMessage(error);
+    const errorTitle = this.getErrorTitle(error);
 
     switch (error.status) {
       case 0:
-        title = 'Connection Error';
-        message = 'Unable to connect to the server. Please check your internet connection.';
+        // Network error
+        this.toastService.networkError();
         break;
+        
       case 400:
-        title = 'Invalid Request';
-        message = 'The request contains invalid data. Please check your input and try again.';
+        this.toastService.validationError(errorMessage, errorTitle);
         break;
+        
+      case 401:
+        this.toastService.permissionError('Please log in again to continue.', 'Session Expired');
+        break;
+        
+      case 403:
+        this.toastService.permissionError(errorMessage, errorTitle);
+        break;
+        
       case 404:
-        title = 'Not Found';
-        message = 'The requested resource was not found.';
+        this.toastService.error('The requested resource was not found.', 'Not Found');
         break;
+        
       case 408:
-        title = 'Request Timeout';
-        message = 'The request took too long to complete. Please try again.';
+        this.toastService.error('The request timed out. Please try again.', 'Request Timeout');
         break;
+        
       case 429:
-        title = 'Too Many Requests';
-        message = 'Too many requests. Please wait a moment before trying again.';
+        this.toastService.warning('Too many requests. Please wait a moment before trying again.', 'Rate Limited');
         break;
+        
       case 500:
-        title = 'Server Error';
-        message = 'An internal server error occurred. Please try again later.';
-        break;
+      case 502:
       case 503:
-        title = 'Service Unavailable';
-        message = 'The service is temporarily unavailable. Please try again later.';
+      case 504:
+        // Show retry option for server errors
+        this.toastService.apiError(
+          'A server error occurred. Please try again.',
+          'Server Error',
+          () => {
+            // Retry logic could be implemented here
+            this.toastService.info('Please refresh the page to try again.');
+          }
+        );
         break;
+        
       default:
-        if (error.status >= 500) {
-          title = 'Server Error';
-          message = 'A server error occurred. Please try again later.';
-        } else if (error.status >= 400) {
-          title = 'Request Error';
-          message = 'There was an error with your request. Please try again.';
+        // Show generic error for other status codes
+        if (this.errorCount >= this.ERROR_RETRY_THRESHOLD) {
+          this.toastService.apiError(
+            errorMessage || 'An unexpected error occurred. Please try again.',
+            errorTitle
+          );
         }
+        break;
     }
-
-    this.stateService.showError(title, message);
   }
 
-  private generateRequestId(): string {
-    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  private getErrorMessage(error: HttpErrorResponse): string {
+    if (error.error?.message) {
+      return error.error.message;
+    }
+    if (error.error?.error) {
+      return error.error.error;
+    }
+    if (error.message) {
+      return error.message;
+    }
+    return 'An unexpected error occurred';
+  }
+
+  private getErrorTitle(error: HttpErrorResponse): string {
+    switch (error.status) {
+      case 400:
+        return 'Invalid Request';
+      case 401:
+        return 'Unauthorized';
+      case 403:
+        return 'Forbidden';
+      case 404:
+        return 'Not Found';
+      case 408:
+        return 'Timeout';
+      case 429:
+        return 'Too Many Requests';
+      case 500:
+        return 'Server Error';
+      case 502:
+        return 'Bad Gateway';
+      case 503:
+        return 'Service Unavailable';
+      case 504:
+        return 'Gateway Timeout';
+      default:
+        return 'Error';
+    }
   }
 
   private sanitizeUrl(url: string): string {
     try {
       const urlObj = new URL(url);
       // Remove sensitive query parameters
-      const sensitiveParams = ['token', 'password', 'key', 'secret'];
+      const sensitiveParams = ['token', 'password', 'key', 'secret', 'auth'];
       sensitiveParams.forEach(param => {
-        urlObj.searchParams.delete(param);
+        if (urlObj.searchParams.has(param)) {
+          urlObj.searchParams.set(param, '[REDACTED]');
+        }
       });
-      return urlObj.pathname + (urlObj.search ? urlObj.search : '');
+      return urlObj.toString();
     } catch {
-      // If URL parsing fails, just return the original URL without query params
-      return url.split('?')[0];
+      return url; // Return original if URL parsing fails
     }
   }
 
-  private sanitizeHeaders(headers: any): any {
-    const sanitized: any = {};
-    const sensitiveHeaders = ['authorization', 'x-api-key', 'cookie'];
-    
-    if (headers && headers.keys) {
-      headers.keys().forEach((key: string) => {
-        const lowerKey = key.toLowerCase();
-        if (!sensitiveHeaders.includes(lowerKey)) {
-          sanitized[key] = headers.get(key);
-        } else {
-          sanitized[key] = '[REDACTED]';
-        }
-      });
+  private sanitizeErrorData(error: HttpErrorResponse): any {
+    const sanitized = {
+      status: error.status,
+      statusText: error.statusText,
+      message: error.message,
+      url: this.sanitizeUrl(error.url || ''),
+    };
+
+    // Don't include full error body for security reasons
+    if (error.error && typeof error.error === 'object') {
+      sanitized['errorType'] = error.error.constructor?.name || 'Unknown';
+      if (error.error.message) {
+        sanitized['errorMessage'] = error.error.message;
+      }
     }
-    
+
     return sanitized;
   }
 
-  private sanitizeBody(body: any): any {
-    if (!body) return null;
+  private calculateResponseSize(responseBody: any): number {
+    if (!responseBody) return 0;
     
-    if (typeof body === 'string') {
-      try {
-        body = JSON.parse(body);
-      } catch {
-        return '[Non-JSON Body]';
-      }
+    try {
+      return JSON.stringify(responseBody).length;
+    } catch {
+      return 0;
     }
-
-    if (typeof body === 'object') {
-      const sanitized = { ...body };
-      const sensitiveFields = ['password', 'token', 'secret', 'key', 'credit_card', 'ssn'];
-      
-      sensitiveFields.forEach(field => {
-        if (field in sanitized) {
-          sanitized[field] = '[REDACTED]';
-        }
-      });
-      
-      return sanitized;
-    }
-
-    return body;
   }
 
-  private sanitizeError(error: HttpErrorResponse): any {
+  private generateRequestId(): string {
+    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Get current performance metrics
+   */
+  getPerformanceMetrics(): {
+    ongoingRequests: number;
+    averageResponseTime?: number;
+    errorRate?: number;
+  } {
     return {
-      status: error.status,
-      statusText: error.statusText,
-      url: this.sanitizeUrl(error.url || ''),
-      message: error.message,
-      name: error.name,
-      ok: error.ok
+      ongoingRequests: this.ongoingRequests.size,
+      // Additional metrics could be calculated here
     };
   }
 
-  private estimateResponseSize(response: HttpResponse<any>): number {
-    try {
-      if (response.body) {
-        return JSON.stringify(response.body).length;
-      }
-    } catch {
-      // Fallback estimation
-      return 0;
-    }
-    return 0;
+  /**
+   * Clear error count (useful for testing or manual reset)
+   */
+  resetErrorCount(): void {
+    this.errorCount = 0;
   }
 }

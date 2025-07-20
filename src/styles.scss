@@ -861,3 +861,196 @@ img {
   background-color: var(--primary-200);
   color: var(--text-color);
 }
+
+/* =============================================================================
+   PRIMENG TOAST GLOBAL STYLES - MOBILE FIRST
+   ============================================================================= */
+
+/* Override PrimeNG toast styles for mobile-first design */
+::ng-deep .p-toast {
+  z-index: 9999 !important;
+  
+  @media (max-width: 767px) {
+    position: fixed !important;
+    top: 1rem !important;
+    left: 1rem !important;
+    right: 1rem !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+  
+  .p-toast-message {
+    margin-bottom: 0.75rem;
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(8px);
+    border: none;
+    
+    @media (max-width: 767px) {
+      margin-bottom: 0.5rem;
+      font-size: var(--font-size-sm);
+    }
+    
+    // Enhanced mobile touch targets
+    .p-toast-message-content {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      
+      @media (max-width: 767px) {
+        padding: 0.875rem 1rem;
+        min-height: 44px;
+      }
+    }
+    
+    .p-toast-icon-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s ease;
+      
+      @media (max-width: 767px) {
+        width: 28px;
+        height: 28px;
+      }
+      
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+      
+      &:focus-visible {
+        outline: 2px solid white;
+        outline-offset: 2px;
+      }
+    }
+    
+    // Success toast styling
+    &.p-toast-message-success {
+      background-color: var(--success-color);
+      color: white;
+      
+      .p-toast-message-icon {
+        color: white;
+      }
+    }
+    
+    // Error toast styling  
+    &.p-toast-message-error {
+      background-color: var(--error-color);
+      color: white;
+      
+      .p-toast-message-icon {
+        color: white;
+      }
+    }
+    
+    // Warning toast styling
+    &.p-toast-message-warn {
+      background-color: var(--warning-color);
+      color: white;
+      
+      .p-toast-message-icon {
+        color: white;
+      }
+    }
+    
+    // Info toast styling
+    &.p-toast-message-info {
+      background-color: var(--info-color);
+      color: white;
+      
+      .p-toast-message-icon {
+        color: white;
+      }
+    }
+    
+    .p-toast-summary {
+      font-weight: var(--font-weight-semibold);
+      font-size: var(--font-size-base);
+      margin-bottom: 0.25rem;
+      
+      @media (max-width: 767px) {
+        font-size: var(--font-size-sm);
+        margin-bottom: 0.125rem;
+      }
+    }
+    
+    .p-toast-detail {
+      font-size: var(--font-size-sm);
+      line-height: 1.4;
+      opacity: 0.95;
+      
+      @media (max-width: 767px) {
+        font-size: var(--font-size-xs);
+        line-height: 1.3;
+      }
+    }
+    
+    .p-toast-message-icon {
+      font-size: 1.25rem;
+      margin-right: 0.75rem;
+      flex-shrink: 0;
+      
+      @media (max-width: 767px) {
+        font-size: 1.125rem;
+        margin-right: 0.5rem;
+      }
+    }
+  }
+}
+
+/* Toast animations for mobile */
+@media (max-width: 767px) {
+  ::ng-deep .p-toast-message-enter {
+    transform: translateX(100%);
+  }
+  
+  ::ng-deep .p-toast-message-enter-active {
+    transform: translateX(0);
+    transition: transform 0.3s ease-out;
+  }
+  
+  ::ng-deep .p-toast-message-exit {
+    transform: translateX(0);
+  }
+  
+  ::ng-deep .p-toast-message-exit-active {
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in;
+  }
+}
+
+/* High contrast mode support for toasts */
+@media (prefers-contrast: high) {
+  ::ng-deep .p-toast .p-toast-message {
+    border: 3px solid currentColor;
+    
+    &.p-toast-message-success {
+      border-color: var(--success-dark);
+    }
+    
+    &.p-toast-message-error {
+      border-color: var(--error-dark);
+    }
+    
+    &.p-toast-message-warn {
+      border-color: var(--warning-dark);
+    }
+    
+    &.p-toast-message-info {
+      border-color: var(--info-dark);
+    }
+  }
+}
+
+/* Reduced motion preferences for toasts */
+@media (prefers-reduced-motion: reduce) {
+  ::ng-deep .p-toast .p-toast-message {
+    transition: none !important;
+    animation: none !important;
+  }
+}

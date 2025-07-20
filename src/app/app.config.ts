@@ -15,6 +15,7 @@ import { PerformanceInterceptor } from './interceptors/performance.interceptor';
 import { UserService } from './services/user.service';
 import { LoggerService } from './services/logger.service';
 import { StateManagementService } from './services/state-management.service';
+import { ToastService } from './services/toast.service';
 import { Router } from '@angular/router';
 
 // Enhanced functional interceptor for Angular 19
@@ -56,6 +57,7 @@ export const appConfig: ApplicationConfig = {
     UserService,
     LoggerService,
     StateManagementService,
+    ToastService, // Add ToastService globally
     {
       provide: NGX_ECHARTS_CONFIG,
       useValue: {

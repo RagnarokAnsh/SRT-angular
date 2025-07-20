@@ -23,17 +23,18 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 
+// PrimeNG Imports - Remove ToastModule as we're using global toast
+import { InputNumberModule } from 'primeng/inputnumber';
+
 // Services
 import { CompetencyService, ApiCompetency } from '../../competency.service';
 import { Student as ServiceStudent } from '../student-management/student.service';
 import { StudentService } from '../student-management/student.service';
-import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
-import { InputNumberModule } from 'primeng/inputnumber';
 import { AssessmentService, AssessmentSubmission } from './assessment.service';
 import { UserService } from '../../services/user.service';
 import { LoggerService } from '../../services/logger.service';
 import { StateManagementService } from '../../services/state-management.service';
+import { ToastService } from '../../services/toast.service';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 
 // Local Interfaces
@@ -114,7 +115,6 @@ interface Student extends ServiceStudent {
     MatTooltipModule,
     MatSortModule,
     MatPaginatorModule,
-    ToastModule,
     InputNumberModule
   ],
   templateUrl: './assessments.component.html',
@@ -192,11 +192,6 @@ export class AssessmentsComponent implements OnInit, OnDestroy {
   isGrossOrFineMotor: boolean = false;
   isMobile: boolean = false;
 
-  // UI feedback messages
-  createSuccess: string = '';
-  createError: string = '';
-  messageTimeout: any;
-
   // Competency information
   competencyId: number = 0;
   competencyData: ApiCompetency | null = null;
@@ -209,10 +204,10 @@ export class AssessmentsComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private dialog = inject(MatDialog);
-  private messageService = inject(MessageService);
   private cdr = inject(ChangeDetectorRef);
   private logger = inject(LoggerService);
   private stateService = inject(StateManagementService);
+  private toastService = inject(ToastService); // Use ToastService instead of MessageService
 
   ngOnInit() {
     this.logger.info('Assessment component initialized', { component: 'AssessmentsComponent' });
@@ -252,11 +247,6 @@ export class AssessmentsComponent implements OnInit, OnDestroy {
       this.currentAudio.pause();
       this.currentAudio = null;
     }
-    
-    // Clear any timeouts
-    if (this.messageTimeout) {
-      clearTimeout(this.messageTimeout);
-    }
   }
 
   /**
@@ -289,7 +279,7 @@ export class AssessmentsComponent implements OnInit, OnDestroy {
       
     } catch (error) {
       this.logger.error('Failed to initialize assessment component', error);
-      this.showError('Failed to load assessment data. Please try again.');
+      this.toastService.error('Failed to load assessment data. Please try again.');
     } finally {
       this.setLoading(false);
     }
@@ -521,7 +511,7 @@ export class AssessmentsComponent implements OnInit, OnDestroy {
   setActiveTab(tab: 'students' | 'levels'): void {
     if (tab === 'levels' && !this.selection.hasValue()) {
       this.logger.warn('Attempted to navigate to levels tab without selecting students');
-      this.showError('Please select at least one student before proceeding to assessment levels.');
+      this.toastService.warning('Please select at least one student before proceeding to assessment levels.');
       return;
     }
     
@@ -544,22 +534,16 @@ export class AssessmentsComponent implements OnInit, OnDestroy {
     const filterValue = (event.target as HTMLInputElement).value;
     
     // Debounce search for better performance
-    if (this.messageTimeout) {
-      clearTimeout(this.messageTimeout);
-    }
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+    this.filteredStudents = this.dataSource.filteredData;
     
-    this.messageTimeout = setTimeout(() => {
-      this.dataSource.filter = filterValue.trim().toLowerCase();
-      this.filteredStudents = this.dataSource.filteredData;
-      
-      this.stateService.updateStudentsState({
-        filteredStudents: this.filteredStudents,
-        filters: { search: filterValue, gender: '', ageRange: null, assessmentStatus: '' }
-      });
-      
-      this.logger.debug('Search filter applied', { query: filterValue, resultsCount: this.filteredStudents.length });
-      this.cdr.markForCheck();
-    }, 300);
+    this.stateService.updateStudentsState({
+      filteredStudents: this.filteredStudents,
+      filters: { search: filterValue, gender: '', ageRange: null, assessmentStatus: '' }
+    });
+    
+    this.logger.debug('Search filter applied', { query: filterValue, resultsCount: this.filteredStudents.length });
+    this.cdr.markForCheck();
   }
 
   /**
@@ -713,7 +697,7 @@ export class AssessmentsComponent implements OnInit, OnDestroy {
 
     } catch (error) {
       this.logger.error('Assessment submission failed', error);
-      this.showError(this.getErrorMessage(error));
+      this.toastService.error(this.getErrorMessage(error), 'Assessment Submission Failed');
     } finally {
       this.setLoading(false);
     }
@@ -739,7 +723,10 @@ export class AssessmentsComponent implements OnInit, OnDestroy {
    * Handle successful assessment submission
    */
   private handleSuccessfulSubmission(): void {
-    this.showSuccess(`Assessment submitted successfully for ${this.selection.selected.length} student(s)`);
+    this.toastService.formSuccess(
+      `Assessment submitted successfully for ${this.selection.selected.length} student(s)`,
+      'Assessment Submitted'
+    );
     
     this.logger.trackUserAction('assessment_submitted', {
       competencyId: this.assessment.competency_id,
@@ -772,56 +759,6 @@ export class AssessmentsComponent implements OnInit, OnDestroy {
   private setLoading(loading: boolean): void {
     this.isLoading = loading;
     this.stateService.updateUIState({ isLoading: loading });
-    this.cdr.markForCheck();
-  }
-
-  /**
-   * Show success message
-   */
-  private showSuccess(message: string): void {
-    this.createSuccess = message;
-    this.createError = '';
-    
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Success',
-      detail: message
-    });
-
-    // Auto-hide after 5 seconds
-    if (this.messageTimeout) {
-      clearTimeout(this.messageTimeout);
-    }
-    this.messageTimeout = setTimeout(() => {
-      this.createSuccess = '';
-      this.cdr.markForCheck();
-    }, 5000);
-    
-    this.cdr.markForCheck();
-  }
-
-  /**
-   * Show error message
-   */
-  private showError(message: string): void {
-    this.createError = message;
-    this.createSuccess = '';
-    
-    this.messageService.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: message
-    });
-
-    // Auto-hide after 8 seconds
-    if (this.messageTimeout) {
-      clearTimeout(this.messageTimeout);
-    }
-    this.messageTimeout = setTimeout(() => {
-      this.createError = '';
-      this.cdr.markForCheck();
-    }, 8000);
-    
     this.cdr.markForCheck();
   }
 
