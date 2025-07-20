@@ -1,13 +1,12 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-anganwadi-management',
   standalone: true,
-  imports: [CommonModule, RouterModule, ToastModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './anganwadi-management.component.html',
   styles: [],
 

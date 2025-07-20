@@ -9,7 +9,7 @@ import { MatDialog, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/d
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { StudentService, Student } from '../student.service';
-import { ToastModule } from 'primeng/toast';
+
 import { MessageService } from 'primeng/api';
 import { HostListener } from '@angular/core';
 
@@ -25,7 +25,7 @@ import { HostListener } from '@angular/core';
     MatTooltipModule,
     MatDialogModule,
     MatPaginatorModule,
-    ToastModule
+
   ],
   templateUrl: './students-list.component.html',
   styleUrls: ['./students-list.component.scss']

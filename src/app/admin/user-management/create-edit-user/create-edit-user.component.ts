@@ -10,7 +10,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { UserService, User, Country, State, District, Project, Sector, AnganwadiCenter } from '../user.service';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 @Component({
@@ -25,8 +24,7 @@ import { MessageService } from 'primeng/api';
     MatCardModule,
     MatSelectModule,
     MatProgressSpinnerModule,
-    MatIconModule,
-    ToastModule
+    MatIconModule
   ],
   templateUrl: './create-edit-user.component.html',
   styleUrl: './create-edit-user.component.scss'

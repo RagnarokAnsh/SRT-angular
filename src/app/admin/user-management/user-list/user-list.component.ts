@@ -10,7 +10,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { UserService, User } from '../user.service';
-import { ToastModule } from 'primeng/toast';
+
 import { MessageService } from 'primeng/api';
 
 @Component({
@@ -26,7 +26,7 @@ import { MessageService } from 'primeng/api';
     MatDialogModule,
     MatChipsModule,
     MatPaginatorModule,
-    ToastModule
+
   ],
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.scss']

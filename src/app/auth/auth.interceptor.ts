@@ -1,24 +1,33 @@
 import { Injectable } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, switchMap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { UserService } from '../services/user.service';
+import { SecurityService } from '../core/security/security.service';
+import { ErrorHandlerService } from '../core/error/error-handler.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   constructor(
     private userService: UserService,
-    private router: Router
+    private router: Router,
+    private securityService: SecurityService,
+    private errorHandler: ErrorHandlerService
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Get the auth token from localStorage
-    const token = localStorage.getItem('token');
+    // Skip token for login and public endpoints
+    if (this.isPublicEndpoint(req.url)) {
+      return next.handle(req);
+    }
+
+    // Get the auth token securely
+    const token = this.securityService.getToken();
 
     // Clone the request and add the authorization header if token exists and is valid
     let authReq = req;
-    if (token && this.userService.isAuthenticated()) {
+    if (token && this.securityService.isTokenValid(token)) {
       authReq = req.clone({
         headers: req.headers.set('Authorization', `Bearer ${token}`)
       });
@@ -27,6 +36,11 @@ export class AuthInterceptor implements HttpInterceptor {
     // Handle the request and catch any authentication/authorization errors
     return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
+        // Check if token is expiring soon and try to refresh
+        if (error.status === 401 && this.securityService.isTokenExpiringSoon()) {
+          return this.handleTokenRefresh(req, next);
+        }
+        
         if (error.status === 401) {
           // Token expired or invalid, force logout
           console.warn('Authentication failed - token expired or invalid');
@@ -40,7 +54,39 @@ export class AuthInterceptor implements HttpInterceptor {
           console.error('Network error - please check your connection');
         }
         
-        return throwError(() => error);
+        return this.errorHandler.handleHttpError(error, 'auth_interceptor');
+      })
+    );
+  }
+
+  // Check if endpoint is public (no auth required)
+  private isPublicEndpoint(url: string): boolean {
+    const publicEndpoints = [
+      '/login',
+      '/register',
+      '/forgot-password',
+      '/reset-password',
+      '/health',
+      '/api/health'
+    ];
+    
+    return publicEndpoints.some(endpoint => url.includes(endpoint));
+  }
+
+  // Handle token refresh
+  private handleTokenRefresh(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    return this.securityService.refreshToken().pipe(
+      switchMap(newToken => {
+        // Retry the original request with new token
+        const newReq = req.clone({
+          headers: req.headers.set('Authorization', `Bearer ${newToken}`)
+        });
+        return next.handle(newReq);
+      }),
+      catchError(refreshError => {
+        // If refresh fails, logout user
+        this.handleAuthenticationError();
+        return throwError(() => refreshError);
       })
     );
   }

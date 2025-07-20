@@ -34,7 +34,7 @@ interface LevelDescription {
 import { CompetencyService, ApiCompetency } from '../../competency.service';
 import { Student as ServiceStudent } from '../student-management/student.service';
 import { StudentService } from '../student-management/student.service';
-import { ToastModule } from 'primeng/toast';
+
 import { MessageService } from 'primeng/api';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { AssessmentService, AssessmentSubmission } from './assessment.service';
@@ -129,7 +129,7 @@ interface LevelDescription {
     MatTooltipModule,
     MatSortModule,
     MatPaginatorModule,
-    ToastModule,
+
     InputNumberModule
   ],
   templateUrl: './assessments.component.html',
@@ -183,10 +183,7 @@ export class AssessmentsComponent implements OnInit {
   showHeightWeightInputs: boolean = false;
   isGrossOrFineMotor: boolean = false;
 
-  // UI feedback messages
-  createSuccess: string = '';
-  createError: string = '';
-  messageTimeout: any;
+  // UI feedback messages - now using PrimeNG toasts
 
   // Competency information
   competencyId: number = 0;
@@ -923,29 +920,15 @@ export class AssessmentsComponent implements OnInit {
   }
 
   /**
-   * Show message with auto-fade
+   * Show message with PrimeNG toast
    */
   showMessage(message: string, isError: boolean = false) {
-    // Clear any existing timeout
-    if (this.messageTimeout) {
-      clearTimeout(this.messageTimeout);
-    }
-    
-    // Set the message
-    if (isError) {
-      this.createError = message;
-      this.createSuccess = '';
-    } else {
-      this.createSuccess = message;
-      this.createError = '';
-    }
-    
-    // Auto-fade after 5 seconds
-    this.messageTimeout = setTimeout(() => {
-      this.createSuccess = '';
-      this.createError = '';
-      this.cdr.detectChanges();
-    }, 5000);
+    this.messageService.add({
+      severity: isError ? 'error' : 'success',
+      summary: isError ? 'Error' : 'Success',
+      detail: message,
+      life: 5000
+    });
   }
   
   /**
@@ -957,8 +940,6 @@ export class AssessmentsComponent implements OnInit {
     this.assessment.observation = '';
     this.assessment.remarks = '';
     this.clearAllHeightWeightInputs();
-    this.createSuccess = '';
-    this.createError = '';
   }
 
   /**

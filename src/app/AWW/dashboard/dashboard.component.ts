@@ -6,6 +6,7 @@ import { StudentService, Student, ApiStudent } from '../student-management/stude
 import { AssessmentService } from '../assessments/assessment.service';
 import { forkJoin, of, Observable } from 'rxjs';
 import { catchError, switchMap, map } from 'rxjs/operators';
+import { MessageService } from 'primeng/api';
 
 interface StudentWithGender extends Student {
   gender: string;
@@ -38,7 +39,6 @@ export class DashboardComponent implements OnInit {
   // Real data properties
   students: StudentWithGender[] = [];
   loading = true;
-  error: string | null = null;
   private _genderDistribution = { male: 0, female: 0 };
 
   // Computed properties for data display
@@ -239,7 +239,8 @@ export class DashboardComponent implements OnInit {
   constructor(
     private studentService: StudentService,
     private assessmentService: AssessmentService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private messageService: MessageService
   ) {
     // Register Chart.js components
     Chart.register(...registerables);
@@ -251,7 +252,6 @@ export class DashboardComponent implements OnInit {
 
   loadStudentData(): void {
     this.loading = true;
-    this.error = null;
     
     // Get students data
     this.studentService.getStudents().subscribe({
@@ -263,7 +263,12 @@ export class DashboardComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading students:', error);
-        this.error = 'Failed to load student data. Please try again later.';
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load student data. Please try again later.',
+          life: 5000
+        });
         this.loading = false;
       }
     });

@@ -10,7 +10,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { AnganwadiService, AnganwadiCenter } from '../anganwadi.service';
 import { MessageService } from 'primeng/api';
-import { ToastModule } from 'primeng/toast';
+
 
 @Component({
   selector: 'app-anganwadi-list',
@@ -24,7 +24,7 @@ import { ToastModule } from 'primeng/toast';
     MatTooltipModule,
     MatDialogModule,
     MatPaginatorModule,
-    ToastModule
+
   ],
 
   templateUrl: './anganwadi-list.component.html',

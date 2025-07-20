@@ -12,6 +12,11 @@ import { inject } from '@angular/core';
 import { routes } from './app.routes';
 import { AuthInterceptor, createAuthInterceptor } from './auth/auth.interceptor';
 import { UserService } from './services/user.service';
+import { AppStateService } from './core/state/app.state';
+import { SecurityService } from './core/security/security.service';
+import { ErrorHandlerService } from './core/error/error-handler.service';
+import { HttpService } from './core/http/http.service';
+import { PerformanceService } from './core/performance/performance.service';
 import { Router } from '@angular/router';
 
 // Enhanced functional interceptor for Angular 19
@@ -49,6 +54,12 @@ export const appConfig: ApplicationConfig = {
       }
     }),
     MessageService,
+    // Core Services
+    AppStateService,
+    SecurityService,
+    ErrorHandlerService,
+    HttpService,
+    PerformanceService,
     UserService, // Ensure UserService is provided
     {
       provide: NGX_ECHARTS_CONFIG,

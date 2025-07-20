@@ -2,7 +2,10 @@ import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs/operators';
+import { tap, catchError } from 'rxjs/operators';
+import { AppStateService } from '../core/state/app.state';
+import { SecurityService } from '../core/security/security.service';
+import { ErrorHandlerService } from '../core/error/error-handler.service';
 
 export interface Role {
   id: number;
@@ -57,17 +60,20 @@ export class UserService {
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private appState: AppStateService,
+    private securityService: SecurityService,
+    private errorHandler: ErrorHandlerService
   ) {
     // Check if user is already logged in
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
+    const token = this.securityService.getToken();
+    const userData = this.securityService.getUserData();
     
-    if (token && userData && this.isTokenValid(token)) {
+    if (token && userData && this.securityService.isTokenValid(token)) {
       try {
-        const user = JSON.parse(userData);
         this.isAuthenticatedSubject.next(true);
-        this.currentUserSubject.next(user);
+        this.currentUserSubject.next(userData);
+        this.appState.setAuthentication(token, userData);
       } catch (error) {
         // If user data is corrupted, clear storage
         this.logout();
@@ -78,40 +84,64 @@ export class UserService {
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
+    // Sanitize input
+    const sanitizedEmail = this.securityService.sanitizeInput(email);
+    
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { 
+      email: sanitizedEmail, 
+      password 
+    }).pipe(
       tap((response: LoginResponse) => {
-        if (response.token && response.user && this.isTokenValid(response.token)) {
-          // Store token and user data with roles
-          localStorage.setItem('token', response.token);
-          localStorage.setItem('user', JSON.stringify(response.user));
+        if (response.token && response.user && this.securityService.isTokenValid(response.token)) {
+          // Store token and user data securely
+          this.securityService.setToken(response.token);
+          this.securityService.setUserData(response.user);
           
           // Update authentication status and current user
           this.isAuthenticatedSubject.next(true);
           this.currentUserSubject.next(response.user);
+          this.appState.setAuthentication(response.token, response.user);
+          
+          // Log security event
+          this.securityService.logSecurityEvent('user_login_success', { email: sanitizedEmail });
           
           // Route user based on their role immediately
           this.routeUserBasedOnRole(response.user);
         } else {
           this.logout();
         }
+      }),
+      catchError(error => {
+        this.securityService.logSecurityEvent('user_login_failed', { email: sanitizedEmail, error: error.message });
+        return this.errorHandler.handleHttpError(error, 'login');
       })
     );
   }
 
-  logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  logout(): void {
+    // Log security event
+    this.securityService.logSecurityEvent('user_logout', { 
+      userId: this.getCurrentUser()?.id 
+    });
+    
+    // Clear secure storage
+    this.securityService.clearTokens();
+    
+    // Reset authentication status
     this.isAuthenticatedSubject.next(false);
     this.currentUserSubject.next(null);
+    this.appState.clearAuthentication();
+    
+    // Redirect to login
     this.router.navigate(['/login']);
   }
 
   isAuthenticated(): boolean {
-    const token = localStorage.getItem('token');
-    return !!token && this.isTokenValid(token);
+    const token = this.securityService.getToken();
+    return !!token && this.securityService.isTokenValid(token);
   }
 
-  // Utility: Decode JWT and check expiration
+  // Utility: Decode JWT and check expiration (kept for backward compatibility)
   private decodeToken(token: string): any {
     try {
       const payload = token.split('.')[1];
@@ -122,11 +152,7 @@ export class UserService {
   }
 
   private isTokenValid(token: string): boolean {
-    if (!token) return false;
-    const decoded = this.decodeToken(token);
-    if (!decoded || !decoded.exp) return false;
-    const now = Math.floor(Date.now() / 1000);
-    return decoded.exp > now;
+    return this.securityService.isTokenValid(token);
   }
 
   getCurrentUser(): User | null {

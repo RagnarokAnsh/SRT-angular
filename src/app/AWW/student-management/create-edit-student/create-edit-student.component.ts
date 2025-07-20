@@ -12,7 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { StudentService, Anganwadi } from '../student.service';
 import { HttpClient } from '@angular/common/http';
 import { UserService } from '../../../services/user.service';
-import { ToastModule } from 'primeng/toast';
+
 import { MessageService } from 'primeng/api';
 
 @Component({
@@ -28,7 +28,7 @@ import { MessageService } from 'primeng/api';
     MatDatepickerModule,
     MatNativeDateModule,
     MatSelectModule,
-    ToastModule
+
   ],
   templateUrl: './create-edit-student.component.html',
   styles: []
@@ -43,7 +43,7 @@ export class CreateEditStudentComponent implements OnInit {
   currentAnganwadiName: string = 'Your Anganwadi Center';
   currentUserName: string = 'You';
   currentUserId: number | null = null;
-  errorMessage: string | null = null;
+
 
   constructor(
     private fb: FormBuilder,
@@ -101,7 +101,12 @@ export class CreateEditStudentComponent implements OnInit {
       } else {
         // This means an AWW user does not have an anganwadi_id from the constructor.
         console.error("CreateEditStudentComponent (ngOnInit): AWW user's anganwadi center ID is missing. This is a data issue.");
-        this.errorMessage = "Your anganwadi center information is missing. This is required to manage students. Please contact support.";
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Configuration Error',
+          detail: 'Your anganwadi center information is missing. This is required to manage students. Please contact support.',
+          life: 5000
+        });
         this.studentForm.get('anganwadiId')?.disable(); // Disable to prevent interaction
       }
     }

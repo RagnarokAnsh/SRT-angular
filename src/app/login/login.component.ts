@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
 import { UserService } from '../services/user.service';
 
 @Component({
@@ -15,15 +16,14 @@ export class LoginComponent implements OnInit {
   showPassword: boolean = false;
   email: string = '';
   password: string = '';
-  error: string = '';
-  success: string = '';
   isLoading: boolean = false;
   returnUrl: string = '';
 
   constructor(
     private userService: UserService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private messageService: MessageService
   ) {}
 
   ngOnInit(): void {
@@ -38,18 +38,26 @@ export class LoginComponent implements OnInit {
 
   onSubmit(): void {
     if (!this.email || !this.password) {
-      this.error = 'Please enter both email and password';
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Validation Error',
+        detail: 'Please enter both email and password',
+        life: 3000
+      });
       return;
     }
 
     this.isLoading = true;
-    this.error = '';
-    this.success = '';
 
     this.userService.login(this.email, this.password).subscribe({
       next: (response) => {
         this.isLoading = false;
-        this.success = 'Login successful! Redirecting...';
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Login Successful',
+          detail: 'Login successful! Redirecting...',
+          life: 2000
+        });
         
         // Redirect after successful login
         setTimeout(() => {
@@ -58,15 +66,24 @@ export class LoginComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading = false;
+        let errorMessage = 'Login failed. Please try again.';
+        
         if (error.status === 401) {
-          this.error = 'Invalid email or password';
+          errorMessage = 'Invalid email or password';
         } else if (error.status === 422) {
-          this.error = 'Please check your email and password format';
+          errorMessage = 'Please check your email and password format';
         } else if (error.status === 0) {
-          this.error = 'Unable to connect to server. Please check your internet connection.';
+          errorMessage = 'Unable to connect to server. Please check your internet connection.';
         } else {
-          this.error = error.error?.message || 'Login failed. Please try again.';
+          errorMessage = error.error?.message || 'Login failed. Please try again.';
         }
+        
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Login Failed',
+          detail: errorMessage,
+          life: 5000
+        });
       }
     });
   }
@@ -83,13 +100,5 @@ export class LoginComponent implements OnInit {
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
-  }
-
-  clearError(): void {
-    this.error = '';
-  }
-
-  clearSuccess(): void {
-    this.success = '';
   }
 }

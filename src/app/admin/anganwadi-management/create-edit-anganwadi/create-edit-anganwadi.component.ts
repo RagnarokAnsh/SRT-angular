@@ -10,7 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AnganwadiService, Country, State, District } from '../anganwadi.service';
 import { MessageService } from 'primeng/api';
-import { ToastModule } from 'primeng/toast';
+
 
 @Component({
   selector: 'app-create-edit-anganwadi',
@@ -24,7 +24,7 @@ import { ToastModule } from 'primeng/toast';
     MatCardModule,
     MatSelectModule,
     MatProgressSpinnerModule,
-    ToastModule
+
   ],
 
   templateUrl: './create-edit-anganwadi.component.html',
