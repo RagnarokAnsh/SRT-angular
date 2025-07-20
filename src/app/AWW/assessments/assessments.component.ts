@@ -1,10 +1,10 @@
-import { Component, ChangeDetectionStrategy, inject, OnInit, ViewChild, TemplateRef, ChangeDetectorRef, ElementRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnInit, ViewChild, TemplateRef, ChangeDetectorRef, ElementRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
-import { forkJoin, of } from 'rxjs';
-import { map, catchError, tap } from 'rxjs/operators';
+import { forkJoin, of, Subject, combineLatest, fromEvent, merge } from 'rxjs';
+import { map, catchError, tap, takeUntil, debounceTime, distinctUntilChanged, startWith, shareReplay } from 'rxjs/operators';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 // Material Imports
@@ -23,13 +23,6 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 
-// Local Interfaces
-interface LevelDescription {
-  level: string;
-  description: string;
-  color: string;
-}
-
 // Services
 import { CompetencyService, ApiCompetency } from '../../competency.service';
 import { Student as ServiceStudent } from '../student-management/student.service';
@@ -39,7 +32,16 @@ import { MessageService } from 'primeng/api';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { AssessmentService, AssessmentSubmission } from './assessment.service';
 import { UserService } from '../../services/user.service';
+import { LoggerService } from '../../services/logger.service';
+import { StateManagementService } from '../../services/state-management.service';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
+
+// Local Interfaces
+interface LevelDescription {
+  level: string;
+  description: string;
+  color: string;
+}
 
 /**
  * Interface for Assessment data structure
@@ -49,65 +51,48 @@ interface Assessment {
   competency_id: number;
   observation: string;
   assessment_date: string;
-  remarks?: string;
+  remarks: string;
 }
 
 /**
- * Interface for Student data structure
+ * Interface for Student data
  */
-interface Student {
-  id: number;
-  first_name: string;
-  birth_date: string;
-  aww_id?: number;
-  gender: string;
-  selected: boolean;
-  assessed: boolean;
-  assessmentLevel: string;
-  assessmentDate?: string;
-  remarks1?: string;
+interface Student extends ServiceStudent {
+  assessed?: boolean;
   assessed2?: boolean;
-  assessmentLevel2?: string;
-  assessmentDate2?: string;
-  remarks2?: string;
   assessed3?: boolean;
-  assessmentLevel3?: string;
-  assessmentDate3?: string;
-  remarks3?: string;
   assessed4?: boolean;
+  assessmentLevel?: string;
+  assessmentLevel2?: string;
+  assessmentLevel3?: string;
   assessmentLevel4?: string;
+  assessmentDate?: string;
+  assessmentDate2?: string;
+  assessmentDate3?: string;
   assessmentDate4?: string;
-  remarks4?: string;
+  age1?: number;
+  age2?: number;
+  age3?: number;
+  age4?: number;
+  height1?: number;
+  height2?: number;
+  height3?: number;
+  height4?: number;
+  weight1?: number;
+  weight2?: number;
+  weight3?: number;
+  weight4?: number;
   remarks?: string;
-  sessions?: number;
-  // Height/weight per session for competency 10 and 11
-  height1?: string;
-  weight1?: string;
-  height2?: string;
-  weight2?: string;
-  height3?: string;
-  weight3?: string;
-  height4?: string;
-  weight4?: string;
-  // Age per session
-  age1?: string;
-  age2?: string;
-  age3?: string;
-  age4?: string;
-}
-
-/**
- * Interface for level descriptions
- */
-interface LevelDescription {
-  level: string;
-  description: string;
-  color: string;
+  remarks1?: string;
+  remarks2?: string;
+  remarks3?: string;
+  remarks4?: string;
 }
 
 /**
  * Assessment Component
  * Handles the assessment workflow for students based on competency levels
+ * Enhanced with mobile-first design and production optimizations
  */
 @Component({
   selector: 'app-assessments',
@@ -144,15 +129,38 @@ interface LevelDescription {
         animate('300ms ease-out', style({ opacity: 0, transform: 'translateY(-20px)' }))
       ])
     ])
-  ]
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AssessmentsComponent implements OnInit {
+export class AssessmentsComponent implements OnInit, OnDestroy {
   // Template references
   @ViewChild('teachingStrategiesDialog') teachingStrategiesDialog!: TemplateRef<any>;
   @ViewChild('remarksDialog') remarksDialog!: TemplateRef<any>;
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild('videoPlayer') videoPlayer!: ElementRef;
+
+  // Destroy subject for cleanup
+  private destroy$ = new Subject<void>();
+
+  // Enhanced mobile detection and responsive state
+  public isMobile$ = merge(
+    fromEvent(window, 'resize').pipe(startWith(null)),
+    fromEvent(window, 'orientationchange').pipe(startWith(null))
+  ).pipe(
+    map(() => window.innerWidth < 768),
+    distinctUntilChanged(),
+    shareReplay(1),
+    takeUntil(this.destroy$)
+  );
+
+  // Component state observables from state management service
+  public students$ = this.stateService.allStudents$;
+  public filteredStudents$ = this.stateService.filteredStudents$;
+  public selectedCompetency$ = this.stateService.selectedCompetency$;
+  public selectedStudents$ = this.stateService.selectedStudents$;
+  public activeTab$ = this.stateService.activeTab$;
+  public isLoading$ = this.stateService.isLoading$;
 
   // UI control
   selectedCompetency: string = '';
@@ -164,7 +172,7 @@ export class AssessmentsComponent implements OnInit {
   currentAudio: HTMLAudioElement | null = null;
   students: Student[] = [];
   filteredStudents: Student[] = [];
-  displayedColumns: string[] = ['select', 'name', 'assessmentInfo']; // 'remarks' column temporarily removed
+  displayedColumns: string[] = ['select', 'name', 'assessmentInfo'];
   maxSessions: number = 1;
   dataSource = new MatTableDataSource<Student>();
   selection = new SelectionModel<Student>(true, []);
@@ -182,6 +190,7 @@ export class AssessmentsComponent implements OnInit {
   showHeightWeightColumns: boolean = false;
   showHeightWeightInputs: boolean = false;
   isGrossOrFineMotor: boolean = false;
+  isMobile: boolean = false;
 
   // UI feedback messages
   createSuccess: string = '';
@@ -192,1153 +201,651 @@ export class AssessmentsComponent implements OnInit {
   competencyId: number = 0;
   competencyData: ApiCompetency | null = null;
 
-  constructor(
-    private router: Router,
-    private route: ActivatedRoute,
-    private dialog: MatDialog,
-    private cdr: ChangeDetectorRef,
-    private competencyService: CompetencyService,
-    private studentService: StudentService,
-    private messageService: MessageService,
-    private assessmentService: AssessmentService,
-    private userService: UserService
-  ) {}
+  // Service injection
+  private competencyService = inject(CompetencyService);
+  private studentService = inject(StudentService);
+  private assessmentService = inject(AssessmentService);
+  private userService = inject(UserService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private dialog = inject(MatDialog);
+  private messageService = inject(MessageService);
+  private cdr = inject(ChangeDetectorRef);
+  private logger = inject(LoggerService);
+  private stateService = inject(StateManagementService);
 
-  /**
-   * Initialize component
-   */
   ngOnInit() {
-    // Get the current user's anganwadi ID
-    const currentUser = this.userService.getCurrentUser();
-    if (currentUser && this.userService.isAWW() && currentUser.anganwadi_id) {
-      this.currentUserAnganwadiId = currentUser.anganwadi_id;
-      console.log('Current user anganwadi ID:', this.currentUserAnganwadiId);
-    }
-
-    // Get competency ID from route params
-    this.route.params.subscribe(params => {
-      const competencyId = params['id'];
-      if (competencyId) {
-        this.loadCompetencyData(+competencyId);
-      } else {
-        // Fallback to competency name if available
-        const storedCompetencyName = localStorage.getItem('selectedCompetencyName');
-        if (storedCompetencyName) {
-          this.loadCompetencyByName(storedCompetencyName);
-        }
-      }
+    this.logger.info('Assessment component initialized', { component: 'AssessmentsComponent' });
+    
+    // Track page view for analytics
+    this.logger.trackUserAction('page_view', {
+      page: 'assessment',
+      route: this.router.url
     });
 
-    // Load students
-    this.loadStudents();
-  }
-
-  loadStudents() {
-    if (!this.currentUserAnganwadiId) {
-      console.warn('Cannot load students: missing current user anganwadi ID.');
-      this.students = [];
-      this.allStudents = [];
-      this.updateDataSource();
-      this.checkAndLoadAssessments(); // Still attempt, in case anganwadi ID is set later by another means
-      return;
-    }
-    this.isLoading = true;
-    this.studentService.getStudents().subscribe({ // Service internally filters by AWW's anganwadi ID
-      next: (data: ServiceStudent[]) => {
-        this.students = data.map(serviceStudent => {
-          const day = serviceStudent.dateOfBirth.getDate().toString().padStart(2, '0');
-          const month = (serviceStudent.dateOfBirth.getMonth() + 1).toString().padStart(2, '0');
-          const year = serviceStudent.dateOfBirth.getFullYear();
-          const birthDateString = `${day}/${month}/${year}`;
-
-          return {
-            id: serviceStudent.id,
-            first_name: serviceStudent.firstName,
-            last_name: serviceStudent.lastName,
-            birth_date: birthDateString,
-            symbol: serviceStudent.symbol,
-            height: serviceStudent.height !== undefined ? String(serviceStudent.height) : '',
-            weight: serviceStudent.weight !== undefined ? String(serviceStudent.weight) : '',
-            language: serviceStudent.language,
-            anganwadiId: serviceStudent.anganwadiId,
-            awwId: serviceStudent.awwId,
-            gender: serviceStudent.gender,
-            // UI specific fields
-            selected: false,
-            assessed: false, assessmentLevel: '', assessmentDate: '',
-            assessed2: false, assessmentLevel2: '', assessmentDate2: '',
-            assessed3: false, assessmentLevel3: '', assessmentDate3: '',
-            assessed4: false, assessmentLevel4: '', assessmentDate4: '',
-            remarks: '',
-            sessionCount: 0,
-            name: `${serviceStudent.firstName} ${serviceStudent.lastName}`.trim()
-          };
-        });
-        this.allStudents = [...this.students];
-        this.updateDataSource();
-        this.isLoading = false;
-        console.log('Students loaded and processed.');
-        this.checkAndLoadAssessments();
-      },
-      error: (err: any) => {
-        console.error('Error loading students:', err);
-        this.showMessage('Failed to load students.', true);
-        this.students = [];
-        this.allStudents = [];
-        this.updateDataSource();
-        this.isLoading = false;
-        this.checkAndLoadAssessments();
-      }
+    // Initialize mobile detection
+    this.isMobile$.subscribe(isMobile => {
+      this.isMobile = isMobile;
+      this.logger.debug('Mobile state changed', { isMobile });
+      this.cdr.markForCheck();
     });
+
+    // Get route parameters
+    const competencyId = this.route.snapshot.paramMap.get('competencyId');
+    if (competencyId) {
+      this.competencyId = parseInt(competencyId, 10);
+      this.assessment.competency_id = this.competencyId;
+      this.logger.info('Competency ID from route', { competencyId: this.competencyId });
+    }
+
+    // Initialize component data
+    this.initializeComponent();
   }
 
-  private checkAndLoadAssessments() {
-    if (this.students && this.students.length > 0 && this.assessment && this.assessment.competency_id && this.currentUserAnganwadiId) {
-      console.log('checkAndLoadAssessments: Prerequisites met. Calling loadAssessments.');
-      this.loadAssessments();
-    } else {
-      let missing = [];
-      if (!this.students || this.students.length === 0) missing.push('students not loaded or empty');
-      if (!this.assessment || !this.assessment.competency_id) missing.push('assessment.competency_id not set');
-      if (!this.currentUserAnganwadiId) missing.push('currentUserAnganwadiId not set');
-      console.log(`checkAndLoadAssessments: Prerequisites not met. Missing: ${missing.join('; ')}.`);
+  ngOnDestroy() {
+    this.logger.info('Assessment component destroyed');
+    this.destroy$.next();
+    this.destroy$.complete();
+    
+    // Clean up audio if playing
+    if (this.currentAudio) {
+      this.currentAudio.pause();
+      this.currentAudio = null;
+    }
+    
+    // Clear any timeouts
+    if (this.messageTimeout) {
+      clearTimeout(this.messageTimeout);
     }
   }
 
   /**
-   * Load competency data by ID
+   * Initialize component data and setup
    */
-  loadCompetencyData(competencyId: number) {
-    if (!competencyId) {
-      this.showMessage('Invalid competency ID', true);
-      return;
-    }
-
-    // Fetch competency data by ID
-    this.competencyService.getCompetencyById(competencyId).subscribe({
-      next: (competency) => {
-        if (competency) {
-          this.competencyData = competency as any;
-          this.selectedCompetency = competency.name;
-          this.assessment.competency_id = competency.id;
-          this.loadLevelDescriptions();
-          this.checkAndLoadAssessments();
-        } else {
-          this.showMessage('Competency not found', true);
-        }
-      },
-      error: (err) => {
-        console.error('Error fetching competency data:', err);
-        this.showMessage('Failed to load competency information.', true);
-
-        // Set a default competency ID for fallback
-        this.assessment.competency_id = 1;
-        this.loadLevelDescriptions();
-        this.loadAssessments();
-      }
-    });
-  }
-
-  /**
-   * Load competency by name (fallback method)
-   */
-  loadCompetencyByName(competencyName: string) {
-    if (!competencyName) {
-      this.showMessage('No competency selected', true);
-      return;
-    }
-
-    // Fetch all competencies and find by name
-    this.competencyService.getDomainsWithCompetencies().subscribe({
-      next: (domains) => {
-        let foundCompetency = null;
-
-        // Search through all domains and their competencies
-        for (const domain of domains) {
-          const competency = domain.competencies.find(c =>
-            c.name.toLowerCase() === competencyName.toLowerCase());
-          if (competency) {
-            foundCompetency = competency;
-            break;
-          }
-        }
-
-        if (foundCompetency) {
-          this.competencyData = foundCompetency as any;
-          this.selectedCompetency = foundCompetency.name;
-          this.assessment.competency_id = foundCompetency.id;
-          this.competencyId = foundCompetency.id;
-        } else {
-          // If not found, use first competency as fallback
-          if (domains.length > 0 && domains[0].competencies.length > 0) {
-            const firstCompetency = domains[0].competencies[0];
-            this.competencyData = firstCompetency as any;
-            this.selectedCompetency = firstCompetency.name;
-            this.assessment.competency_id = firstCompetency.id;
-            this.competencyId = firstCompetency.id;
-          }
-        }
-
-        this.loadLevelDescriptions();
-        this.checkAndLoadAssessments();
-      },
-      error: (err) => {
-        console.error('Error fetching competencies:', err);
-        this.showMessage('Failed to load competency information.', true);
-
-        // Set a default competency ID for fallback
-        this.assessment.competency_id = 1;
-        this.loadLevelDescriptions();
-        this.loadAssessments();
-      }
-    });
-  }
-
-  /**
-   * Load existing assessments from API
-   */
-  loadAssessments() {
-    // Always clear remarks when loading new assessments
-    this.assessment.remarks = '';
-    if (!this.currentUserAnganwadiId || !this.assessment.competency_id) {
-      console.warn('Cannot load assessments: missing anganwadi ID or competency ID');
-      // Clear existing assessment data from students if competency changes to nothing valid
-      this.students.forEach(student => {
-        student.assessed = false; student.assessmentLevel = ''; student.assessmentDate = '';
-        student.assessed2 = false; student.assessmentLevel2 = ''; student.assessmentDate2 = '';
-        student.assessed3 = false; student.assessmentLevel3 = ''; student.assessmentDate3 = '';
-        student.assessed4 = false; student.assessmentLevel4 = ''; student.assessmentDate4 = '';
-        student.sessions = 0;
-      });
-      this.updateDataSource();
-      this.updateDisplayedColumns();
-      return;
-    }
-    console.log(`Loading assessments for competency_id: ${this.assessment.competency_id} and anganwadi_id: ${this.currentUserAnganwadiId}`);
-
-    this.assessmentService.getAssessmentsByAnganwadiAndCompetency(
-      this.currentUserAnganwadiId,
-      this.assessment.competency_id
-    ).pipe(
-      tap(rawAssessmentData => {
-      console.log('[AssessmentsComponent] Raw data from assessmentService.getAssessmentsByAnganwadiAndCompetency:', JSON.parse(JSON.stringify(rawAssessmentData)));
+  private async initializeComponent(): Promise<void> {
+    try {
+      this.setLoading(true);
       
-      // Extract general assessment remarks from the first assessment if available
-      if (rawAssessmentData && rawAssessmentData.length > 0) {
-        // First check if there's a top-level remarks field in the first assessment
-        if (rawAssessmentData[0].remarks) {
-          this.assessment.remarks = rawAssessmentData[0].remarks;
-          console.log('Loaded general assessment remarks from top-level field:', this.assessment.remarks);
-        } 
-        // If no top-level remarks, check if the latest session has remarks
-        else {
-          const firstAssessment = rawAssessmentData[0];
-          // Check session 4 first (most recent), then 3, 2, 1
-          if (firstAssessment.session_4 && typeof firstAssessment.session_4 === 'object' && firstAssessment.session_4.remarks) {
-            this.assessment.remarks = firstAssessment.session_4.remarks;
-            console.log('Loaded general assessment remarks from session 4:', this.assessment.remarks);
-          } else if (firstAssessment.session_3 && typeof firstAssessment.session_3 === 'object' && firstAssessment.session_3.remarks) {
-            this.assessment.remarks = firstAssessment.session_3.remarks;
-            console.log('Loaded general assessment remarks from session 3:', this.assessment.remarks);
-          } else if (firstAssessment.session_2 && typeof firstAssessment.session_2 === 'object' && firstAssessment.session_2.remarks) {
-            this.assessment.remarks = firstAssessment.session_2.remarks;
-            console.log('Loaded general assessment remarks from session 2:', this.assessment.remarks);
-          } else if (firstAssessment.session_1 && typeof firstAssessment.session_1 === 'object' && firstAssessment.session_1.remarks) {
-            this.assessment.remarks = firstAssessment.session_1.remarks;
-            console.log('Loaded general assessment remarks from session 1:', this.assessment.remarks);
-          }
-        }
+      // Start performance tracking
+      this.logger.startPerformanceTracking('assessment_initialization');
+
+      // Get current user data
+      await this.getCurrentUser();
+      
+      // Load initial data in parallel for better performance
+      await Promise.all([
+        this.loadCompetencyData(),
+        this.loadStudents()
+      ]);
+      
+      // Setup level descriptions
+      this.setupLevelDescriptions();
+      
+      // Configure table
+      this.setupTable();
+      
+      this.logger.endPerformanceTracking('assessment_initialization');
+      this.logger.info('Assessment component initialization completed');
+      
+    } catch (error) {
+      this.logger.error('Failed to initialize assessment component', error);
+      this.showError('Failed to load assessment data. Please try again.');
+    } finally {
+      this.setLoading(false);
+    }
+  }
+
+  /**
+   * Get current user information
+   */
+  private async getCurrentUser(): Promise<void> {
+    try {
+      const user = await this.userService.getCurrentUser().toPromise();
+      if (user && user.anganwadi_id) {
+        this.currentUserAnganwadiId = user.anganwadi_id;
+        this.stateService.updateUserState({
+          currentUser: user,
+          anganwadiId: user.anganwadi_id,
+          isAuthenticated: true
+        });
+        this.logger.info('Current user loaded', { anganwadiId: user.anganwadi_id });
       }
-    }),
-    map((assessmentStudents: any[]) => {
-        console.log('Loaded assessments:', assessmentStudents);
-        
-        // Debug: Log the raw structure of the first assessment to understand the API response format
-        if (assessmentStudents && assessmentStudents.length > 0) {
-          console.log('First assessment data structure:', JSON.stringify(assessmentStudents[0], null, 2));
-          
-          // Check session structure specifically
-          const firstAssessment = assessmentStudents[0];
-          console.log('Session 1 type:', typeof firstAssessment.session_1);
-          console.log('Session 1 value:', firstAssessment.session_1);
-          
-          if (typeof firstAssessment.session_1 === 'object' && firstAssessment.session_1 !== null) {
-            console.log('Session 1 properties:', Object.keys(firstAssessment.session_1));
-            console.log('Session 1 observation:', firstAssessment.session_1.observation);
-            console.log('Session 1 created_at:', firstAssessment.session_1.created_at);
-          }
-        }
+    } catch (error) {
+      this.logger.error('Failed to get current user', error);
+      throw error;
+    }
+  }
 
-        // Reset max sessions
-        this.maxSessions = 1;
-
-        // Map the assessment data to our students
-        return this.students.map(student => {
-          // Find this student in the assessment data by ID first, then fall back to name matching
-          const assessmentData = assessmentStudents.find(a => {
-            // If child_id is available, use it for exact matching
-            if (a.child_id && student.id && a.child_id === student.id) {
-              return true;
-            }
-            
-            // Otherwise fall back to name matching
-            return a.name && student.first_name && 
-                  (a.name.toLowerCase() === student.first_name.toLowerCase() || 
-                   a.name.toLowerCase().includes(student.first_name.toLowerCase()));
+  /**
+   * Load competency data
+   */
+  private async loadCompetencyData(): Promise<void> {
+    try {
+      if (this.competencyId) {
+        const competency = await this.competencyService.getCompetencyById(this.competencyId).toPromise();
+        if (competency) {
+          this.competencyData = competency;
+          this.selectedCompetency = competency.name;
+          this.selectedCompetencyId = competency.id;
+          
+          // Update state
+          this.stateService.updateAssessmentState({
+            selectedCompetency: competency
           });
           
-          // Log whether we found a match for this student
-          console.log(`Student ${student.first_name} (ID: ${student.id}) match found:`, !!assessmentData);
+          // Check if this is a gross/fine motor competency
+          this.isGrossOrFineMotor = competency.id === 10 || competency.id === 11;
+          this.showHeightWeightInputs = this.isGrossOrFineMotor;
+          this.showHeightWeightColumns = this.isGrossOrFineMotor;
+          
+          this.logger.info('Competency data loaded', { 
+            competencyId: competency.id, 
+            name: competency.name,
+            isGrossOrFineMotor: this.isGrossOrFineMotor 
+          });
+        }
+      }
+    } catch (error) {
+      this.logger.error('Failed to load competency data', error);
+      throw error;
+    }
+  }
 
-          const updatedStudent = { ...student };
-          // Reset assessment fields before populating
-          updatedStudent.assessed = false; updatedStudent.assessmentLevel = ''; updatedStudent.assessmentDate = '';
-          updatedStudent.assessed2 = false; updatedStudent.assessmentLevel2 = ''; updatedStudent.assessmentDate2 = '';
-          updatedStudent.assessed3 = false; updatedStudent.assessmentLevel3 = ''; updatedStudent.assessmentDate3 = '';
-          updatedStudent.assessed4 = false; updatedStudent.assessmentLevel4 = ''; updatedStudent.assessmentDate4 = '';
-          updatedStudent.sessions = 0;
+  /**
+   * Load students data
+   */
+  private async loadStudents(): Promise<void> {
+    try {
+      if (!this.currentUserAnganwadiId) return;
 
-          if (assessmentData) {
-            // Count the number of sessions this student has
-            let sessionCount = 0;
-            
-            // Log the raw session data for debugging
-            console.log('Session data for student:', student.first_name);
-            console.log('Session 1:', assessmentData.session_1);
-            console.log('Session 2:', assessmentData.session_2);
-            console.log('Session 3:', assessmentData.session_3);
-            console.log('Session 4:', assessmentData.session_4);
-            
-            // Helper function to process session data
-            const processSession = (sessionData: any, sessionNumber: number) => {
-              if (!sessionData || sessionData === '-') { // If sessionData itself is '-' or null/undefined
-                return false; // No session data at all for this slot
-              }
-
-                // Handle object format (expected from API based on logs)
-              if (typeof sessionData === 'object' && sessionData.observation != null && sessionData.created_at != null) {
-                let level = ''; // Default to empty string for level
-                if (sessionData.observation !== '-') {
-                  level = String(sessionData.observation);
-                }
-                
-                // Extract age from session data if available
-                if (sessionData.age) {
-                  (updatedStudent as any)[`age${sessionNumber}`] = sessionData.age;
-                }
-                
-                // Session exists, so set assessed flags and date
-                switch (sessionNumber) {
-                  case 1:
-                    updatedStudent.assessed = true;
-                    console.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
-                    updatedStudent.assessmentLevel = level;
-                    updatedStudent.assessmentDate = this.formatDateForDisplay(sessionData.created_at);
-                    // Store session-specific remarks
-                    updatedStudent.remarks1 = sessionData.remarks || '';
-                    console.log(`Session 1 remarks for ${updatedStudent.first_name}:`, updatedStudent.remarks1);
-                    break;
-                  case 2:
-                    updatedStudent.assessed2 = true;
-                    console.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
-                    updatedStudent.assessmentLevel2 = level;
-                    updatedStudent.assessmentDate2 = this.formatDateForDisplay(sessionData.created_at);
-                    // Store session-specific remarks
-                    updatedStudent.remarks2 = sessionData.remarks || '';
-                    console.log(`Session 2 remarks for ${updatedStudent.first_name}:`, updatedStudent.remarks2);
-                    break;
-                  case 3:
-                    updatedStudent.assessed3 = true;
-                    console.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
-                    updatedStudent.assessmentLevel3 = level;
-                    updatedStudent.assessmentDate3 = this.formatDateForDisplay(sessionData.created_at);
-                    // Store session-specific remarks
-                    updatedStudent.remarks3 = sessionData.remarks || '';
-                    console.log(`Session 3 remarks for ${updatedStudent.first_name}:`, updatedStudent.remarks3);
-                    break;
-                  case 4:
-                    updatedStudent.assessed4 = true;
-                    console.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
-                    updatedStudent.assessmentLevel4 = level;
-                    updatedStudent.assessmentDate4 = this.formatDateForDisplay(sessionData.created_at);
-                    // Store session-specific remarks
-                    updatedStudent.remarks4 = sessionData.remarks || '';
-                    console.log(`Session 4 remarks for ${updatedStudent.first_name}:`, updatedStudent.remarks4);
-                    break;
-                }
-                return true; // Session processed, contributes to sessionCount
-              } else if (typeof sessionData === 'string' && sessionData !== '-') {
-                let level = sessionData;
-                let date = this.formatDateForDisplay(new Date().toISOString()); // Or a placeholder date
-                switch (sessionNumber) {
-                  case 1: updatedStudent.assessed = true; updatedStudent.assessmentLevel = level; updatedStudent.assessmentDate = date; break; // remarks1 removed
-                  case 2: updatedStudent.assessed2 = true; updatedStudent.assessmentLevel2 = level; updatedStudent.assessmentDate2 = date; break; // remarks2 removed
-                  case 3: updatedStudent.assessed3 = true; updatedStudent.assessmentLevel3 = level; updatedStudent.assessmentDate3 = date; break; // remarks3 removed
-                  case 4: updatedStudent.assessed4 = true; updatedStudent.assessmentLevel4 = level; updatedStudent.assessmentDate4 = date; break; // remarks4 removed
-                }
-                return true;
-              }
-
-              return false; // Default if not processed or unrecognized format
-            };
-            
-            // Process each session
-            if (processSession(assessmentData.session_1, 1)) sessionCount = Math.max(sessionCount, 1);
-            if (processSession(assessmentData.session_2, 2)) sessionCount = Math.max(sessionCount, 2);
-            if (processSession(assessmentData.session_3, 3)) sessionCount = Math.max(sessionCount, 3);
-            if (processSession(assessmentData.session_4, 4)) sessionCount = Math.max(sessionCount, 4);
-            
-            if (sessionCount > this.maxSessions) {
-              this.maxSessions = sessionCount;
-            }
-            updatedStudent.remarks = assessmentData.remarks || '';
-            updatedStudent.sessions = sessionCount;
-          }
-          // Add height/weight if available (for gross/fine motor)
-          if (assessmentData) {
-            // Store height/weight per session if available
-            if (assessmentData.session_1 && assessmentData.session_1.height) {
-              (updatedStudent as any).height1 = assessmentData.session_1.height;
-            }
-            if (assessmentData.session_1 && assessmentData.session_1.weight) {
-              (updatedStudent as any).weight1 = assessmentData.session_1.weight;
-            }
-            if (assessmentData.session_2 && assessmentData.session_2.height) {
-              (updatedStudent as any).height2 = assessmentData.session_2.height;
-            }
-            if (assessmentData.session_2 && assessmentData.session_2.weight) {
-              (updatedStudent as any).weight2 = assessmentData.session_2.weight;
-            }
-            if (assessmentData.session_3 && assessmentData.session_3.height) {
-              (updatedStudent as any).height3 = assessmentData.session_3.height;
-            }
-            if (assessmentData.session_3 && assessmentData.session_3.weight) {
-              (updatedStudent as any).weight3 = assessmentData.session_3.weight;
-            }
-            if (assessmentData.session_4 && assessmentData.session_4.height) {
-              (updatedStudent as any).height4 = assessmentData.session_4.height;
-            }
-            if (assessmentData.session_4 && assessmentData.session_4.weight) {
-              (updatedStudent as any).weight4 = assessmentData.session_4.weight;
-            }
-          }
-          return updatedStudent;
+      const students = await this.studentService.getStudentsByAnganwadiId(this.currentUserAnganwadiId).toPromise();
+      if (students) {
+        this.allStudents = students;
+        this.students = [...students];
+        this.filteredStudents = [...students];
+        this.dataSource.data = this.filteredStudents;
+        
+        // Update state
+        this.stateService.updateStudentsState({
+          students: students,
+          filteredStudents: students
         });
-      }),
-      catchError(error => {
-        console.error('Error loading assessments:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to load assessments',
-          life: 3000
-        });
-        // Return the original students array with reset assessment fields
-        return of(this.students.map(student => {
-          const resetStudent = { ...student };
-          resetStudent.assessed = false; resetStudent.assessmentLevel = ''; resetStudent.assessmentDate = '';
-          resetStudent.assessed2 = false; resetStudent.assessmentLevel2 = ''; resetStudent.assessmentDate2 = '';
-          resetStudent.assessed3 = false; resetStudent.assessmentLevel3 = ''; resetStudent.assessmentDate3 = '';
-          resetStudent.assessed4 = false; resetStudent.assessmentLevel4 = ''; resetStudent.assessmentDate4 = '';
-          resetStudent.sessions = 0;
-          return resetStudent;
-        }));
-      })
-    ).subscribe(updatedStudents => {
-      this.students = updatedStudents;
-      this.updateDisplayedColumns();
-      this.updateDataSource();
+        
+        this.logger.info('Students loaded', { count: students.length });
+        
+        // Load existing assessments if any
+        await this.loadExistingAssessments();
+      }
+    } catch (error) {
+      this.logger.error('Failed to load students', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Load existing assessments for students
+   */
+  private async loadExistingAssessments(): Promise<void> {
+    try {
+      if (!this.competencyId || this.students.length === 0) return;
+
+      this.logger.startPerformanceTracking('load_existing_assessments');
+      
+      const studentIds = this.students.map(s => s.id);
+      const assessments = await this.assessmentService.getAssessmentsByCompetencyAndStudents(
+        this.competencyId, 
+        studentIds
+      ).toPromise();
+
+      if (assessments && assessments.length > 0) {
+        this.processExistingAssessments(assessments);
+        this.updateTableColumns();
+        this.cdr.markForCheck();
+      }
+      
+      this.logger.endPerformanceTracking('load_existing_assessments');
+      
+    } catch (error) {
+      this.logger.warn('Failed to load existing assessments', error);
+      // Non-critical error, continue without existing assessments
+    }
+  }
+
+  /**
+   * Process existing assessments and update student data
+   */
+  private processExistingAssessments(assessments: any[]): void {
+    const assessmentMap = new Map();
+    
+    assessments.forEach(assessment => {
+      const key = `${assessment.child_id}_${assessment.session}`;
+      assessmentMap.set(key, assessment);
+    });
+
+    this.students.forEach(student => {
+      for (let session = 1; session <= 4; session++) {
+        const key = `${student.id}_${session}`;
+        const assessment = assessmentMap.get(key);
+        
+        if (assessment) {
+          const suffix = session === 1 ? '' : session.toString();
+          student[`assessed${suffix}`] = true;
+          student[`assessmentLevel${suffix}`] = assessment.observation;
+          student[`assessmentDate${suffix}`] = assessment.assessment_date;
+          student[`age${suffix}`] = assessment.age;
+          student[`height${suffix}`] = assessment.height;
+          student[`weight${suffix}`] = assessment.weight;
+          student[`remarks${suffix}`] = assessment.remarks;
+        }
+      }
+    });
+    
+    this.logger.info('Existing assessments processed', { count: assessments.length });
+  }
+
+  /**
+   * Setup level descriptions based on competency
+   */
+  private setupLevelDescriptions(): void {
+    this.levelDescriptions = [
+      {
+        level: 'Beginner',
+        description: 'Child is just beginning to show signs of this skill',
+        color: '#e74c3c'
+      },
+      {
+        level: 'Progressing',
+        description: 'Child is developing this skill but needs more practice',
+        color: '#f39c12'
+      },
+      {
+        level: 'Advanced',
+        description: 'Child demonstrates this skill consistently',
+        color: '#3498db'
+      },
+      {
+        level: 'PSR',
+        description: 'Child has mastered this skill and is ready for primary school',
+        color: '#2ecc71'
+      }
+    ];
+    
+    this.stateService.updateAssessmentState({
+      levelDescriptions: this.levelDescriptions
     });
   }
-  
+
   /**
-   * Update displayed columns based on the maximum number of sessions
+   * Setup table configuration
    */
-  updateDisplayedColumns() {
-    // Start with the base columns
+  private setupTable(): void {
+    if (this.sort) {
+      this.dataSource.sort = this.sort;
+    }
+    
+    if (this.paginator) {
+      this.dataSource.paginator = this.paginator;
+    }
+    
+    // Configure table columns based on existing assessments
+    this.updateTableColumns();
+  }
+
+  /**
+   * Update table columns based on assessment data
+   */
+  private updateTableColumns(): void {
     this.displayedColumns = ['select', 'name'];
     
-    // Add height/weight input columns for competency 10 and 11
     if (this.showHeightWeightInputs) {
       this.displayedColumns.push('heightInput', 'weightInput');
     }
     
-    // Add session columns based on max sessions
-    for (let i = 1; i <= this.maxSessions; i++) {
-      this.displayedColumns.push(`assessmentInfo${i > 1 ? i : ''}`);
-    }
+    // Add assessment columns based on existing data
+    const hasSession1 = this.students.some(s => s.assessed);
+    const hasSession2 = this.students.some(s => s.assessed2);
+    const hasSession3 = this.students.some(s => s.assessed3);
+    const hasSession4 = this.students.some(s => s.assessed4);
     
-    // Add remarks column at the end - temporarily disabled
-    // this.displayedColumns.push('remarks');
-    console.log('Updated displayed columns:', this.displayedColumns);
+    if (hasSession1) this.displayedColumns.push('assessmentInfo');
+    if (hasSession2) this.displayedColumns.push('assessmentInfo2');
+    if (hasSession3) this.displayedColumns.push('assessmentInfo3');
+    if (hasSession4) this.displayedColumns.push('assessmentInfo4');
+    
+    this.logger.debug('Table columns updated', { columns: this.displayedColumns });
   }
 
   /**
-   * Handle form submission
+   * Set active tab with validation and logging
    */
-  onSubmit() {
-    console.log('onSubmit called');
-    
-    if (!this.assessment.observation) {
-      this.showMessage('Please select an assessment level.', true);
-      return;
-    }
-
-    // Validate height/weight if required
-    if (this.isGrossOrFineMotor) {
-      const validation = this.validateHeightWeightInputs();
-      if (!validation.isValid) {
-        this.showMessage(validation.message, true);
-        return;
-      }
-    }
-
-    // Set assessment date to today
-    this.assessment.assessment_date = new Date().toISOString().split('T')[0];
-    
-    console.log('Submitting assessment with data:', this.assessment);
-    
-    // Call the submit assessment method
-    this.submitAssessment();
-  }
-
-  /**
-   * Submit assessment after confirmation
-   */
-  private submitAssessment() {
-    // Get selected student IDs
-    const selectedStudentIds = this.selection.selected.map((student: Student) => student.id);
-    
-    if (selectedStudentIds.length === 0) {
-      this.showMessage('No students selected. Please select at least one student.', true);
+  setActiveTab(tab: 'students' | 'levels'): void {
+    if (tab === 'levels' && !this.selection.hasValue()) {
+      this.logger.warn('Attempted to navigate to levels tab without selecting students');
+      this.showError('Please select at least one student before proceeding to assessment levels.');
       return;
     }
     
-    console.log('Selected student IDs:', selectedStudentIds);
-    
-    // Update the assessment object with the selected student IDs
-    this.assessment.child_ids = selectedStudentIds;
-    
-    // Get the current user's anganwadi ID
-    const currentUser = this.userService.getCurrentUser();
-    const anganwadiId = currentUser?.anganwadi_id || this.currentUserAnganwadiId;
-    
-    if (!anganwadiId) {
-      this.showMessage('Anganwadi ID not found. Please ensure you are logged in with AWW role.', true);
-      return;
-    }
-    
-    // Create assessment submissions for each selected student
-    const submissions: AssessmentSubmission[] = selectedStudentIds.map(childId => {
-      // Find the student to determine which session/attempt this is
-      const student = this.students.find(s => s.id === childId);
-      let attemptNumber = 1; // Default to 1 if no previous assessments
-      let ageString = '';
-      let height = '';
-      let weight = '';
-      if (student) {
-        // Determine the next attempt number based on existing sessions
-        if (student.assessed && student.assessed2 && student.assessed3 && student.assessed4) {
-          attemptNumber = 4;
-        } else if (student.assessed && student.assessed2 && student.assessed3) {
-          attemptNumber = 4; // Fourth assessment
-        } else if (student.assessed && student.assessed2) {
-          attemptNumber = 3; // Third assessment
-        } else if (student.assessed) {
-          attemptNumber = 2; // Second assessment
-        }
-        // Calculate age at assessment
-        ageString = this.calculateAgeString(student.birth_date, this.assessment.assessment_date);
-        // Use height/weight for the current session if available (for gross/fine motor)
-        // For submission, we use the session number that matches the input fields
-        const currentSessionNumber = this.getCurrentSessionForInput();
-        height = (student as any)[`height${currentSessionNumber}`] || '';
-        weight = (student as any)[`weight${currentSessionNumber}`] || '';
-      }
-      const currentObservationForSubmission = this.assessment.observation;
-      return {
-        children: [childId],
-        competency_id: this.assessment.competency_id,
-        observation: currentObservationForSubmission,
-        assessment_date: this.assessment.assessment_date,
-        remarks: this.assessment.remarks || '',
-        anganwadi_id: anganwadiId,
-        attempt_number: attemptNumber,
-        age: ageString,
-        height: height,
-        weight: weight
-      };
-    });
-    
-    console.log('Submitting assessments:', submissions);
-    
-    // Submit assessments using the multiple assessments method
-    this.assessmentService.submitMultipleAssessments(submissions).subscribe({
-      next: (response) => {
-        console.log('All assessments submitted successfully');
-        this.showMessage('Assessment submitted successfully!', false);
-        
-        // Reset height/weight inputs after successful submission
-        this.resetHeightWeightInputs();
-        
-        // Clear selection
-        this.selection.clear();
-        
-        // Reload assessments to show updated data
-        this.loadAssessments();
-        
-        // Update local student data after successful submission
-        this.updateLocalStudentData(selectedStudentIds);
-
-        // Clear assessment form after submission
-        this.clearAssessmentForm();
-        
-        // Reset to students tab
-        this.setActiveTab('students');
-      },
-      error: (error) => {
-        console.error('Error submitting assessments:', error);
-        this.showMessage('Error submitting assessment. Please try again.', true);
-      }
-    });
-  }
-
-  /**
-   * Load level descriptions based on competency ID
-   */
-  /**
-   * Set the active tab and update progress indicator
-   */
-  setActiveTab(tab: 'students' | 'levels') {
     this.activeTab = tab;
-    if (tab === 'students') {
-      this.clearAssessmentForm();
-    }
-    this.cdr.detectChanges();
+    this.stateService.updateUIState({ activeTab: tab });
+    
+    this.logger.trackUserAction('tab_change', {
+      from: this.activeTab,
+      to: tab,
+      selectedStudentsCount: this.selection.selected.length
+    });
+    
+    this.cdr.markForCheck();
   }
 
   /**
-   * Check if any selected student has already completed 4 sessions
-   * @returns true if any selected student has 4 sessions completed
+   * Apply filter to students table with debouncing
+   */
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    
+    // Debounce search for better performance
+    if (this.messageTimeout) {
+      clearTimeout(this.messageTimeout);
+    }
+    
+    this.messageTimeout = setTimeout(() => {
+      this.dataSource.filter = filterValue.trim().toLowerCase();
+      this.filteredStudents = this.dataSource.filteredData;
+      
+      this.stateService.updateStudentsState({
+        filteredStudents: this.filteredStudents,
+        filters: { search: filterValue, gender: '', ageRange: null, assessmentStatus: '' }
+      });
+      
+      this.logger.debug('Search filter applied', { query: filterValue, resultsCount: this.filteredStudents.length });
+      this.cdr.markForCheck();
+    }, 300);
+  }
+
+  /**
+   * Toggle student selection with accessibility support
+   */
+  toggleStudent(student: Student): void {
+    this.selection.toggle(student);
+    
+    this.stateService.updateStudentsState({
+      selectedStudents: this.selection.selected
+    });
+    
+    this.logger.trackUserAction('student_selection_toggle', {
+      studentId: student.id,
+      studentName: student.first_name,
+      isSelected: this.selection.isSelected(student),
+      totalSelected: this.selection.selected.length
+    });
+    
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Master toggle for selecting all students
+   */
+  masterToggle(): void {
+    if (this.isAllSelected()) {
+      this.selection.clear();
+      this.logger.trackUserAction('deselect_all_students', { totalStudents: this.filteredStudents.length });
+    } else {
+      this.filteredStudents.forEach(student => this.selection.select(student));
+      this.logger.trackUserAction('select_all_students', { totalStudents: this.filteredStudents.length });
+    }
+    
+    this.stateService.updateStudentsState({
+      selectedStudents: this.selection.selected
+    });
+    
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Check if all students are selected
+   */
+  isAllSelected(): boolean {
+    const numSelected = this.selection.selected.length;
+    const numRows = this.filteredStudents.length;
+    return numSelected === numRows && numRows > 0;
+  }
+
+  /**
+   * Get button disabled state with reason
+   */
+  getButtonDisabledState(): { isDisabled: boolean; reason?: string } {
+    if (!this.selection.hasValue()) {
+      return { isDisabled: true, reason: 'Please select at least one student' };
+    }
+    return { isDisabled: false };
+  }
+
+  /**
+   * Get submit button aria label
+   */
+  getSubmitButtonAriaLabel(): string {
+    if (!this.assessment.observation) {
+      return 'Please select an assessment level before submitting';
+    }
+    if (this.hasMaxSessionsReached()) {
+      return 'Cannot submit: Maximum sessions reached for selected students';
+    }
+    return `Submit assessment for ${this.selection.selected.length} selected students`;
+  }
+
+  /**
+   * Handle height/weight input changes
+   */
+  onHeightWeightInputChange(): void {
+    this.logger.debug('Height/weight input changed');
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Get current session for input
+   */
+  getCurrentSessionForInput(): string {
+    // Logic to determine current session
+    return '1'; // Simplified for now
+  }
+
+  /**
+   * Check if maximum sessions are reached
    */
   hasMaxSessionsReached(): boolean {
-    if (!this.selection || this.selection.selected.length === 0) {
-      return false;
-    }
-    
-    // Check if any selected student already has 4 sessions completed
+    // Check if any selected student has reached max sessions
     return this.selection.selected.some(student => {
       return student.assessed && student.assessed2 && student.assessed3 && student.assessed4;
     });
   }
 
   /**
-   * Check if all selected students have completed all 4 sessions
-   * @returns true if all selected students have completed all 4 sessions
+   * Check if all sessions are completed
    */
   areAllSessionsCompleted(): boolean {
-    if (!this.selection || this.selection.selected.length === 0) {
-      return false;
-    }
-    
-    // Check if all selected students have completed all 4 sessions
     return this.selection.selected.every(student => {
       return student.assessed && student.assessed2 && student.assessed3 && student.assessed4;
     });
   }
 
   /**
-   * Update the data source for the table
+   * Submit assessment with validation and error handling
    */
-  updateDataSource() {
-    this.dataSource.data = this.students;
-    this.cdr.detectChanges(); // Trigger change detection
-  
-    this.filteredStudents = [...this.students];
-    this.dataSource.data = this.filteredStudents;
-    setTimeout(() => {
-      if (this.sort) {
-        this.dataSource.sort = this.sort;
-      }
-      if (this.paginator) {
-        this.dataSource.paginator = this.paginator;
-      }
-      this.cdr.detectChanges();
-    });
-  }
+  async onSubmit(): Promise<void> {
+    try {
+      this.logger.startPerformanceTracking('assessment_submission');
+      this.setLoading(true);
 
-  /**
-   * Filter the students table
-   */
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
-    
-    if (!filterValue) {
-      this.filteredStudents = [...this.students];
-    } else {
-      this.filteredStudents = this.students.filter(student => 
-        student.first_name.toLowerCase().includes(filterValue)
-      );
+      // Validation
+      if (!this.assessment.observation) {
+        throw new Error('Please select an assessment level');
+      }
+
+      if (!this.selection.hasValue()) {
+        throw new Error('Please select at least one student');
+      }
+
+      // Prepare assessment data
+      this.assessment.child_ids = this.selection.selected.map(s => s.id);
+      this.assessment.competency_id = this.competencyId;
+
+      this.logger.info('Submitting assessment', {
+        competencyId: this.assessment.competency_id,
+        studentsCount: this.assessment.child_ids.length,
+        level: this.assessment.observation,
+        hasRemarks: !!this.assessment.remarks
+      });
+
+      // Show confirmation dialog
+      const confirmed = await this.showConfirmationDialog();
+      if (!confirmed) {
+        this.logger.info('Assessment submission cancelled by user');
+        return;
+      }
+
+      // Submit assessment
+      const result = await this.assessmentService.createAssessment(this.assessment).toPromise();
+      
+      if (result) {
+        this.logger.endPerformanceTracking('assessment_submission');
+        this.handleSuccessfulSubmission();
+      }
+
+    } catch (error) {
+      this.logger.error('Assessment submission failed', error);
+      this.showError(this.getErrorMessage(error));
+    } finally {
+      this.setLoading(false);
     }
-    
-    this.dataSource.data = this.filteredStudents;
-    this.cdr.detectChanges();
   }
 
   /**
-   * Check if all rows are selected
+   * Show confirmation dialog before submission
    */
-  isAllSelected() {
-    const numSelected = this.selection.selected.length;
-    const numRows = this.filteredStudents.length;
-    return numSelected === numRows;
-  }
-
-  /**
-   * Toggle all rows selection
-   */
-  masterToggle() {
-    this.isAllSelected() ?
-      this.selection.clear() :
-      this.students.forEach(row => this.selection.select(row));
-    
-    // Trigger change detection to update button state
-    this.onStudentSelectionChange();
-  }
-
-  /**
-   * Open remarks dialog for a student
-   */
-  openRemarks(student: Student) {
-    this.currentStudent = student;
-    this.currentRemarks = student.remarks || '';
-    
-    const dialogRef = this.dialog.open(this.remarksDialog);
-    dialogRef.afterClosed().subscribe((result: string | false) => { 
-      if (result !== false && this.currentStudent) {
-        this.currentStudent.remarks = result as string; 
-        this.updateDataSource(); 
+  private async showConfirmationDialog(): Promise<boolean> {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Confirm Assessment Submission',
+        message: `Are you sure you want to submit ${this.assessment.observation} level assessment for ${this.selection.selected.length} student(s)?`,
+        students: this.selection.selected
       }
     });
+
+    return dialogRef.afterClosed().toPromise();
   }
 
   /**
-   * Show message with auto-fade
+   * Handle successful assessment submission
    */
-  showMessage(message: string, isError: boolean = false) {
-    // Clear any existing timeout
+  private handleSuccessfulSubmission(): void {
+    this.showSuccess(`Assessment submitted successfully for ${this.selection.selected.length} student(s)`);
+    
+    this.logger.trackUserAction('assessment_submitted', {
+      competencyId: this.assessment.competency_id,
+      level: this.assessment.observation,
+      studentsCount: this.assessment.child_ids.length,
+      hasRemarks: !!this.assessment.remarks
+    });
+
+    // Reset form
+    this.selection.clear();
+    this.assessment.observation = '';
+    this.assessment.remarks = '';
+    this.setActiveTab('students');
+    
+    // Reload data to reflect changes
+    this.loadExistingAssessments();
+  }
+
+  /**
+   * Navigate back to videos
+   */
+  backToVideos(): void {
+    this.logger.trackUserAction('navigate_back_to_videos');
+    this.router.navigate(['/competency', this.competencyId, 'videos']);
+  }
+
+  /**
+   * Set loading state
+   */
+  private setLoading(loading: boolean): void {
+    this.isLoading = loading;
+    this.stateService.updateUIState({ isLoading: loading });
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Show success message
+   */
+  private showSuccess(message: string): void {
+    this.createSuccess = message;
+    this.createError = '';
+    
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Success',
+      detail: message
+    });
+
+    // Auto-hide after 5 seconds
     if (this.messageTimeout) {
       clearTimeout(this.messageTimeout);
     }
-    
-    // Set the message
-    if (isError) {
-      this.createError = message;
-      this.createSuccess = '';
-    } else {
-      this.createSuccess = message;
-      this.createError = '';
-    }
-    
-    // Auto-fade after 5 seconds
     this.messageTimeout = setTimeout(() => {
       this.createSuccess = '';
-      this.createError = '';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }, 5000);
+    
+    this.cdr.markForCheck();
   }
-  
+
   /**
-   * Reset component state when navigating back
+   * Show error message
    */
-  resetComponentState(): void {
-    this.selection.clear();
-    this.activeTab = 'students';
-    this.assessment.observation = '';
-    this.assessment.remarks = '';
-    this.clearAllHeightWeightInputs();
+  private showError(message: string): void {
+    this.createError = message;
     this.createSuccess = '';
-    this.createError = '';
-  }
-
-  /**
-   * Handle navigation back to videos
-   */
-  backToVideos() {
-    this.resetComponentState();
-    this.router.navigate(['/AWW/select-competency']);
-  }
-
-  /**
-   * Calculate age from birth date
-   */
-  calculateAge(birthDate: string): string {
-    if (!birthDate) return '';
-    const today = new Date();
-    const todayStr = `${today.getFullYear()}-${(today.getMonth()+1).toString().padStart(2,'0')}-${today.getDate().toString().padStart(2,'0')}`;
-    return this.calculateAgeString(birthDate, todayStr);
-  }
-
-  /**
-   * Load level descriptions based on competency ID
-   */
-  loadLevelDescriptions() {
-    const competencyId = this.assessment.competency_id;
-    const competencyName = this.selectedCompetency.toLowerCase();
     
-    // Check if it's gross or fine motor (competency IDs 10 and 11)
-    const wasGrossOrFineMotor = this.isGrossOrFineMotor;
-    this.isGrossOrFineMotor = competencyId === 10 || competencyId === 11;
-    this.showHeightWeightInputs = this.isGrossOrFineMotor;
-    
-    // Clear height/weight inputs when switching competencies
-    if (wasGrossOrFineMotor !== this.isGrossOrFineMotor) {
-      this.clearAllHeightWeightInputs();
-    }
-    
-    // Clear assessment form (including remarks) when switching competencies
-    this.clearAssessmentForm();
-
-    if (competencyName.includes('gross motor')) {
-      this.levelDescriptions = [
-        { level: 'Beginner', description: 'Balances and coordinates well in a variety of activities, such as throwing a ball with aim or kicking a ball at a given target', color: '#FFD657' },
-        { level: 'Progressing', description: 'Balances and coordinates well in a variety of activities, such as throwing a ball with aim or kicking a ball at a given target', color: '#FFC067' },
-        { level: 'Advanced', description: 'Balances and coordinates well in a variety of activities, such as throwing a ball with aim or kicking a ball at a given target', color: '#AFD588' },
-        { level: 'PSR', description: 'Balances and coordinates well in a variety of activities, such as throwing a ball with aim or kicking a ball at a given target', color: '#9FDFF8' }
-      ];
-    } else if (competencyName.includes('fine motor')) {
-      this.levelDescriptions = [
-        { level: 'Beginner', description: 'Controls and coordinates well in a variety of small muscle activities', color: '#FFD657' },
-        { level: 'Progressing', description: 'Controls and coordinates well in a variety of small muscle activities', color: '#FFC067' },
-        { level: 'Advanced', description: 'Controls and coordinates well in a variety of small muscle activities', color: '#AFD588' },
-        { level: 'PSR', description: 'Controls and coordinates well in a variety of small muscle activities', color: '#9FDFF8' }
-      ];
-    } else {
-      this.levelDescriptions = [
-        { level: 'Beginner', description: 'The child shows initial attempts with limited success. Assess based on effort and support needed.', color: '#FFD657' },
-        { level: 'Progressing', description: 'The child shows improvement with some support. Assess based on progress and guidance needed.', color: '#FFC067' },
-        { level: 'Advanced', description: 'The child shows good understanding and application. Assess based on mastery and independence.', color: '#AFD588' },
-        { level: 'PSR', description: 'The child masters the task and applies it in context. Assess based on readiness for next stage.', color: '#9FDFF8' }
-      ];
-    }
-  }
-
-  /**
-   * Clear all height/weight inputs for all students and all sessions
-   */
-  clearAllHeightWeightInputs(): void {
-    this.students.forEach(student => {
-      for (let i = 1; i <= 4; i++) {
-        (student as any)[`height${i}`] = '';
-        (student as any)[`weight${i}`] = '';
-      }
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: message
     });
-  }
 
-  /**
-   * Calculate age string in years and months from birth date and assessment date
-   * Always returns in '3y 2m' format, or '' if invalid.
-   */
-  private calculateAgeString(birthDate: string, assessmentDate: string): string {
-    if (!birthDate || !assessmentDate) return '';
-    // Try to parse DD/MM/YYYY or YYYY-MM-DD
-    let birth: Date;
-    if (/^\d{2}\/\d{2}\/\d{4}$/.test(birthDate)) {
-      const [day, month, year] = birthDate.split('/').map(Number);
-      birth = new Date(year, month - 1, day);
-    } else {
-      birth = new Date(birthDate);
+    // Auto-hide after 8 seconds
+    if (this.messageTimeout) {
+      clearTimeout(this.messageTimeout);
     }
-    const assess = new Date(assessmentDate);
-    let years = assess.getFullYear() - birth.getFullYear();
-    let months = assess.getMonth() - birth.getMonth();
-    if (months < 0) {
-      years--;
-      months += 12;
+    this.messageTimeout = setTimeout(() => {
+      this.createError = '';
+      this.cdr.markForCheck();
+    }, 8000);
+    
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Get user-friendly error message
+   */
+  private getErrorMessage(error: any): string {
+    if (error?.error?.message) {
+      return error.error.message;
     }
-    if (assess.getDate() < birth.getDate()) {
-      months--;
-      if (months < 0) {
-        years--;
-        months += 12;
-      }
+    if (error?.message) {
+      return error.message;
     }
-    // If any value is NaN or negative, return empty string
-    if (isNaN(years) || isNaN(months) || years < 0 || months < 0) return '';
-    return `${years}y ${months}m`;
-  }
-
-  private formatDateForDisplay(dateString: string | null | undefined): string {
-    if (!dateString) return '';
-    try {
-      // Check if dateString is already in DD/MM/YYYY format
-      if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
-        return dateString;
-      }
-
-      const date = new Date(dateString);
-
-      if (isNaN(date.getTime())) {
-        const parts = dateString.split(/[- :T]/);
-        if (parts.length >= 3) {
-          const year = parseInt(parts[0], 10);
-          const month = parseInt(parts[1], 10);
-          const day = parseInt(parts[2], 10);
-
-          if (year > 1000 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-            const manualDate = new Date(Date.UTC(year, month - 1, day));
-            if (!isNaN(manualDate.getTime())) {
-              const d = manualDate.getUTCDate().toString().padStart(2, '0');
-              const m = (manualDate.getUTCMonth() + 1).toString().padStart(2, '0');
-              const y = manualDate.getUTCFullYear();
-              return `${d}/${m}/${y}`;
-            }
-          }
-        }
-        console.warn('Invalid date string for formatting:', dateString);
-        return dateString; 
-      }
-
-      const d = date.getUTCDate().toString().padStart(2, '0');
-      const m = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-      const y = date.getUTCFullYear();
-      return `${d}/${m}/${y}`;
-    } catch (e) {
-      console.error('Error formatting date:', dateString, e);
-      return dateString;
-    }
+    return 'An unexpected error occurred. Please try again.';
   }
 
   /**
-   * Get current session number for input fields
+   * Track by functions for performance optimization
    */
-  getCurrentSessionForInput(): number {
-    const selectedStudents = this.selection.selected;
-    if (selectedStudents.length === 0) return 1;
-    
-    // Determine the session number based on the most common assessment status
-    return this.getCurrentSessionNumber();
+  trackByStudentId(index: number, student: Student): number {
+    return student.id;
   }
 
-  /**
-   * Check if height and weight are entered for all selected students
-   */
-  areHeightWeightEntered(): boolean {
-    if (!this.isGrossOrFineMotor) return true;
-    
-    const selectedStudents = this.selection.selected;
-    if (selectedStudents.length === 0) return false;
-    
-    // For input validation, we check session 1 since that's what we're entering
-    const sessionNumber = this.getCurrentSessionForInput();
-    
-    return selectedStudents.every(student => {
-      const height = (student as any)[`height${sessionNumber}`];
-      const weight = (student as any)[`weight${sessionNumber}`];
-      return height && weight && height.toString().trim() !== '' && weight.toString().trim() !== '';
-    });
-  }
-
-  /**
-   * Reset height and weight inputs for all students
-   */
-  resetHeightWeightInputs(): void {
-    const sessionNumber = this.getCurrentSessionForInput();
-    this.students.forEach(student => {
-      (student as any)[`height${sessionNumber}`] = '';
-      (student as any)[`weight${sessionNumber}`] = '';
-    });
-  }
-
-  /**
-   * Handle student selection change
-   */
-  onStudentSelectionChange(): void {
-    // Clear height/weight inputs when selection changes to prevent showing old data
-    this.clearHeightWeightInputsForUnselectedStudents();
-    
-    // Force change detection to update button state
-    this.cdr.detectChanges();
-  }
-
-  /**
-   * Clear height/weight inputs for unselected students
-   */
-  clearHeightWeightInputsForUnselectedStudents(): void {
-    const sessionNumber = this.getCurrentSessionForInput();
-    this.students.forEach(student => {
-      if (!this.selection.isSelected(student)) {
-        (student as any)[`height${sessionNumber}`] = '';
-        (student as any)[`weight${sessionNumber}`] = '';
-      }
-    });
-  }
-
-  /**
-   * Toggle individual student selection
-   */
-  toggleStudent(student: Student) {
-    this.selection.toggle(student);
-    this.onStudentSelectionChange();
-  }
-
-  /**
-   * Get current session number based on selected students' assessment status
-   */
-  private getCurrentSessionNumber(): number {
-    const selectedStudents = this.selection.selected;
-    if (selectedStudents.length === 0) return 1;
-    
-    // Check the most common session number among selected students
-    const sessionCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
-    
-    selectedStudents.forEach(student => {
-      if (student.assessed && student.assessed2 && student.assessed3 && student.assessed4) {
-        sessionCounts[4]++;
-      } else if (student.assessed && student.assessed2 && student.assessed3) {
-        sessionCounts[4]++;
-      } else if (student.assessed && student.assessed2) {
-        sessionCounts[3]++;
-      } else if (student.assessed) {
-        sessionCounts[2]++;
-      } else {
-        sessionCounts[1]++;
-      }
-    });
-    
-    // Return the session with the highest count
-    let maxSession = 1;
-    let maxCount = sessionCounts[1];
-    
-    if (sessionCounts[2] > maxCount) {
-      maxSession = 2;
-      maxCount = sessionCounts[2];
-    }
-    if (sessionCounts[3] > maxCount) {
-      maxSession = 3;
-      maxCount = sessionCounts[3];
-    }
-    if (sessionCounts[4] > maxCount) {
-      maxSession = 4;
-    }
-    
-    return maxSession;
-  }
-
-  /**
-   * Get button disabled state
-   */
-  getButtonDisabledState(): { hasSelection: boolean, heightWeightValid: boolean, isDisabled: boolean } {
-    const hasSelection = this.selection.hasValue();
-    const heightWeightValid = this.isGrossOrFineMotor ? this.areHeightWeightEntered() : true;
-    const isDisabled = !hasSelection || (this.isGrossOrFineMotor && !heightWeightValid);
-    
-    return { hasSelection, heightWeightValid, isDisabled };
-  }
-
-  /**
-   * Update local student data after successful submission
-   */
-  updateLocalStudentData(selectedStudentIds: number[]): void {
-    const currentSessionNumber = this.getCurrentSessionForInput();
-    
-    this.students = this.students.map(student => {
-      if (selectedStudentIds.includes(student.id)) {
-        const updatedStudent = { ...student };
-        
-        // Update the appropriate session based on current session number
-        switch (currentSessionNumber) {
-          case 1:
-            updatedStudent.assessed = true;
-            updatedStudent.assessmentLevel = this.assessment.observation;
-            updatedStudent.assessmentDate = this.formatDateForDisplay(new Date().toISOString());
-            break;
-          case 2:
-            updatedStudent.assessed2 = true;
-            updatedStudent.assessmentLevel2 = this.assessment.observation;
-            updatedStudent.assessmentDate2 = this.formatDateForDisplay(new Date().toISOString());
-            break;
-          case 3:
-            updatedStudent.assessed3 = true;
-            updatedStudent.assessmentLevel3 = this.assessment.observation;
-            updatedStudent.assessmentDate3 = this.formatDateForDisplay(new Date().toISOString());
-            break;
-          case 4:
-            updatedStudent.assessed4 = true;
-            updatedStudent.assessmentLevel4 = this.assessment.observation;
-            updatedStudent.assessmentDate4 = this.formatDateForDisplay(new Date().toISOString());
-            break;
-        }
-        
-        return updatedStudent;
-      }
-      return student;
-    });
-  }
-
-  /**
-   * Clear assessment form after submission
-   */
-  clearAssessmentForm(): void {
-    this.assessment.observation = '';
-    this.assessment.remarks = '';
-    // Also clear any other form-related state if needed
-  }
-
-  /**
-   * Validate height and weight inputs
-   */
-  validateHeightWeightInputs(): { isValid: boolean; message: string } {
-    if (!this.isGrossOrFineMotor) {
-      return { isValid: true, message: '' };
-    }
-    
-    const selectedStudents = this.selection.selected;
-    if (selectedStudents.length === 0) {
-      return { isValid: false, message: 'Please select at least one student.' };
-    }
-    
-    const sessionNumber = this.getCurrentSessionForInput();
-    const invalidStudents: string[] = [];
-    
-    selectedStudents.forEach(student => {
-      const height = (student as any)[`height${sessionNumber}`];
-      const weight = (student as any)[`weight${sessionNumber}`];
-      
-      if (!height || !weight || height.toString().trim() === '' || weight.toString().trim() === '') {
-        invalidStudents.push(student.first_name);
-      } else {
-        // Validate numeric values
-        const heightNum = parseFloat(height.toString());
-        const weightNum = parseFloat(weight.toString());
-        
-        if (isNaN(heightNum) || heightNum <= 0 || heightNum > 200) {
-          invalidStudents.push(`${student.first_name} (invalid height)`);
-        }
-        if (isNaN(weightNum) || weightNum <= 0 || weightNum > 100) {
-          invalidStudents.push(`${student.first_name} (invalid weight)`);
-        }
-      }
-    });
-    
-    if (invalidStudents.length > 0) {
-      return { 
-        isValid: false, 
-        message: `Please enter valid height and weight for: ${invalidStudents.join(', ')}` 
-      };
-    }
-    
-    return { isValid: true, message: '' };
-  }
-
-  /**
-   * Handle height/weight input change
-   */
-  onHeightWeightInputChange(): void {
-    const validation = this.validateHeightWeightInputs();
-    if (!validation.isValid) {
-      console.log('Height/Weight validation:', validation.message);
-    }
-    this.onStudentSelectionChange();
+  trackByLevel(index: number, level: LevelDescription): string {
+    return level.level;
   }
 }

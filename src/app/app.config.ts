@@ -11,7 +11,10 @@ import { inject } from '@angular/core';
 
 import { routes } from './app.routes';
 import { AuthInterceptor, createAuthInterceptor } from './auth/auth.interceptor';
+import { PerformanceInterceptor } from './interceptors/performance.interceptor';
 import { UserService } from './services/user.service';
+import { LoggerService } from './services/logger.service';
+import { StateManagementService } from './services/state-management.service';
 import { Router } from '@angular/router';
 
 // Enhanced functional interceptor for Angular 19
@@ -27,10 +30,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }), 
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
-    // Alternative: Use class-based interceptor (comment above and uncomment below)
-    // provideHttpClient(),
-    // { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
-    provideAnimations(), // Added for PrimeNG animations
+    // HTTP Interceptors for production monitoring
+    { provide: HTTP_INTERCEPTORS, useClass: PerformanceInterceptor, multi: true },
+    provideAnimations(),
     providePrimeNG({
       theme: {
         preset: Lara,
@@ -42,14 +44,18 @@ export const appConfig: ApplicationConfig = {
           },
           colorScheme: 'light',
           variables: {
-            primaryColor: '#3B82F6',
-            primaryColorText: '#ffffff'
+            primaryColor: '#f84525',
+            primaryColorText: '#ffffff',
+            surfaceSection: '#ffffff',
+            borderRadius: '0.5rem'
           }
         }
       }
     }),
     MessageService,
-    UserService, // Ensure UserService is provided
+    UserService,
+    LoggerService,
+    StateManagementService,
     {
       provide: NGX_ECHARTS_CONFIG,
       useValue: {

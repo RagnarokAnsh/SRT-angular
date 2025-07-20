@@ -1,268 +1,389 @@
-<div class="assessment-container">
+<div class="assessment-container" [attr.aria-label]="'Assessment for ' + selectedCompetency">
   <!-- Header with competency name and progress indicator -->
-  
-    <h1 class="heading-heading" style="text-align: center;">
-      <span class="heading-highlight">{{ selectedCompetency.split(' ')[0] }}</span> {{ selectedCompetency.split(' ').slice(1).join(' ') }}
+  <header class="assessment-header">
+    <h1 class="heading-heading" id="assessment-title">
+      <span class="heading-highlight">{{ selectedCompetency.split(' ')[0] }}</span> 
+      <span class="heading-text">{{ selectedCompetency.split(' ').slice(1).join(' ') }}</span>
     </h1>
-    <!-- <div class="assessment-steps">
-      <div class="step" [class.active]="activeTab === 'students'" (click)="setActiveTab('students')">1. Select Students</div>
-      <div class="step" [class.active]="activeTab === 'levels'" (click)="setActiveTab('levels')">2. Choose Level</div>
-    </div> -->
-
+    
+    <!-- Progress indicator for mobile -->
+    <div class="progress-indicator" role="progressbar" 
+         [attr.aria-valuenow]="activeTab === 'students' ? 1 : 2" 
+         aria-valuemin="1" 
+         aria-valuemax="2"
+         aria-label="Assessment progress">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width]="(activeTab === 'students' ? 50 : 100) + '%'"></div>
+      </div>
+      <span class="progress-text">Step {{ activeTab === 'students' ? 1 : 2 }} of 2</span>
+    </div>
+  </header>
 
   <!-- Main content area with tabs -->
-  <div class="assessment-content">
+  <main class="assessment-content" role="main">
     <!-- Tab navigation -->
-    <div class="tab-navigation">
-      <button class="tab-button" [class.active]="activeTab === 'students'" (click)="setActiveTab('students')">
-        <mat-icon>people</mat-icon> Select Students
+    <nav class="tab-navigation" role="tablist" aria-label="Assessment steps">
+      <button class="tab-button" 
+              [class.active]="activeTab === 'students'" 
+              (click)="setActiveTab('students')"
+              role="tab"
+              [attr.aria-selected]="activeTab === 'students'"
+              [attr.aria-controls]="'students-panel'"
+              id="students-tab"
+              type="button">
+        <mat-icon aria-hidden="true">people</mat-icon> 
+        <span class="tab-text">Select Students</span>
       </button>
-      <button class="tab-button" [class.active]="activeTab === 'levels'" [class.disabled]="!selection.hasValue()" (click)="selection.hasValue() && setActiveTab('levels')">
-        <mat-icon>assessment</mat-icon> Assessment Level
+      <button class="tab-button" 
+              [class.active]="activeTab === 'levels'" 
+              [class.disabled]="!selection.hasValue()" 
+              (click)="selection.hasValue() && setActiveTab('levels')"
+              role="tab"
+              [attr.aria-selected]="activeTab === 'levels'"
+              [attr.aria-controls]="'levels-panel'"
+              [attr.aria-disabled]="!selection.hasValue()"
+              id="levels-tab"
+              type="button">
+        <mat-icon aria-hidden="true">assessment</mat-icon> 
+        <span class="tab-text">Assessment Level</span>
       </button>
-    </div>
+    </nav>
 
     <!-- Tab content -->
     <div class="tab-content">
       <!-- Students Tab -->
-      <div *ngIf="activeTab === 'students'" class="tab-pane students-tab">
-        <h2>Select students to assess</h2>
-        <p class="tab-description">Choose the students you want to assess for {{ selectedCompetency }}.</p>
+      <section *ngIf="activeTab === 'students'" 
+               class="tab-pane students-tab"
+               id="students-panel"
+               role="tabpanel"
+               [attr.aria-labelledby]="'students-tab'">
+        <div class="tab-header">
+          <h2>Select students to assess</h2>
+          <p class="tab-description">Choose the students you want to assess for {{ selectedCompetency }}.</p>
+        </div>
         
+        <!-- Search and filter section -->
         <div class="search-filter">
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" class="search-field">
             <mat-label>Filter students</mat-label>
-            <input matInput (keyup)="applyFilter($event)" placeholder="Type a name...">
-            <mat-icon matSuffix>search</mat-icon>
+            <input matInput 
+                   (keyup)="applyFilter($event)" 
+                   placeholder="Type a name..."
+                   aria-label="Search students by name"
+                   autocomplete="off">
+            <mat-icon matSuffix aria-hidden="true">search</mat-icon>
           </mat-form-field>
+          
+          <!-- Selected count indicator -->
+          <div class="selection-summary" *ngIf="selection.hasValue()" role="status" aria-live="polite">
+            <mat-icon>check_circle</mat-icon>
+            <span>{{ selection.selected.length }} student{{ selection.selected.length !== 1 ? 's' : '' }} selected</span>
+          </div>
         </div>
 
-        <div class="table-container">
-          <table mat-table [dataSource]="dataSource" class="student-table">
-            <!-- Checkbox Column -->
-            <ng-container matColumnDef="select">
-              <th mat-header-cell *matHeaderCellDef>
-                <mat-checkbox (change)="$event ? masterToggle() : null"
-                              [checked]="selection.hasValue() && isAllSelected()"
-                              [indeterminate]="selection.hasValue() && !isAllSelected()">
-                </mat-checkbox>
-              </th>
-              <td mat-cell *matCellDef="let student">
-                <mat-checkbox (click)="$event.stopPropagation()"
-                              (change)="$event ? toggleStudent(student) : null"
-                              [checked]="selection.isSelected(student)">
-                </mat-checkbox>
-              </td>
-            </ng-container>
+        <!-- Mobile-optimized student list -->
+        <div class="students-container">
+          <!-- Desktop table view -->
+          <div class="table-container desktop-view" *ngIf="!isMobile">
+            <table mat-table [dataSource]="dataSource" class="student-table" role="table">
+              <!-- Checkbox Column -->
+              <ng-container matColumnDef="select">
+                <th mat-header-cell *matHeaderCellDef scope="col">
+                  <mat-checkbox (change)="$event ? masterToggle() : null"
+                                [checked]="selection.hasValue() && isAllSelected()"
+                                [indeterminate]="selection.hasValue() && !isAllSelected()"
+                                [attr.aria-label]="'Select all students'">
+                  </mat-checkbox>
+                </th>
+                <td mat-cell *matCellDef="let student">
+                  <mat-checkbox (click)="$event.stopPropagation()"
+                                (change)="$event ? toggleStudent(student) : null"
+                                [checked]="selection.isSelected(student)"
+                                [attr.aria-label]="'Select ' + student.first_name">
+                  </mat-checkbox>
+                </td>
+              </ng-container>
 
-            <!-- Name Column -->
-            <ng-container matColumnDef="name">
-              <th mat-header-cell *matHeaderCellDef> Student Name </th>
-              <td mat-cell *matCellDef="let student"> {{ student.first_name }} </td>
-            </ng-container>
+              <!-- Name Column -->
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef scope="col"> Student Name </th>
+                <td mat-cell *matCellDef="let student"> {{ student.first_name }} </td>
+              </ng-container>
 
-            <!-- Height/Weight Input Columns (only for competency 10 and 11) -->
-            <ng-container *ngIf="showHeightWeightInputs" matColumnDef="heightInput">
-              <th mat-header-cell *matHeaderCellDef> Height (cm) </th>
-              <td mat-cell *matCellDef="let student">
-                <p-inputnumber 
-                  [(ngModel)]="student['height' + getCurrentSessionForInput()]" 
-                  [showButtons]="true" 
-                  buttonLayout="horizontal" 
-                  spinnerMode="horizontal" 
-                  [step]="1" 
-                  [min]="0" 
-                  [max]="200"
-                  placeholder="(cm)"
-                  (onInput)="onHeightWeightInputChange()"
-                  class="height-weight-input">
-                  <ng-template pTemplate="incrementbuttonicon">
-                    <span class="pi pi-plus"></span>
-                  </ng-template>
-                  <ng-template pTemplate="decrementbuttonicon">
-                    <span class="pi pi-minus"></span>
-                  </ng-template>
-                </p-inputnumber>
-              </td>
-            </ng-container>
+              <!-- Height/Weight Input Columns (only for competency 10 and 11) -->
+              <ng-container *ngIf="showHeightWeightInputs" matColumnDef="heightInput">
+                <th mat-header-cell *matHeaderCellDef scope="col"> Height (cm) </th>
+                <td mat-cell *matCellDef="let student">
+                  <p-inputnumber 
+                    [(ngModel)]="student['height' + getCurrentSessionForInput()]" 
+                    [showButtons]="true" 
+                    buttonLayout="horizontal" 
+                    spinnerMode="horizontal" 
+                    [step]="1" 
+                    [min]="0" 
+                    [max]="200"
+                    placeholder="cm"
+                    (onInput)="onHeightWeightInputChange()"
+                    [attr.aria-label]="'Height for ' + student.first_name"
+                    class="height-weight-input">
+                    <ng-template pTemplate="incrementbuttonicon">
+                      <span class="pi pi-plus"></span>
+                    </ng-template>
+                    <ng-template pTemplate="decrementbuttonicon">
+                      <span class="pi pi-minus"></span>
+                    </ng-template>
+                  </p-inputnumber>
+                </td>
+              </ng-container>
 
-            <ng-container *ngIf="showHeightWeightInputs" matColumnDef="weightInput">
-              <th mat-header-cell *matHeaderCellDef> Weight (kg) </th>
-              <td mat-cell *matCellDef="let student">
-                <p-inputnumber 
-                  [(ngModel)]="student['weight' + getCurrentSessionForInput()]" 
-                  [showButtons]="true" 
-                  buttonLayout="horizontal" 
-                  spinnerMode="horizontal" 
-                  [step]="0.1" 
-                  [min]="0" 
-                  [max]="100"
-                  placeholder="(kg)"
-                  (onInput)="onHeightWeightInputChange()"
-                  class="height-weight-input">
-                  <ng-template pTemplate="incrementbuttonicon">
-                    <span class="pi pi-plus"></span>
-                  </ng-template>
-                  <ng-template pTemplate="decrementbuttonicon">
-                    <span class="pi pi-minus"></span>
-                  </ng-template>
-                </p-inputnumber>
-              </td>
-            </ng-container>
+              <ng-container *ngIf="showHeightWeightInputs" matColumnDef="weightInput">
+                <th mat-header-cell *matHeaderCellDef scope="col"> Weight (kg) </th>
+                <td mat-cell *matCellDef="let student">
+                  <p-inputnumber 
+                    [(ngModel)]="student['weight' + getCurrentSessionForInput()]" 
+                    [showButtons]="true" 
+                    buttonLayout="horizontal" 
+                    spinnerMode="horizontal" 
+                    [step]="0.1" 
+                    [min]="0" 
+                    [max]="100"
+                    placeholder="kg"
+                    (onInput)="onHeightWeightInputChange()"
+                    [attr.aria-label]="'Weight for ' + student.first_name"
+                    class="height-weight-input">
+                    <ng-template pTemplate="incrementbuttonicon">
+                      <span class="pi pi-plus"></span>
+                    </ng-template>
+                    <ng-template pTemplate="decrementbuttonicon">
+                      <span class="pi pi-minus"></span>
+                    </ng-template>
+                  </p-inputnumber>
+                </td>
+              </ng-container>
 
-            <!-- Assessment Session 1 Column -->
-            <ng-container matColumnDef="assessmentInfo">
-              <th mat-header-cell *matHeaderCellDef> Assessment 1 </th>
-              <td mat-cell *matCellDef="let student" [ngClass]="student.assessmentLevel?.toLowerCase()">
-                <div *ngIf="student.assessed" class="assessment-cell">
-                  <div class="assessment-level">{{ student.assessmentLevel }}</div>
-                  <div class="assessment-date" *ngIf="student.assessmentDate">{{ student.assessmentDate }}</div>
-                  <div class="assessment-age" *ngIf="student.age1">Age: {{ student.age1 }}</div>
-                  <div class="assessment-height-weight" *ngIf="isGrossOrFineMotor && student.height1 && student.weight1">
-                    H: {{ student.height1 }}cm, W: {{ student.weight1 }}kg
+              <!-- Assessment Session 1 Column -->
+              <ng-container matColumnDef="assessmentInfo">
+                <th mat-header-cell *matHeaderCellDef scope="col"> Assessment 1 </th>
+                <td mat-cell *matCellDef="let student" [ngClass]="student.assessmentLevel?.toLowerCase()">
+                  <div *ngIf="student.assessed" class="assessment-cell">
+                    <div class="assessment-level">{{ student.assessmentLevel }}</div>
+                    <div class="assessment-date" *ngIf="student.assessmentDate">{{ student.assessmentDate }}</div>
+                    <div class="assessment-age" *ngIf="student.age1">Age: {{ student.age1 }}</div>
+                    <div class="assessment-height-weight" *ngIf="isGrossOrFineMotor && student.height1 && student.weight1">
+                      H: {{ student.height1 }}cm, W: {{ student.weight1 }}kg
+                    </div>
+                    <button class="remarks-icon" 
+                            [matTooltip]="student.remarks1 || student.remarks || 'No remarks available'" 
+                            matTooltipClass="remarks-tooltip"
+                            [attr.aria-label]="'View remarks for ' + student.first_name"
+                            type="button">
+                      <mat-icon class="info-icon">info</mat-icon>
+                    </button>
                   </div>
-                  <div class="remarks-icon" [matTooltip]="student.remarks1 || student.remarks || 'No remarks available'" matTooltipClass="remarks-tooltip">
-                    <mat-icon class="info-icon">info</mat-icon>
+                  <span *ngIf="!student.assessed" class="not-assessed">Not assessed</span>
+                </td>
+              </ng-container>
+
+              <!-- Assessment Session 2 Column -->
+              <ng-container matColumnDef="assessmentInfo2">
+                <th mat-header-cell *matHeaderCellDef scope="col"> Assessment 2 </th>
+                <td mat-cell *matCellDef="let student" [ngClass]="student.assessmentLevel2?.toLowerCase()">
+                  <div *ngIf="student.assessed2" class="assessment-cell">
+                    <div class="assessment-level">{{ student.assessmentLevel2 }}</div>
+                    <div class="assessment-date" *ngIf="student.assessmentDate2">{{ student.assessmentDate2 }}</div>
+                    <div class="assessment-age" *ngIf="student.age2">Age: {{ student.age2 }}</div>
+                    <div class="assessment-height-weight" *ngIf="isGrossOrFineMotor && student.height2 && student.weight2">
+                      H: {{ student.height2 }}cm, W: {{ student.weight2 }}kg
+                    </div>
+                    <button class="remarks-icon" 
+                            [matTooltip]="student.remarks2 || student.remarks || 'No remarks available'" 
+                            matTooltipClass="remarks-tooltip"
+                            [attr.aria-label]="'View remarks for ' + student.first_name"
+                            type="button">
+                      <mat-icon class="info-icon">info</mat-icon>
+                    </button>
+                  </div>
+                  <span *ngIf="!student.assessed2" class="not-assessed">Not assessed</span>
+                </td>
+              </ng-container>
+
+              <!-- Header and Row Declarations -->
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" (click)="toggleStudent(row)"></tr>
+            </table>
+          </div>
+
+          <!-- Mobile card view -->
+          <div class="mobile-view" *ngIf="isMobile">
+            <div class="student-cards">
+              <div *ngFor="let student of filteredStudents; trackBy: trackByStudentId" 
+                   class="student-card"
+                   [class.selected]="selection.isSelected(student)"
+                   (click)="toggleStudent(student)"
+                   [attr.aria-label]="'Select ' + student.first_name + (selection.isSelected(student) ? ', currently selected' : ', not selected')"
+                   role="button"
+                   tabindex="0"
+                   (keydown.enter)="toggleStudent(student)"
+                   (keydown.space)="toggleStudent(student)">
+                
+                <div class="student-card-header">
+                  <mat-checkbox [checked]="selection.isSelected(student)"
+                                (click)="$event.stopPropagation()"
+                                [attr.aria-label]="'Select ' + student.first_name">
+                  </mat-checkbox>
+                  <h3 class="student-name">{{ student.first_name }}</h3>
+                </div>
+
+                <!-- Assessment info -->
+                <div class="assessment-info" *ngIf="student.assessed || student.assessed2">
+                  <div class="assessment-session" *ngIf="student.assessed">
+                    <div class="session-header">Assessment 1</div>
+                    <div class="assessment-details">
+                      <span class="level" [ngClass]="student.assessmentLevel?.toLowerCase()">
+                        {{ student.assessmentLevel }}
+                      </span>
+                      <span class="date" *ngIf="student.assessmentDate">{{ student.assessmentDate }}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="assessment-session" *ngIf="student.assessed2">
+                    <div class="session-header">Assessment 2</div>
+                    <div class="assessment-details">
+                      <span class="level" [ngClass]="student.assessmentLevel2?.toLowerCase()">
+                        {{ student.assessmentLevel2 }}
+                      </span>
+                      <span class="date" *ngIf="student.assessmentDate2">{{ student.assessmentDate2 }}</span>
+                    </div>
                   </div>
                 </div>
-                <span *ngIf="!student.assessed" class="not-assessed">Not assessed</span>
-              </td>
-            </ng-container>
 
-            <!-- Assessment Session 2 Column -->
-            <ng-container matColumnDef="assessmentInfo2">
-              <th mat-header-cell *matHeaderCellDef> Assessment 2 </th>
-              <td mat-cell *matCellDef="let student" [ngClass]="student.assessmentLevel2?.toLowerCase()">
-                <div *ngIf="student.assessed2" class="assessment-cell">
-                  <div class="assessment-level">{{ student.assessmentLevel2 }}</div>
-                  <div class="assessment-date" *ngIf="student.assessmentDate2">{{ student.assessmentDate2 }}</div>
-                  <div class="assessment-age" *ngIf="student.age2">Age: {{ student.age2 }}</div>
-                  <div class="assessment-height-weight" *ngIf="isGrossOrFineMotor && student.height2 && student.weight2">
-                    H: {{ student.height2 }}cm, W: {{ student.weight2 }}kg
+                <!-- Height/Weight inputs for mobile -->
+                <div class="height-weight-inputs" *ngIf="showHeightWeightInputs">
+                  <div class="input-group">
+                    <label>Height (cm)</label>
+                    <p-inputnumber 
+                      [(ngModel)]="student['height' + getCurrentSessionForInput()]" 
+                      [showButtons]="true" 
+                      [step]="1" 
+                      [min]="0" 
+                      [max]="200"
+                      placeholder="cm"
+                      (onInput)="onHeightWeightInputChange()"
+                      class="mobile-input">
+                    </p-inputnumber>
                   </div>
-                  <div class="remarks-icon" [matTooltip]="student.remarks2 || student.remarks || 'No remarks available'" matTooltipClass="remarks-tooltip">
-                    <mat-icon class="info-icon">info</mat-icon>
+                  
+                  <div class="input-group">
+                    <label>Weight (kg)</label>
+                    <p-inputnumber 
+                      [(ngModel)]="student['weight' + getCurrentSessionForInput()]" 
+                      [showButtons]="true" 
+                      [step]="0.1" 
+                      [min]="0" 
+                      [max]="100"
+                      placeholder="kg"
+                      (onInput)="onHeightWeightInputChange()"
+                      class="mobile-input">
+                    </p-inputnumber>
                   </div>
                 </div>
-                <span *ngIf="!student.assessed2" class="not-assessed">Not assessed</span>
-              </td>
-            </ng-container>
-            
-            <!-- Assessment Session 3 Column -->
-            <ng-container matColumnDef="assessmentInfo3">
-              <th mat-header-cell *matHeaderCellDef> Assessment 3 </th>
-              <td mat-cell *matCellDef="let student" [ngClass]="student.assessmentLevel3?.toLowerCase()">
-                <div *ngIf="student.assessed3" class="assessment-cell">
-                  <div class="assessment-level">{{ student.assessmentLevel3 }}</div>
-                  <div class="assessment-date" *ngIf="student.assessmentDate3">{{ student.assessmentDate3 }}</div>
-                  <div class="assessment-age" *ngIf="student.age3">Age: {{ student.age3 }}</div>
-                  <div class="assessment-height-weight" *ngIf="isGrossOrFineMotor && student.height3 && student.weight3">
-                    H: {{ student.height3 }}cm, W: {{ student.weight3 }}kg
-                  </div>
-                  <div class="remarks-icon" [matTooltip]="student.remarks3 || student.remarks || 'No remarks available'" matTooltipClass="remarks-tooltip">
-                    <mat-icon class="info-icon">info</mat-icon>
-                  </div>
-                </div>
-                <span *ngIf="!student.assessed3" class="not-assessed">Not assessed</span>
-              </td>
-            </ng-container>
-            
-            <!-- Assessment Session 4 Column -->
-            <ng-container matColumnDef="assessmentInfo4">
-              <th mat-header-cell *matHeaderCellDef> Assessment 4 </th>
-              <td mat-cell *matCellDef="let student" [ngClass]="student.assessmentLevel4?.toLowerCase()">
-                <div *ngIf="student.assessed4" class="assessment-cell">
-                  <div class="assessment-level">{{ student.assessmentLevel4 }}</div>
-                  <div class="assessment-date" *ngIf="student.assessmentDate4">{{ student.assessmentDate4 }}</div>
-                  <div class="assessment-age" *ngIf="student.age4">Age: {{ student.age4 }}</div>
-                  <div class="assessment-height-weight" *ngIf="isGrossOrFineMotor && student.height4 && student.weight4">
-                    H: {{ student.height4 }}cm, W: {{ student.weight4 }}kg
-                  </div>
-                  <div class="remarks-icon" [matTooltip]="student.remarks4 || student.remarks || 'No remarks available'" matTooltipClass="remarks-tooltip">
-                    <mat-icon class="info-icon">info</mat-icon>
-                  </div>
-                </div>
-                <span *ngIf="!student.assessed4" class="not-assessed">Not assessed</span>
-              </td>
-            </ng-container>
 
-            <!-- Remarks Column -->
-            <!-- Remarks Column (temporarily disabled)
-            <ng-container matColumnDef="remarks">
-              <th mat-header-cell *matHeaderCellDef> Remarks </th>
-              <td mat-cell *matCellDef="let student">
-                <button mat-icon-button (click)="openRemarks(student)">
-                  <mat-icon>note_add</mat-icon>
-                </button>
-                <span *ngIf="student.remarks" class="has-remarks" 
-                  matTooltip="{{ student.remarks }}" 
-                  matTooltipClass="remarks-tooltip">
-                  <mat-icon>info</mat-icon>
-                </span>
-              </td>
-            </ng-container>
-            -->
-
-            <!-- Header and Row Declarations -->
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-          </table>
+                <div class="not-assessed-indicator" *ngIf="!student.assessed && !student.assessed2">
+                  <mat-icon>assignment</mat-icon>
+                  <span>Not assessed</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <!-- No data message -->
-          <div *ngIf="filteredStudents.length === 0" class="no-data">
-            <mat-icon>people_outline</mat-icon>
+          <div *ngIf="filteredStudents.length === 0" class="no-data" role="status">
+            <mat-icon aria-hidden="true">people_outline</mat-icon>
             <p>No students available. Please add students to proceed.</p>
           </div>
         </div>
 
+        <!-- Action buttons -->
         <div class="tab-actions">
-          <button class="btn btn-primary d-flex align-items-center" (click)="backToVideos()">
-            <mat-icon class="me-1">arrow_back</mat-icon> Back to Videos
+          <button class="btn btn-secondary" 
+                  (click)="backToVideos()"
+                  type="button"
+                  aria-label="Go back to videos">
+            <mat-icon aria-hidden="true">arrow_back</mat-icon> 
+            <span>Back to Videos</span>
           </button>
-          <button class="btn btn-primary d-flex align-items-center" 
+          <button class="btn btn-primary" 
                   [disabled]="getButtonDisabledState().isDisabled" 
-                  (click)="setActiveTab('levels')">
-            Continue to Assessment <mat-icon class="ms-1">arrow_forward</mat-icon>
+                  (click)="setActiveTab('levels')"
+                  type="button"
+                  [attr.aria-label]="getButtonDisabledState().isDisabled ? getButtonDisabledState().reason : 'Continue to assessment level selection'">
+            <span>Continue to Assessment</span>
+            <mat-icon aria-hidden="true">arrow_forward</mat-icon>
           </button>
         </div>
-      </div>
+      </section>
 
       <!-- Levels Tab -->
-      <div *ngIf="activeTab === 'levels'" class="tab-pane levels-tab">
-        <h2>Choose assessment level</h2>
-        <p class="tab-description">Select the appropriate level for the students you've chosen.</p>
+      <section *ngIf="activeTab === 'levels'" 
+               class="tab-pane levels-tab"
+               id="levels-panel"
+               role="tabpanel"
+               [attr.aria-labelledby]="'levels-tab'">
         
-        <div class="selected-students-summary">
+        <div class="tab-header">
+          <h2>Choose assessment level</h2>
+          <p class="tab-description">Select the appropriate level for the students you've chosen.</p>
+        </div>
+        
+        <!-- Selected students summary -->
+        <div class="selected-students-summary" role="region" aria-label="Selected students summary">
           <h3>Selected Students ({{ selection.selected.length }})</h3>
           <div class="selected-chips">
-            <div *ngFor="let student of selection.selected" class="student-chip">
-              {{ student.first_name }}
-              <button mat-icon-button (click)="selection.deselect(student)">
+            <div *ngFor="let student of selection.selected; trackBy: trackByStudentId" 
+                 class="student-chip">
+              <span>{{ student.first_name }}</span>
+              <button mat-icon-button 
+                      (click)="selection.deselect(student)"
+                      [attr.aria-label]="'Remove ' + student.first_name + ' from selection'"
+                      type="button">
                 <mat-icon>close</mat-icon>
               </button>
             </div>
           </div>
         </div>
 
-        <div class="level-selection">
-          <h3>Select Level</h3>
-          <div class="level-radio-group">
+        <!-- Level selection -->
+        <div class="level-selection" role="group" aria-labelledby="level-selection-heading">
+          <h3 id="level-selection-heading">Select Level</h3>
+          <div class="level-radio-group" role="radiogroup" [attr.aria-label]="'Assessment levels for ' + selectedCompetency">
             <div class="level-options">
-                <div class="level-option-wrapper" *ngFor="let level of levelDescriptions">
-                  <label class="level-radio-label">
-                    <div class="level-card" [style.border-color]="level.color" [class.selected]="assessment.observation === level.level">
-                      <div class="level-header" [style.background-color]="level.color">
-                        {{ level.level }}
-                      </div>
-                      <div class="level-description">{{ level.description }}</div>
-                      <div class="radio-container">
-                        <input type="radio" [value]="level.level" [(ngModel)]="assessment.observation" name="observation" id="radio-{{level.level}}" class="level-radio-input">
-                        <label for="radio-{{level.level}}" class="radio-custom-label"></label>
-                      </div>
+              <div class="level-option-wrapper" *ngFor="let level of levelDescriptions; trackBy: trackByLevel">
+                <label class="level-radio-label" [for]="'radio-' + level.level">
+                  <div class="level-card" 
+                       [style.border-color]="level.color" 
+                       [class.selected]="assessment.observation === level.level"
+                       [attr.aria-selected]="assessment.observation === level.level">
+                    <div class="level-header" [style.background-color]="level.color">
+                      {{ level.level }}
                     </div>
-                  </label>
-                </div>
+                    <div class="level-description">{{ level.description }}</div>
+                    <div class="radio-container">
+                      <input type="radio" 
+                             [value]="level.level" 
+                             [(ngModel)]="assessment.observation" 
+                             name="observation" 
+                             [id]="'radio-' + level.level" 
+                             class="level-radio-input"
+                             [attr.aria-describedby]="'desc-' + level.level">
+                      <span class="radio-custom-label" aria-hidden="true"></span>
+                    </div>
+                  </div>
+                  <div [id]="'desc-' + level.level" class="sr-only">
+                    Level {{ level.level }}: {{ level.description }}
+                  </div>
+                </label>
               </div>
+            </div>
           </div>
         </div>
         
@@ -270,119 +391,66 @@
         <div class="remarks-section">
           <div class="remarks-header">
             <h3>Assessment Remarks</h3>
-            <!-- <button *ngIf="assessment.remarks" mat-icon-button 
-                    matTooltip="{{assessment.remarks}}" 
-                    matTooltipClass="remarks-tooltip">
-              <!-- <mat-icon>info</mat-icon> -->
-            <!-- </button> --> 
           </div>
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Add remarks for this assessment</mat-label>
-            <textarea matInput [(ngModel)]="assessment.remarks" rows="3" placeholder="Enter general observations or comments..."></textarea>
-            <mat-hint>These remarks will apply to the entire assessment</mat-hint>
+            <textarea matInput 
+                      [(ngModel)]="assessment.remarks" 
+                      rows="3" 
+                      placeholder="Enter general observations or comments..."
+                      aria-label="Assessment remarks for all selected students"
+                      maxlength="500"></textarea>
+            <mat-hint>These remarks will apply to the entire assessment ({{ (assessment.remarks?.length || 0) }}/500)</mat-hint>
           </mat-form-field>
         </div>
-
-        <!-- Error message for max sessions reached -->
-        <!-- <div *ngIf="hasMaxSessionsReached()" class="max-sessions-error">
-          <mat-icon>warning</mat-icon>
-          <span>You have already submitted assessments for all 4 sessions for one or more selected students. Please select another competency to assess.</span>
-        </div> -->
         
+        <!-- Action buttons -->
         <div class="tab-actions">
-          <button class="btn btn-primary d-flex align-items-center" (click)="setActiveTab('students')">
-            <mat-icon class="me-1">arrow_back</mat-icon> Back to Students
+          <button class="btn btn-secondary" 
+                  (click)="setActiveTab('students')"
+                  type="button"
+                  aria-label="Go back to student selection">
+            <mat-icon aria-hidden="true">arrow_back</mat-icon> 
+            <span>Back to Students</span>
           </button>
-          <button *ngIf="!areAllSessionsCompleted()" class="btn btn-primary d-flex align-items-center" [disabled]="!assessment.observation || hasMaxSessionsReached()" (click)="onSubmit()">
-            Submit Assessment <mat-icon class="ms-1">check</mat-icon>
+          
+          <button *ngIf="!areAllSessionsCompleted()" 
+                  class="btn btn-primary" 
+                  [disabled]="!assessment.observation || hasMaxSessionsReached()" 
+                  (click)="onSubmit()"
+                  type="button"
+                  [attr.aria-label]="getSubmitButtonAriaLabel()">
+            <span>Submit Assessment</span>
+            <mat-icon aria-hidden="true">check</mat-icon>
           </button>
-          <div *ngIf="areAllSessionsCompleted()" class="all-sessions-complete-message">
-            <mat-icon class="me-1">check_circle</mat-icon>
-            All 4 sessions completed for selected students
+          
+          <div *ngIf="areAllSessionsCompleted()" 
+               class="all-sessions-complete-message" 
+               role="status" 
+               aria-live="polite">
+            <mat-icon aria-hidden="true">check_circle</mat-icon>
+            <span>All 4 sessions completed for selected students</span>
           </div>
         </div>
-      </div>
+      </section>
     </div>
-  </div>
+  </main>
 
   <!-- Success/Error messages with auto-fade animation -->
-  <div *ngIf="createSuccess" [@fadeAnimation] class="success-message">
-    <mat-icon>check_circle</mat-icon>
-    <span>{{ createSuccess }}</span>
-  </div>
-  <div *ngIf="createError" [@fadeAnimation] class="error-message">
-    <mat-icon>error</mat-icon>
-    <span>{{ createError }}</span>
+  <div class="toast-messages" aria-live="polite" aria-atomic="true">
+    <div *ngIf="createSuccess" [@fadeAnimation] class="success-message" role="alert">
+      <mat-icon aria-hidden="true">check_circle</mat-icon>
+      <span>{{ createSuccess }}</span>
+    </div>
+    <div *ngIf="createError" [@fadeAnimation] class="error-message" role="alert">
+      <mat-icon aria-hidden="true">error</mat-icon>
+      <span>{{ createError }}</span>
+    </div>
   </div>
 </div>
 
-<!-- Teaching Strategies Dialog -->
-<!-- <ng-template #teachingStrategiesDialog>
-  <div class="strategies-dialog">
-    <h2 mat-dialog-title>Teaching Strategies for {{ assessment.score }}</h2>
-    <mat-dialog-content>
-      <div class="strategy-content" [ngSwitch]="assessment.score">
-        <div *ngSwitchCase="'Beginner'">
-          <h3>Strategies for Beginner Level</h3>
-          <ul>
-            <li>Encourage the engagement of children in physical play activities and ensure they have opportunities for physical exercise, such as stretching, running or jumping.</li>
-            <li>Give the children time and scope to practice and improve balance and control.</li>
-            <li>Utilize local music, rhymes, dance and circle games to encourage children to move and have fun.</li>
-          </ul>
-        </div>
-        <div *ngSwitchCase="'Progressing'">
-          <h3>Strategies for Progressing Level</h3>
-          <ul>
-            <li>Introduce more complex physical activities that require coordination.</li>
-            <li>Encourage children to practice skills through games and playful activities.</li>
-            <li>Provide positive feedback and celebrate improvements.</li>
-          </ul>
-        </div>
-        <div *ngSwitchCase="'Advanced'">
-          <h3>Strategies for Advanced Level</h3>
-          <ul>
-            <li>Introduce collaborative physical activities and games.</li>
-            <li>Encourage children to demonstrate skills to peers.</li>
-            <li>Provide opportunities for creative movement and expression.</li>
-          </ul>
-        </div>
-        <div *ngSwitchCase="'PSR'">
-          <h3>Strategies for Primary School Ready Level</h3>
-          <ul>
-            <li>Focus on refining skills and building confidence.</li>
-            <li>Introduce activities that will prepare children for school PE curriculum.</li>
-            <li>Encourage children to take leadership roles in group activities.</li>
-          </ul>
-        </div>
-        <div *ngSwitchDefault>
-          <p>Select an assessment level to see specific teaching strategies.</p>
-        </div>
-      </div>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button (click)="toggleAudio('assets/audio/strategy_' + assessment.score.toLowerCase() + '.mp3')">
-        <mat-icon>{{ currentAudio ? 'pause' : 'volume_up' }}</mat-icon> {{ currentAudio ? 'Pause Audio' : 'Play Audio' }}
-      </button>
-      <button mat-raised-button color="primary" [mat-dialog-close]="true" (click)="continueToNextAssessment()">
-        Continue
-      </button>
-    </mat-dialog-actions>
-  </div>
-</ng-template> -->
-
-<!-- Remarks Dialog -->
-<!-- <ng-template #remarksDialog>
-  <div class="remarks-dialog">
-    <h2 mat-dialog-title>Student Remarks</h2>
-    <mat-dialog-content>
-      <mat-form-field appearance="outline" class="remarks-field">
-        <mat-label>Add remarks for this student</mat-label>
-        <textarea matInput [(ngModel)]="currentRemarks" rows="4" placeholder="Enter observations or comments..."></textarea>
-      </mat-form-field>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button [mat-dialog-close]="false">Cancel</button>
-      <button mat-raised-button color="primary" [mat-dialog-close]="currentRemarks">Save</button>
-    </mat-dialog-actions>
-  </div>
-</ng-template> -->
+<!-- Screen reader only content -->
+<div class="sr-only" aria-live="polite" aria-atomic="true">
+  <span *ngIf="isLoading">Loading assessment data...</span>
+  <span *ngIf="selection.hasValue()">{{ selection.selected.length }} students selected for assessment</span>
+</div>
