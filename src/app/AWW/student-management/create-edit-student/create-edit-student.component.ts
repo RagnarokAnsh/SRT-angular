@@ -14,6 +14,7 @@ import { HttpClient } from '@angular/common/http';
 import { UserService } from '../../../services/user.service';
 
 import { MessageService } from 'primeng/api';
+import { ErrorHandlerService } from '../../../core/error/error-handler.service';
 
 @Component({
   selector: 'app-create-edit-student',
@@ -52,7 +53,8 @@ export class CreateEditStudentComponent implements OnInit {
     private studentService: StudentService,
     private http: HttpClient,
     private userService: UserService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private errorHandler: ErrorHandlerService
   ) {
     this.studentForm = this.fb.group({
       firstName: ['', Validators.required],
@@ -169,12 +171,7 @@ export class CreateEditStudentComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading student:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: error.message || 'Failed to load student data',
-          life: 3000
-        });
+        // Error toast is already handled in the service, do not call errorHandler here
         this.goBack();
       }
     });
@@ -204,12 +201,7 @@ export class CreateEditStudentComponent implements OnInit {
           },
           error: (error) => {
             console.error('Error updating student:', error);
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: error.message || 'Failed to update student',
-              life: 3000
-            });
+            // Error toast is already handled in the service, do not call errorHandler here
           }
         });
       } else {
@@ -227,12 +219,7 @@ export class CreateEditStudentComponent implements OnInit {
           },
           error: (error) => {
             console.error('Error creating student:', error);
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: error.message || 'Failed to create student',
-              life: 3000
-            });
+            // Error toast is already handled in the service, do not call errorHandler here
           }
         });
       }

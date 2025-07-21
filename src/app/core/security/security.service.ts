@@ -34,7 +34,7 @@ export class SecurityService {
   private readonly config: SecurityConfig = {
     tokenRefreshThreshold: 300, // 5 minutes
     maxTokenAge: 3600, // 1 hour
-    encryptionEnabled: true,
+    encryptionEnabled: false, // <--- DISABLE ENCRYPTION FOR DEBUGGING
     sessionTimeout: 30 // 30 minutes
   };
   

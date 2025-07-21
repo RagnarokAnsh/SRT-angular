@@ -40,6 +40,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { AssessmentService, AssessmentSubmission } from './assessment.service';
 import { UserService } from '../../services/user.service';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
+import { ErrorHandlerService } from '../../core/error/error-handler.service';
 
 /**
  * Interface for Assessment data structure
@@ -198,7 +199,8 @@ export class AssessmentsComponent implements OnInit {
     private studentService: StudentService,
     private messageService: MessageService,
     private assessmentService: AssessmentService,
-    private userService: UserService
+    private userService: UserService,
+    private errorHandler: ErrorHandlerService
   ) {}
 
   /**
@@ -930,12 +932,16 @@ export class AssessmentsComponent implements OnInit {
    * Show message with PrimeNG toast
    */
   showMessage(message: string, isError: boolean = false) {
-    this.messageService.add({
-      severity: isError ? 'error' : 'success',
-      summary: isError ? 'Error' : 'Success',
-      detail: message,
-      life: 5000
-    });
+    if (isError) {
+      // Error toast is already handled in the service, do not call errorHandler here
+    } else {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: message,
+        life: 5000
+      });
+    }
   }
   
   /**

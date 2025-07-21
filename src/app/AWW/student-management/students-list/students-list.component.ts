@@ -12,6 +12,7 @@ import { StudentService, Student } from '../student.service';
 
 import { MessageService } from 'primeng/api';
 import { HostListener } from '@angular/core';
+import { ErrorHandlerService } from '../../../core/error/error-handler.service';
 
 @Component({
   selector: 'app-students-list',
@@ -42,7 +43,8 @@ export class StudentsListComponent implements OnInit {
     private studentService: StudentService,
     private router: Router,
     private dialog: MatDialog,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private errorHandler: ErrorHandlerService
   ) {
     this.updateDisplayedColumns();
   }
@@ -77,12 +79,7 @@ export class StudentsListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading students:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to load students',
-          life: 3000
-        });
+        // Error toast is already handled in the service, do not call errorHandler here
       }
     });
   }

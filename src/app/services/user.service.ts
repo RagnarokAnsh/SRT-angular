@@ -92,6 +92,9 @@ export class UserService {
       password 
     }).pipe(
       tap((response: LoginResponse) => {
+        // --- FIX: Remove role normalization, backend returns correct structure ---
+        // (No normalization needed)
+
         if (response.token && response.user && this.securityService.isTokenValid(response.token)) {
           // Store token and user data securely
           this.securityService.setToken(response.token);
@@ -161,7 +164,7 @@ export class UserService {
 
   getUserRoles(): string[] {
     const user = this.getCurrentUser();
-    return user ? user.roles.map(role => role.name) : [];
+    return user ? user.roles.map(role => role.name.toLowerCase()) : [];
   }
 
   hasRole(roleName: string): boolean {

@@ -4,6 +4,7 @@ import { Observable, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { AppStateService } from '../state/app.state';
 import { catchError } from 'rxjs/operators';
+import { UXErrorService, UXErrorMessage } from './ux-error.service';
 
 export interface ErrorInfo {
   code: string;
@@ -40,7 +41,8 @@ export class ErrorHandlerService {
   
   constructor(
     private messageService: MessageService,
-    private appState: AppStateService
+    private appState: AppStateService,
+    private uxErrorService: UXErrorService // Inject UXErrorService
   ) {}
   
   // Main error handling method
@@ -57,7 +59,7 @@ export class ErrorHandlerService {
     
     // Show user notification
     if (this.config.enableUserNotifications) {
-      this.showUserNotification(errorInfo);
+      this.showUserNotification(errorInfo, error); // Pass original error
     }
     
     // Handle specific error types
@@ -194,7 +196,7 @@ export class ErrorHandlerService {
         };
     }
     
-    return this.handleError(error, context);
+    return this.handleError(error, context); // This will pass error to showUserNotification
   }
   
   // Validation Error Extraction
@@ -348,11 +350,15 @@ export class ErrorHandlerService {
   }
   
   // User Notification
-  private showUserNotification(errorInfo: ErrorInfo): void {
+  private showUserNotification(errorInfo: ErrorInfo, originalError?: any): void {
+    let uxMessage: UXErrorMessage | null = null;
+    if (errorInfo.context) {
+      uxMessage = this.uxErrorService.getContextualMessage(originalError || errorInfo, errorInfo.context);
+    }
     this.messageService.add({
       severity: errorInfo.severity,
-      summary: this.getErrorSummary(errorInfo.code),
-      detail: errorInfo.userMessage,
+      summary: uxMessage?.title || this.getErrorSummary(errorInfo.code),
+      detail: uxMessage?.message || errorInfo.userMessage,
       life: this.getErrorLife(errorInfo.severity)
     });
   }

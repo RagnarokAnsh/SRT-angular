@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { UserService } from '../services/user.service';
 import { SecurityService } from '../core/security/security.service';
 import { ErrorHandlerService } from '../core/error/error-handler.service';
+import { inject } from '@angular/core';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -116,9 +117,9 @@ export class AuthInterceptor implements HttpInterceptor {
 
 // Enhanced functional interceptor for Angular 19+ (alternative approach)
 export function createAuthInterceptor(userService: UserService, router: Router) {
+  const securityService = inject(SecurityService);
   return (req: HttpRequest<unknown>, next: any) => {
-    const token = localStorage.getItem('token');
-    
+    const token = securityService.getToken();
     // Add authorization header if token exists and is valid
     let authReq = req;
     if (token && userService.isAuthenticated()) {

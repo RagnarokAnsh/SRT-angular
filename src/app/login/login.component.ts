@@ -4,6 +4,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { UserService } from '../services/user.service';
+import { ErrorHandlerService } from '../core/error/error-handler.service';
 
 @Component({
   selector: 'app-login',
@@ -23,7 +24,8 @@ export class LoginComponent implements OnInit {
     private userService: UserService,
     private router: Router,
     private route: ActivatedRoute,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private errorHandler: ErrorHandlerService
   ) {}
 
   ngOnInit(): void {
@@ -66,24 +68,7 @@ export class LoginComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading = false;
-        let errorMessage = 'Login failed. Please try again.';
-        
-        if (error.status === 401) {
-          errorMessage = 'Invalid email or password';
-        } else if (error.status === 422) {
-          errorMessage = 'Please check your email and password format';
-        } else if (error.status === 0) {
-          errorMessage = 'Unable to connect to server. Please check your internet connection.';
-        } else {
-          errorMessage = error.error?.message || 'Login failed. Please try again.';
-        }
-        
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Login Failed',
-          detail: errorMessage,
-          life: 5000
-        });
+        // Error toast is already handled in the service, do not call errorHandler here
       }
     });
   }

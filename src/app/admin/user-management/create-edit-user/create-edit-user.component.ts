@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { UserService, User, Country, State, District, Project, Sector, AnganwadiCenter } from '../user.service';
 import { MessageService } from 'primeng/api';
+import { ErrorHandlerService } from '../../../core/error/error-handler.service';
 
 @Component({
   selector: 'app-create-edit-user',
@@ -53,7 +54,8 @@ export class CreateEditUserComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private userService: UserService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private errorHandler: ErrorHandlerService
   ) {
     this.userForm = this.fb.group({
       name: ['', Validators.required],
@@ -147,12 +149,7 @@ export class CreateEditUserComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading user:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: error.message || 'Failed to load user data',
-          life: 3000
-        });
+        // Error toast is already handled in the service, do not call errorHandler here
         this.goBack();
       }
     });
@@ -407,27 +404,7 @@ export class CreateEditUserComponent implements OnInit {
           console.error('Error saving user:', error);
           console.error('Error details:', error.error);
 
-          // Display validation errors if available
-          let errorMessage = 'An error occurred while saving the user';
-          if (error.error && error.error.errors) {
-            console.error('Validation errors:', error.error.errors);
-            const validationErrors: string[] = [];
-            Object.keys(error.error.errors).forEach(key => {
-              const errorMsg = `${key}: ${error.error.errors[key].join(', ')}`;
-              console.error(errorMsg);
-              validationErrors.push(errorMsg);
-            });
-            errorMessage = validationErrors.join('; ');
-          } else if (error.message) {
-            errorMessage = error.message;
-          }
-
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: errorMessage,
-            life: 5000
-          });
+          this.errorHandler.handleError(error, this.isEditMode ? 'user-edit' : 'user-create').subscribe();
         }
       });
     }

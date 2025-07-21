@@ -10,6 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AnganwadiService, Country, State, District } from '../anganwadi.service';
 import { MessageService } from 'primeng/api';
+import { ErrorHandlerService } from '../../../core/error/error-handler.service';
 
 
 @Component({
@@ -48,6 +49,7 @@ export class CreateEditAnganwadiComponent implements OnInit {
   private originalDistrictId?: number;
 
   private messageService = inject(MessageService);
+  private errorHandler = inject(ErrorHandlerService);
 
   constructor(
     private fb: FormBuilder,
@@ -215,12 +217,7 @@ export class CreateEditAnganwadiComponent implements OnInit {
           },
           error: (error) => {
             setTimeout(() => {
-              this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: `Failed to create anganwadi center: ${error.message || 'Unknown error'}`,
-                life: 5000
-              });
+              // Error toast is already handled in the service, do not call errorHandler here
             }, 0);
             console.error('Error creating anganwadi center:', error);
             this.submitting = false;
