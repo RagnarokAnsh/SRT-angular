@@ -3,6 +3,8 @@ import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { UserService, User } from '../../services/user.service';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../../AWW/assessments/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-navbar',
@@ -374,7 +376,7 @@ export class NavbarComponent implements OnInit {
   isAuthenticated = false;
   currentUser: User | null = null;
 
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService, private dialog: MatDialog) {}
 
   ngOnInit() {
     this.userService.isAuthenticated$.subscribe(
@@ -411,8 +413,18 @@ export class NavbarComponent implements OnInit {
     this.isDropdownOpen = false;
   }
 
-  logout() {
-    this.userService.logout();
-    this.closeMenu();
+  async logout() {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Confirm Logout',
+        message: 'Are you sure you want to logout?',
+        confirmText: 'Logout'
+      }
+    });
+    const confirmed = await dialogRef.afterClosed().toPromise();
+    if (confirmed) {
+      this.userService.logout();
+      this.closeMenu();
+    }
   }
 } 

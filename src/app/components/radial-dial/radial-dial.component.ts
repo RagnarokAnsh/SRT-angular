@@ -62,11 +62,11 @@ export class RadialDialComponent implements OnInit {
       competencies: ['Classification', 'Patterns', 'Number concept', 'Seriation']
     },
     {
-      name: 'Language and Literacy Development',
-      competencies: ['Vocabulary and exp.', 'Listening comprehension', 'Emergent reading', 'Emergent writing']
+      name: 'Language & Literacy Development',
+      competencies: ['Vocabulary & exp.', 'Listening comprehension', 'Emergent reading', 'Emergent writing']
     },
     {
-      name: 'Physical and Motor Development',
+      name: 'Physical & Motor Development',
       competencies: ['Gross motor', 'Fine motor']
     },
     {
@@ -170,6 +170,8 @@ export class RadialDialComponent implements OnInit {
     const domainCount = this.domains.length;
     let angle = 0;
     const sectors: any[] = [];
+    // Determine arc radius increase for large screens
+    const arcRadiusIncrease = window.innerWidth >= 992 ? 10 : 0;
     this.domains.forEach((domain, dIdx) => {
       const domainAngle = 360 / domainCount;
       const domainStart = angle;
@@ -179,7 +181,7 @@ export class RadialDialComponent implements OnInit {
         startAngle: domainStart,
         endAngle: domainEnd,
         innerRadius: this.ringWidth,
-        outerRadius: this.ringWidth * 2,
+        outerRadius: this.ringWidth * 2 + arcRadiusIncrease,
         color: this.colors[dIdx % this.colors.length],
         cx, cy,
         domainIdx: dIdx

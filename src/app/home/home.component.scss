@@ -80,6 +80,7 @@
     margin: 0 auto;
     color: var(--text, #333);
     font-size: 1rem;
+    font-weight: 200;
     line-height: 1.6;
     padding: 0 var(--spacing-sm);
 
@@ -106,6 +107,7 @@
   margin-top: var(--spacing-lg);
   padding: 0;
   width: 100%;
+ 
 
   @media (min-width: 576px) {
     margin-top: var(--spacing-xl);
@@ -122,6 +124,7 @@
     color: var(--text, #333);
     font-size: 1rem;
     line-height: 1.6;
+    font-weight: 200;
     padding: 0 var(--spacing-sm);
 
     @media (min-width: 576px) {

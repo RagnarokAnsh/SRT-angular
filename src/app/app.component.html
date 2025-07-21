@@ -1,5 +1,5 @@
 <div class="app-container">
-  <p-toast position="top-right" [style]="{marginTop: '80px'}"></p-toast>
+  <p-toast position="top-right" [style]="{marginTop: '80px'}" [breakpoints]="{ '600px': { width: '95%', right: '2.5%', left: '2.5%', marginTop: '70px' }, '400px': { width: '99%', right: '0.5%', left: '0.5%', marginTop: '60px' } }"></p-toast>
   <app-navbar></app-navbar>
   <main class="main-content">
     <router-outlet></router-outlet>

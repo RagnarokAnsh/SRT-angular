@@ -38,9 +38,9 @@ import { Component } from '@angular/core';
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 0.25rem;
+      // padding: 0.25rem;
       @media (min-width: 480px) {
-        padding: 0.5rem;
+        // padding: 0.5rem;
       }
     }
     

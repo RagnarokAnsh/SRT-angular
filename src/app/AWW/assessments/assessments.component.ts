@@ -595,25 +595,29 @@ export class AssessmentsComponent implements OnInit {
           if (assessmentData) {
             // Store height/weight per session if available
             if (assessmentData.session_1 && assessmentData.session_1.height) {
-              (updatedStudent as any).height1 = assessmentData.session_1.height;
+              const h1 = assessmentData.session_1.height;
+              (updatedStudent as any).height1 = (!isNaN(Number(h1)) && h1 !== null && h1 !== undefined && h1 !== '') ? Number(h1) : '';
             }
             if (assessmentData.session_1 && assessmentData.session_1.weight) {
               (updatedStudent as any).weight1 = assessmentData.session_1.weight;
             }
             if (assessmentData.session_2 && assessmentData.session_2.height) {
-              (updatedStudent as any).height2 = assessmentData.session_2.height;
+              const h2 = assessmentData.session_2.height;
+              (updatedStudent as any).height2 = (!isNaN(Number(h2)) && h2 !== null && h2 !== undefined && h2 !== '') ? Number(h2) : '';
             }
             if (assessmentData.session_2 && assessmentData.session_2.weight) {
               (updatedStudent as any).weight2 = assessmentData.session_2.weight;
             }
             if (assessmentData.session_3 && assessmentData.session_3.height) {
-              (updatedStudent as any).height3 = assessmentData.session_3.height;
+              const h3 = assessmentData.session_3.height;
+              (updatedStudent as any).height3 = (!isNaN(Number(h3)) && h3 !== null && h3 !== undefined && h3 !== '') ? Number(h3) : '';
             }
             if (assessmentData.session_3 && assessmentData.session_3.weight) {
               (updatedStudent as any).weight3 = assessmentData.session_3.weight;
             }
             if (assessmentData.session_4 && assessmentData.session_4.height) {
-              (updatedStudent as any).height4 = assessmentData.session_4.height;
+              const h4 = assessmentData.session_4.height;
+              (updatedStudent as any).height4 = (!isNaN(Number(h4)) && h4 !== null && h4 !== undefined && h4 !== '') ? Number(h4) : '';
             }
             if (assessmentData.session_4 && assessmentData.session_4.weight) {
               (updatedStudent as any).weight4 = assessmentData.session_4.weight;
@@ -810,6 +814,9 @@ export class AssessmentsComponent implements OnInit {
     this.activeTab = tab;
     if (tab === 'students') {
       this.clearAssessmentForm();
+    }
+    if (tab === 'levels') {
+      this.assessment.remarks = '';
     }
     this.cdr.detectChanges();
   }

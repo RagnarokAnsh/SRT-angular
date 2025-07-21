@@ -55,7 +55,7 @@ export class LoginComponent implements OnInit {
         this.messageService.add({
           severity: 'success',
           summary: 'Login Successful',
-          detail: 'Login successful! Redirecting...',
+          detail: `Welcome, ${response.user.name}!`,
           life: 2000
         });
         
