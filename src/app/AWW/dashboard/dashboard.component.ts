@@ -1,163 +1,150 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartConfiguration, ChartType, registerables } from 'chart.js';
-import { StudentService, Student, ApiStudent } from '../student-management/student.service';
-import { AssessmentService } from '../assessments/assessment.service';
-import { forkJoin, of, Observable } from 'rxjs';
-import { catchError, switchMap, map } from 'rxjs/operators';
+
+// PrimeNG Imports
+import { MultiSelectModule } from 'primeng/multiselect';
+import { CardModule } from 'primeng/card';
+import { ButtonModule } from 'primeng/button';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { TagModule } from 'primeng/tag';
+import { DividerModule } from 'primeng/divider';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
+
+// Services
+import { StudentService, Student } from '../student-management/student.service';
+import { AssessmentService, AssessmentStudent } from '../assessments/assessment.service';
+import { CompetencyService, AppDomain, AppCompetency } from '../../competency.service';
+import { UserService } from '../../services/user.service';
 import { SkeletonLoaderComponent } from '../../components/skeleton-loader';
 import { LoggerService } from '../../core/logger.service';
-import { Injectable } from '@angular/core';
 
-interface StudentWithGender extends Student {
-  gender: string;
+// Interfaces
+interface SessionOption {
+  label: string;
+  value: number;
+  code: string;
 }
 
-interface AssessmentData {
-  students: Student[];
-  assessments: any[];
+interface DomainOption {
+  label: string;
+  value: number;
+  code: string;
+}
+
+interface CompetencyOption {
+  label: string;
+  value: number;
+  code: string;
+  domainId: number;
+}
+
+interface AssessmentLevel {
+  label: string;
+  value: string;
+  color: string;
 }
 
 interface DashboardData {
-  genderDistribution: { male: number; female: number };
-  competencyProgress: { completed: number; total: number };
-  studentLevels: { 
-    beginner: number; 
-    progressing: number; 
-    advancing: number; 
-    preschoolReady: number 
+  totalStudents: number;
+  assessedStudents: number;
+  levelDistribution: {
+    beginner: number;
+    progressing: number;
+    advanced: number;
+    schoolReady: number;
   };
 }
 
-@Injectable()
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective, SkeletonLoaderComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    BaseChartDirective,
+    SkeletonLoaderComponent,
+    MultiSelectModule,
+    CardModule,
+    ButtonModule,
+    ProgressBarModule,
+    TagModule,
+    DividerModule,
+    TooltipModule
+  ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit {
-  // Real data properties
-  students: StudentWithGender[] = [];
+  @ViewChild('chart', { static: false }) chart!: ElementRef;
+
+  // Loading state
   loading = true;
-  private _genderDistribution = { male: 0, female: 0 };
+  loadingAssessments = false;
 
-  // Computed properties for data display
-  get totalStudents(): number {
-    return this.students.length;
-  }
+  // Data
+  students: Student[] = [];
+  domains: AppDomain[] = [];
+  assessmentData: AssessmentStudent[] = [];
+  currentUserAnganwadiId: number | null = null;
 
-  // Getter for gender distribution
-  get genderDistribution() {
-    return this._genderDistribution;
-  }
+  // Dropdown options
+  sessionOptions: SessionOption[] = [
+    { label: 'Session 1', value: 1, code: 'S1' },
+    { label: 'Session 2', value: 2, code: 'S2' },
+    { label: 'Session 3', value: 3, code: 'S3' },
+    { label: 'Session 4', value: 4, code: 'S4' }
+  ];
 
-  // For now, we'll keep these as placeholders
-  get competencyProgress() {
-    return { completed: 0, total: 0 };
-  }
+  domainOptions: DomainOption[] = [];
+  competencyOptions: CompetencyOption[] = [];
+  filteredCompetencyOptions: CompetencyOption[] = [];
 
-  get studentLevels() {
-    return {
+  // Selected values
+  selectedSessions: SessionOption[] = [];
+  selectedDomains: DomainOption[] = [];
+  selectedCompetencies: CompetencyOption[] = [];
+
+  // Assessment levels
+  assessmentLevels: AssessmentLevel[] = [
+    { label: 'Beginner', value: 'Beginner', color: '#ff9800' },
+    { label: 'Progressing', value: 'Progressing', color: '#2196f3' },
+    { label: 'Advanced', value: 'Advanced', color: '#9c27b0' },
+    { label: 'School Ready', value: 'PSR', color: '#4caf50' }
+  ];
+
+  // Dashboard metrics
+  dashboardData: DashboardData = {
+    totalStudents: 0,
+    assessedStudents: 0,
+    levelDistribution: {
       beginner: 0,
       progressing: 0,
-      advancing: 0,
-      preschoolReady: 0
-    };
-  }
-
-  // Gender Distribution Chart (Modern Doughnut) - Fixed colors
-  genderChartData: ChartConfiguration<'doughnut'>['data'] = {
-    labels: ['Boys', 'Girls'],
-    datasets: [{
-      data: [0, 0], // Will be updated when data loads
-      backgroundColor: [
-        'rgba(79, 70, 229, 0.8)', // indigo-600 (matching boys stat card)
-        'rgba(219, 39, 119, 0.8)'  // pink-600 (matching girls stat card)
-      ],
-      borderColor: [
-        'rgba(79, 70, 229, 1)',    // indigo-600
-        'rgba(219, 39, 119, 1)'    // pink-600
-      ],
-      borderWidth: 3,
-      hoverOffset: 8
-    }]
-  };
-
-  genderChartOptions: ChartConfiguration<'doughnut'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '65%',
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          font: {
-            family: 'Figtree, sans-serif',
-            size: 14,
-            weight: 500
-          },
-          padding: 25,
-          color: '#374151',
-          usePointStyle: true,
-          pointStyle: 'circle'
-        }
-      },
-      tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#1f2937',
-        bodyColor: '#374151',
-        borderColor: 'rgba(0, 0, 0, 0.1)',
-        borderWidth: 1,
-        cornerRadius: 12,
-        titleFont: {
-          size: 16,
-          weight: 600
-        },
-        bodyFont: {
-          size: 14,
-          weight: 500
-        },
-        callbacks: {
-          label: (context) => {
-            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
-            const value = context.parsed as number;
-            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
-            return `${context.label}: ${value} (${percentage}%)`;
-          }
-        }
-      }
-    },
-    animation: {
-      duration: 1500,
-      easing: 'easeInOutCubic'
+      advanced: 0,
+      schoolReady: 0
     }
   };
 
-  // Student Levels Chart (Modern Horizontal Bar)
-  levelChartData: ChartConfiguration<'bar'>['data'] = {
-    labels: ['Beginner', 'Progressing', 'Advancing', 'Preschool Ready'],
+  // Chart configuration
+  chartData: ChartConfiguration<'bar'>['data'] = {
+    labels: ['Beginner', 'Progressing', 'Advanced', 'School Ready'],
     datasets: [{
-      data: [
-        this.studentLevels.beginner,
-        this.studentLevels.progressing,
-        this.studentLevels.advancing,
-        this.studentLevels.preschoolReady
-      ],
+      label: 'Number of Students',
+      data: [0, 0, 0, 0],
       backgroundColor: [
-        'rgba(245, 158, 11, 0.8)',
-        'rgba(59, 130, 246, 0.8)',
-        'rgba(139, 92, 246, 0.8)',
-        'rgba(16, 185, 129, 0.8)'
+        'rgba(255, 152, 0, 0.8)',
+        'rgba(33, 150, 243, 0.8)',
+        'rgba(156, 39, 176, 0.8)',
+        'rgba(76, 175, 80, 0.8)'
       ],
       borderColor: [
-        'rgba(245, 158, 11, 1)',
-        'rgba(59, 130, 246, 1)',
-        'rgba(139, 92, 246, 1)',
-        'rgba(16, 185, 129, 1)'
+        'rgba(255, 152, 0, 1)',
+        'rgba(33, 150, 243, 1)',
+        'rgba(156, 39, 176, 1)',
+        'rgba(76, 175, 80, 1)'
       ],
       borderWidth: 2,
       borderRadius: 8,
@@ -165,10 +152,9 @@ export class DashboardComponent implements OnInit {
     }]
   };
 
-  levelChartOptions: ChartConfiguration<'bar'>['options'] = {
+  chartOptions: ChartConfiguration<'bar'>['options'] = {
     responsive: true,
     maintainAspectRatio: false,
-    indexAxis: 'y',
     plugins: {
       legend: {
         display: false
@@ -190,14 +176,16 @@ export class DashboardComponent implements OnInit {
         },
         callbacks: {
           label: (context) => {
-            const percentage = ((context.parsed.x / this.totalStudents) * 100).toFixed(1);
-            return `${context.parsed.x} students (${percentage}%)`;
+            const value = context.parsed.y;
+            const total = this.dashboardData.totalStudents;
+            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+            return `${value} students (${percentage}%)`;
           }
         }
       }
     },
     scales: {
-      x: {
+      y: {
         beginAtZero: true,
         grid: {
           color: 'rgba(0, 0, 0, 0.05)',
@@ -211,13 +199,14 @@ export class DashboardComponent implements OnInit {
             size: 12,
             weight: 500
           },
-          color: '#6b7280'
+          color: '#6b7280',
+          stepSize: 1
         },
         border: {
           display: false
         }
       },
-      y: {
+      x: {
         grid: {
           display: false
         },
@@ -240,151 +229,278 @@ export class DashboardComponent implements OnInit {
     }
   };
 
+
+
   constructor(
     private studentService: StudentService,
     private assessmentService: AssessmentService,
+    private competencyService: CompetencyService,
+    private userService: UserService,
     private cdr: ChangeDetectorRef,
     private messageService: MessageService,
     private logger: LoggerService
   ) {
-    // Register Chart.js components
     Chart.register(...registerables);
   }
 
   ngOnInit() {
-    this.loadStudentData();
+    this.initializeDashboard();
   }
 
-  loadStudentData(): void {
+  private async initializeDashboard(): Promise<void> {
     this.loading = true;
     
-    // Get students data
-    this.studentService.getStudents().subscribe({
-      next: (students) => {
-        this.students = students || [];
-        this.updateGenderDistribution();
-        this.updateCharts();
-        this.loading = false;
-      },
-      error: (error) => {
-        this.logger.error('Error loading students:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to load student data. Please try again later.',
-          life: 5000
+    try {
+      // Get current user's anganwadi ID
+      await this.getCurrentUserAnganwadiId();
+      
+      // Load all required data in parallel
+      await Promise.all([
+        this.loadStudents(),
+        this.loadDomainsAndCompetencies()
+      ]);
+      
+      // Set default selections to show some data initially
+      this.setDefaultSelections();
+      
+    } catch (error) {
+      this.logger.error('Error initializing dashboard:', error);
+      this.showMessage('Failed to load dashboard data. Please try again later.', 'error');
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  private async getCurrentUserAnganwadiId(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const currentUser = this.userService.getCurrentUser();
+      if (currentUser && this.userService.isAWW() && currentUser.anganwadi_id) {
+        this.currentUserAnganwadiId = currentUser.anganwadi_id;
+        this.logger.log('Current user anganwadi ID:', this.currentUserAnganwadiId);
+        resolve();
+      } else {
+        const error = 'Cannot load dashboard: AWW user missing anganwadi ID';
+        this.logger.warn(error);
+        reject(new Error(error));
+      }
+    });
+  }
+
+  private async loadStudents(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.studentService.getStudents().subscribe({
+        next: (students) => {
+          this.students = students || [];
+          this.dashboardData.totalStudents = this.students.length;
+          this.logger.log('Loaded students:', this.students.length);
+          resolve();
+        },
+        error: (error) => {
+          this.logger.error('Error loading students:', error);
+          reject(error);
+        }
+      });
+    });
+  }
+
+  private async loadDomainsAndCompetencies(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.competencyService.getDomainsWithCompetencies().subscribe({
+        next: (domains) => {
+          this.domains = domains || [];
+          this.setupDropdownOptions();
+          this.logger.log('Loaded domains and competencies:', this.domains.length);
+          resolve();
+        },
+        error: (error) => {
+          this.logger.error('Error loading domains and competencies:', error);
+          reject(error);
+        }
+      });
+    });
+  }
+
+  private setupDropdownOptions(): void {
+    // Setup domain options
+    this.domainOptions = this.domains.map(domain => ({
+      label: domain.name,
+      value: domain.id,
+      code: `D${domain.id}`
+    }));
+
+    // Setup competency options
+    this.competencyOptions = [];
+    this.domains.forEach(domain => {
+      domain.competencies.forEach(competency => {
+        this.competencyOptions.push({
+          label: competency.name,
+          value: competency.id,
+          code: `C${competency.id}`,
+          domainId: domain.id
         });
-        this.loading = false;
-      }
-    });
-  }
-
-  /**
-   * Helper method to normalize gender values
-   */
-  private normalizeGender(gender: string | undefined | null): 'male' | 'female' | 'other' {
-    if (!gender) return 'other';
-    
-    const normalizedGender = gender.toLowerCase().trim();
-    
-    // Handle various male representations
-    if (normalizedGender === 'male' || normalizedGender === 'm' || normalizedGender === 'boy') {
-      return 'male';
-    }
-    
-    // Handle various female representations
-    if (normalizedGender === 'female' || normalizedGender === 'f' || normalizedGender === 'girl') {
-      return 'female';
-    }
-    
-    return 'other';
-  }
-
-  /**
-   * Update gender distribution for stat cards
-   */
-  private updateGenderDistribution(): void {
-    // Reset counts
-    this._genderDistribution = { male: 0, female: 0 };
-    
-    // Count students by normalized gender
-    this.students.forEach(student => {
-      const normalizedGender = this.normalizeGender(student.gender);
-      if (normalizedGender === 'male') {
-        this._genderDistribution.male++;
-      } else if (normalizedGender === 'female') {
-        this._genderDistribution.female++;
-      }
+      });
     });
 
-    this.logger.log('Gender Distribution Updated:', this._genderDistribution);
+    this.filteredCompetencyOptions = [...this.competencyOptions];
   }
-  
-  private updateCharts(): void {
-    if (!this.students || this.students.length === 0) {
-      // Reset charts to empty state
-      this.genderChartData = {
-        labels: ['Boys', 'Girls'],
-        datasets: [{
-          data: [0, 0],
-          backgroundColor: [
-            'rgba(79, 70, 229, 0.8)',
-            'rgba(219, 39, 119, 0.8)'
-          ],
-          borderColor: [
-            'rgba(79, 70, 229, 1)',
-            'rgba(219, 39, 119, 1)'
-          ],
-          borderWidth: 3,
-          hoverOffset: 8
-        }]
-      };
-      this.levelChartData = { labels: [], datasets: [] };
+
+  private setDefaultSelections(): void {
+    // Select all sessions by default
+    this.selectedSessions = [...this.sessionOptions];
+    
+    // Select first domain if available
+    if (this.domainOptions.length > 0) {
+      this.selectedDomains = [this.domainOptions[0]];
+      this.onDomainChange();
+    }
+  }
+
+  onDomainChange(): void {
+    // Filter competencies based on selected domains
+    if (this.selectedDomains.length > 0) {
+      const selectedDomainIds = this.selectedDomains.map(d => d.value);
+      this.filteredCompetencyOptions = this.competencyOptions.filter(
+        comp => selectedDomainIds.includes(comp.domainId)
+      );
+      
+      // Clear competency selection if it's not in the filtered list
+      this.selectedCompetencies = this.selectedCompetencies.filter(
+        comp => this.filteredCompetencyOptions.some(filtered => filtered.value === comp.value)
+      );
+    } else {
+      this.filteredCompetencyOptions = [...this.competencyOptions];
+      this.selectedCompetencies = [];
+    }
+    
+    this.updateDashboard();
+  }
+
+  onCompetencyChange(): void {
+    this.updateDashboard();
+  }
+
+  onSessionChange(): void {
+    this.updateDashboard();
+  }
+
+  private async updateDashboard(): Promise<void> {
+    if (!this.hasValidSelections()) {
+      this.resetDashboardData();
       return;
     }
 
-    // Update gender chart with fixed Boys/Girls order and colors
-    const newGenderChartData: ChartConfiguration<'doughnut'>['data'] = {
-      labels: ['Boys', 'Girls'],
-      datasets: [{
-        data: [this._genderDistribution.male, this._genderDistribution.female],
-        backgroundColor: [
-          'rgba(79, 70, 229, 0.8)', // indigo-600 for boys (matching stat card)
-          'rgba(219, 39, 119, 0.8)'  // pink-600 for girls (matching stat card)
-        ],
-        borderColor: [
-          'rgba(79, 70, 229, 1)',    // indigo-600
-          'rgba(219, 39, 119, 1)'    // pink-600
-        ],
-        borderWidth: 3,
-        hoverOffset: 8
-      }]
-    };
+    this.loadingAssessments = true;
     
-    // Update level chart data
-    const levelLabels = ['Beginner', 'Progressing', 'Advancing', 'Preschool Ready'];
-    const levelData = [
-      this.studentLevels.beginner,
-      this.studentLevels.progressing,
-      this.studentLevels.advancing,
-      this.studentLevels.preschoolReady
-    ];
+    try {
+      await this.loadAssessmentData();
+      this.calculateDashboardMetrics();
+      this.updateChart();
+    } catch (error) {
+      this.logger.error('Error updating dashboard:', error);
+      this.showMessage('Failed to update dashboard data.', 'error');
+    } finally {
+      this.loadingAssessments = false;
+    }
+  }
 
-    const newLevelChartData: ChartConfiguration<'bar'>['data'] = {
-      labels: [...levelLabels],
+  private hasValidSelections(): boolean {
+    return this.selectedSessions.length > 0 && 
+           this.selectedCompetencies.length > 0 && 
+           this.currentUserAnganwadiId !== null;
+  }
+
+  private async loadAssessmentData(): Promise<void> {
+    if (!this.currentUserAnganwadiId || this.selectedCompetencies.length === 0) {
+      this.assessmentData = [];
+      return;
+    }
+
+    const assessmentPromises = this.selectedCompetencies.map(competency =>
+      this.assessmentService.getAssessmentsByAnganwadiAndCompetency(
+        this.currentUserAnganwadiId!,
+        competency.value
+      ).toPromise()
+    );
+
+    try {
+      const results = await Promise.all(assessmentPromises);
+      this.assessmentData = results.flat().filter(item => item !== undefined);
+      this.logger.log('Loaded assessment data:', this.assessmentData.length);
+    } catch (error) {
+      this.logger.error('Error loading assessment data:', error);
+      this.assessmentData = [];
+    }
+  }
+
+  private calculateDashboardMetrics(): void {
+    const metrics = {
+      totalStudents: this.students.length,
+      assessedStudents: 0,
+      levelDistribution: {
+        beginner: 0,
+        progressing: 0,
+        advanced: 0,
+        schoolReady: 0
+      }
+    };
+
+    const selectedSessionNumbers = this.selectedSessions.map(s => s.value);
+    const assessedStudentIds = new Set<number>();
+
+    this.assessmentData.forEach(student => {
+      selectedSessionNumbers.forEach(sessionNum => {
+        const sessionKey = `session_${sessionNum}` as keyof AssessmentStudent;
+        const sessionData = student[sessionKey];
+        
+        if (sessionData && typeof sessionData === 'object' && 'observation' in sessionData) {
+          const observation = (sessionData as any).observation;
+          if (observation && student.child_id) {
+            assessedStudentIds.add(student.child_id);
+            
+            // Map observations to level categories
+            const level = String(observation).toLowerCase();
+            if (level.includes('beginner') || level === '1') {
+              metrics.levelDistribution.beginner++;
+            } else if (level.includes('progressing') || level === '2') {
+              metrics.levelDistribution.progressing++;
+            } else if (level.includes('advanced') || level === '3') {
+              metrics.levelDistribution.advanced++;
+            } else if (level.includes('psr') || level.includes('school ready') || level === '4') {
+              metrics.levelDistribution.schoolReady++;
+            }
+          }
+        }
+      });
+    });
+
+    metrics.assessedStudents = assessedStudentIds.size;
+    this.dashboardData = metrics;
+    
+    this.logger.log('Dashboard metrics calculated:', metrics);
+  }
+
+  private updateChart(): void {
+    const newChartData: ChartConfiguration<'bar'>['data'] = {
+      labels: ['Beginner', 'Progressing', 'Advanced', 'School Ready'],
       datasets: [{
-        data: [...levelData],
+        label: 'Number of Students',
+        data: [
+          this.dashboardData.levelDistribution.beginner,
+          this.dashboardData.levelDistribution.progressing,
+          this.dashboardData.levelDistribution.advanced,
+          this.dashboardData.levelDistribution.schoolReady
+        ],
         backgroundColor: [
-          'rgba(245, 158, 11, 0.8)',
-          'rgba(59, 130, 246, 0.8)',
-          'rgba(139, 92, 246, 0.8)',
-          'rgba(16, 185, 129, 0.8)'
+          'rgba(255, 152, 0, 0.8)',
+          'rgba(33, 150, 243, 0.8)',
+          'rgba(156, 39, 176, 0.8)',
+          'rgba(76, 175, 80, 0.8)'
         ],
         borderColor: [
-          'rgba(245, 158, 11, 1)',
-          'rgba(59, 130, 246, 1)',
-          'rgba(139, 92, 246, 1)',
-          'rgba(16, 185, 129, 1)'
+          'rgba(255, 152, 0, 1)',
+          'rgba(33, 150, 243, 1)',
+          'rgba(156, 39, 176, 1)',
+          'rgba(76, 175, 80, 1)'
         ],
         borderWidth: 2,
         borderRadius: 8,
@@ -392,11 +508,47 @@ export class DashboardComponent implements OnInit {
       }]
     };
 
-    // Update the chart data
-    this.genderChartData = { ...newGenderChartData };
-    this.levelChartData = { ...newLevelChartData };
-    
-    // Manually trigger change detection
+    this.chartData = { ...newChartData };
     this.cdr.detectChanges();
+  }
+
+  private resetDashboardData(): void {
+    this.dashboardData = {
+      totalStudents: this.students.length,
+      assessedStudents: 0,
+      levelDistribution: {
+        beginner: 0,
+        progressing: 0,
+        advanced: 0,
+        schoolReady: 0
+      }
+    };
+    this.updateChart();
+  }
+
+  // Utility methods
+  getAssessmentProgress(): number {
+    if (this.dashboardData.totalStudents === 0) return 0;
+    return Math.round((this.dashboardData.assessedStudents / this.dashboardData.totalStudents) * 100);
+  }
+
+  private showMessage(message: string, severity: 'success' | 'error' | 'info' | 'warn' = 'info'): void {
+    this.messageService.add({
+      severity,
+      summary: severity === 'error' ? 'Error' : 'Info',
+      detail: message,
+      life: 5000
+    });
+  }
+
+  // Getter methods for template
+  get hasSelections(): boolean {
+    return this.selectedSessions.length > 0 && this.selectedCompetencies.length > 0;
+  }
+
+  get selectionSummary(): string {
+    const sessions = this.selectedSessions.length;
+    const competencies = this.selectedCompetencies.length;
+    return `${sessions} session${sessions !== 1 ? 's' : ''}, ${competencies} competenc${competencies !== 1 ? 'ies' : 'y'}`;
   }
 }

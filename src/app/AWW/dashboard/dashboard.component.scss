@@ -1,575 +1,367 @@
 :host {
   display: block;
-  background-color: var(--background-color);
-  padding: var(--spacing-xs);
-  
-  @media (min-width: 480px) {
-    padding: var(--spacing-sm);
-  }
-  
-  @media (min-width: 768px) {
-    padding: var(--spacing-md);
-  }
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 1rem;
 }
 
-// Dashboard Container - Mobile First
+// Dashboard Container
 .dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
   padding: 0;
 }
 
-// Header Section - Mobile First
+// Loading State
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+  
+  .loading-text {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+  }
+}
+
+// Header Section
 .dashboard-header {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  padding: var(--spacing-sm) 0;
-  
-  @media (min-width: 480px) {
-    padding: var(--spacing-md) 0;
-  }
-  
-  @media (min-width: 768px) {
-    padding: var(--spacing-xl) 0;
-  }
+  text-align: center;
+  margin-bottom: 2rem;
+  color: white;
   
   .header-content {
-    text-align: center;
-    color: var(--text-color);
-  }
-  
-  .heading-heading {
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-xs);
-    font-size: 1.25rem;
-    
-    @media (min-width: 480px) {
-      gap: var(--spacing-sm);
-      font-size: 1.5rem;
-    }
-    
-    @media (min-width: 768px) {
-      gap: var(--spacing-md);
-      font-size: 2rem;
-    }
-  }
-  
-  .dashboard-subtitle {
-    font-size: 1rem;
-    opacity: 0.9;
-    margin: var(--spacing-sm) 0 0;
-    font-weight: var(--font-weight-medium);
-    color: var(--text-color);
-    
-    @media (min-width: 768px) {
-      font-size: 1.125rem;
-      margin: var(--spacing-sm) 0 0;
-    }
-  }
-}
-
-// Chart Row Layout - Mobile First
-.chart-row {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md) 0;
-  
-  @media (min-width: 992px) {
-    flex-direction: row;
-    gap: var(--spacing-lg);
-    padding: var(--spacing-lg) 0;
-  }
-  
-  .gender-card {
-    flex: 1;
-  }
-  
-  .levels-card {
-    flex: 1;
-    
-    @media (min-width: 992px) {
-      flex: 2;
-    }
-  }
-}
-
-// Chart Cards - Mobile First
-.chart-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-md) var(--spacing-md) var(--spacing-sm);
-  box-shadow: var(--box-shadow-md);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  @media (min-width: 768px) {
-    padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
-  }
-  
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--box-shadow-lg);
-  }
-}
-
-// Card Headers - Mobile First
-.card-header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
-  
-  @media (min-width: 768px) {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-md);
-  }
-}
-
-.card-title-section {
-  .card-title {
-    font-size: 1.125rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--text-color);
-    margin: 0 0 var(--spacing-xs);
-    
-    @media (min-width: 768px) {
-      font-size: 1.25rem;
-    }
-  }
-  
-  .card-subtitle {
-    color: #6b7280;
-    font-size: 0.75rem;
-    margin: 0;
-    font-weight: var(--font-weight-medium);
-    
-    @media (min-width: 768px) {
-      font-size: 0.8rem;
-    }
-  }
-  
-  .card-updated {
-    color: #6b7280;
-    font-size: 0.625rem;
-    margin: 0;
-    
-    @media (min-width: 768px) {
-      font-size: 0.75rem;
-    }
-  }
-}
-
-// Gender Card Specific Styles - Mobile First
-.gender-card {
-  .card-stats {
-    display: flex;
-    gap: var(--spacing-sm);
-    margin-top: var(--spacing-sm);
-    
-    @media (min-width: 768px) {
-      gap: var(--spacing-lg);
-      margin-top: var(--spacing-md);
-    }
-    
-    @media (min-width: 768px) {
-      width: 100%;
-      justify-content: space-around;
-    }
-  }
-  
-  .stat-item {
-    text-align: center;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--border-radius-md);
-    min-width: 80px;
-    transition: all 0.3s ease;
-    
-    @media (min-width: 768px) {
-      padding: var(--spacing-md) var(--spacing-lg);
-      min-width: 100px;
-    }
-    
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    
-    &.boys {
-      background: rgba(99, 102, 241, 0.1);
-      border: 2px solid rgba(99, 102, 241, 0.2);
-      
-      .stat-value {
-        color: #4f46e5;
-      }
-    }
-    
-    &.girls {
-      background: rgba(236, 72, 153, 0.1);
-      border: 2px solid rgba(236, 72, 153, 0.2);
-      
-      .stat-value {
-        color: #db2777;
-      }
-    }
-    
-    .stat-value {
-      display: block;
-      font-size: 1.25rem;
-      font-weight: var(--font-weight-bold);
-      margin-bottom: 2px;
-      transition: all 0.3s ease;
-      
-      @media (min-width: 768px) {
-        font-size: 1.75rem;
-      }
-    }
-    
-    .stat-label {
-      display: block;
-      font-size: 0.625rem;
-      color: #6b7280;
-      font-weight: var(--font-weight-medium);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      
-      @media (min-width: 768px) {
-        font-size: 0.8rem;
-      }
-    }
-  }
-  
-  .chart-container {
-    position: relative;
-    margin-top: var(--spacing-sm);
-    height: 200px;
-    
-    @media (min-width: 768px) {
-      margin-top: var(--spacing-md);
-      height: 300px;
-    }
-    
-    canvas {
-      max-height: 100%;
-      width: 100% !important;
-      height: 100% !important;
-    }
-  }
-}
-
-// Competency Card Specific Styles
-.competency-card {
-  .progress-stats {
-    .progress-circle {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: conic-gradient(from 0deg, #10b981 0deg, #10b981 calc(var(--progress, 70) * 3.6deg), #e5e7eb calc(var(--progress, 70) * 3.6deg), #e5e7eb 360deg);
+    .dashboard-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
+      gap: 1rem;
       
-      @media (min-width: 768px) {
-        width: 60px;
-        height: 60px;
+      i {
+        font-size: 2rem;
+        opacity: 0.9;
       }
       
-      &::before {
-        content: '';
-        position: absolute;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: white;
+      @media (max-width: 768px) {
+        font-size: 2rem;
+        flex-direction: column;
+        gap: 0.5rem;
         
-        @media (min-width: 768px) {
-          width: 60px;
-          height: 60px;
-        }
-      }
-      
-      .progress-percentage {
-        position: relative;
-        z-index: 1;
-        font-size: 0.875rem;
-        font-weight: var(--font-weight-bold);
-        color: var(--text-color);
-        
-        @media (min-width: 768px) {
-          font-size: 1.125rem;
+        i {
+          font-size: 1.5rem;
         }
       }
     }
-  }
-  
-  .progress-details {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--spacing-sm);
-    margin-top: var(--spacing-md);
     
-    @media (min-width: 768px) {
-      flex-direction: row;
-      justify-content: center;
-      gap: var(--spacing-lg);
-      margin-top: var(--spacing-lg);
-    }
-    
-    .detail-item {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-xs);
+    .dashboard-subtitle {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      margin: 0;
+      font-weight: 400;
       
-      @media (min-width: 768px) {
-        gap: var(--spacing-sm);
-      }
-      
-      .detail-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        
-        @media (min-width: 768px) {
-          width: 12px;
-          height: 12px;
-        }
-        
-        .completed & {
-          background: #10b981;
-        }
-        
-        .remaining & {
-          background: #e5e7eb;
-        }
-      }
-      
-      .detail-text {
-        font-size: 0.75rem;
-        font-weight: var(--font-weight-medium);
-        color: var(--text-color);
-        
-        @media (min-width: 768px) {
-          font-size: 0.875rem;
-        }
-      }
-    }
-  }
-}
-
-// Levels Card Specific Styles - Mobile First
-.levels-card {
-  .levels-summary {
-    width: 100%;
-    margin-top: var(--spacing-sm);
-    
-    @media (min-width: 768px) {
-      margin-top: var(--spacing-md);
-    }
-  }
-  
-  .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-sm);
-    
-    @media (min-width: 768px) {
-      grid-template-columns: repeat(4, 1fr);
-      gap: var(--spacing-md);
-    }
-    
-    @media (max-width: 480px) {
-      grid-template-columns: 1fr;
-    }
-  }
-  
-  .summary-item {
-    text-align: center;
-    padding: var(--spacing-sm) var(--spacing-xs);
-    border-radius: var(--border-radius-md);
-    
-    @media (min-width: 768px) {
-      padding: var(--spacing-md) var(--spacing-sm);
-    }
-    
-    &.beginner {
-      background: rgba(245, 158, 11, 0.1);
-      border: 2px solid rgba(245, 158, 11, 0.2);
-    }
-    
-    &.progressing {
-      background: rgba(59, 130, 246, 0.1);
-      border: 2px solid rgba(59, 130, 246, 0.2);
-    }
-    
-    &.advancing {
-      background: rgba(139, 92, 246, 0.1);
-      border: 2px solid rgba(139, 92, 246, 0.2);
-    }
-    
-    &.ready {
-      background: rgba(16, 185, 129, 0.1);
-      border: 2px solid rgba(16, 185, 129, 0.2);
-    }
-    
-    .summary-value {
-      display: block;
-      font-size: 1rem;
-      font-weight: var(--font-weight-bold);
-      color: var(--text-color);
-      
-      @media (min-width: 768px) {
-        font-size: 1.25rem;
-      }
-    }
-    
-    .summary-label {
-      display: block;
-      font-size: 0.625rem;
-      color: #6b7280;
-      font-weight: var(--font-weight-medium);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-top: var(--spacing-xs);
-      
-      @media (min-width: 768px) {
-        font-size: 0.75rem;
-      }
-    }
-  }
-}
-
-// Chart Containers - Mobile First
-.chart-container {
-  position: relative;
-  height: 180px;
-  margin: 0 auto;
-  max-width: 95%;
-  
-  @media (min-width: 768px) {
-    height: 220px;
-    max-width: 65%;
-  }
-  
-  &.levels-chart {
-    height: 200px;
-    max-width: 95%;
-    
-    @media (min-width: 768px) {
-      height: 250px;
-      max-width: 90%;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    height: 150px;
-    max-width: 98%;
-    
-    &.levels-chart {
-      height: 180px;
-    }
-  }
-  
-  canvas {
-    border-radius: var(--border-radius-md);
-  }
-}
-
-// Info Section - Mobile First
-.info-section {
-  margin-top: var(--spacing-md);
-  padding-bottom: var(--spacing-md);
-  
-  @media (min-width: 768px) {
-    margin-top: var(--spacing-lg);
-    padding-bottom: var(--spacing-lg);
-  }
-}
-
-.info-cards {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--spacing-sm);
-  
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--spacing-md);
-  }
-}
-
-.info-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-md);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  box-shadow: var(--box-shadow-md);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  @media (min-width: 768px) {
-    padding: var(--spacing-lg);
-    gap: var(--spacing-md);
-  }
-  
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--box-shadow-lg);
-  }
-  
-  .info-icon {
-    font-size: 1.5rem;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-    border-radius: var(--border-radius-md);
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
-    
-    @media (min-width: 768px) {
-      font-size: 2rem;
-      width: 60px;
-      height: 60px;
-    }
-  }
-  
-  .info-content {
-    h4 {
-      margin: 0 0 var(--spacing-xs);
-      font-size: 0.875rem;
-      font-weight: var(--font-weight-bold);
-      color: var(--text-color);
-      
-      @media (min-width: 768px) {
+      @media (max-width: 768px) {
         font-size: 1rem;
       }
     }
-    
-    p {
-      margin: 0;
-      color: #6b7280;
-      font-size: 0.75rem;
-      font-weight: var(--font-weight-medium);
+  }
+}
+
+// Static Cards Section
+.static-cards-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .stat-card {
+    &::ng-deep .p-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
       
-      @media (min-width: 768px) {
-        font-size: 0.875rem;
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      }
+      
+      .p-card-content {
+        padding: 1.5rem;
+      }
+    }
+    
+    .stat-content {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      
+      .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+        flex-shrink: 0;
+      }
+      
+      .stat-details {
+        flex: 1;
+        
+        .stat-value {
+          font-size: 2.5rem;
+          font-weight: 700;
+          margin: 0 0 0.25rem;
+          color: #2c3e50;
+          line-height: 1;
+        }
+        
+        .stat-label {
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: #34495e;
+          margin: 0 0 0.25rem;
+        }
+        
+        .stat-sublabel {
+          font-size: 0.9rem;
+          color: #7f8c8d;
+          margin: 0;
+        }
+      }
+    }
+    
+    &.total-students .stat-icon {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    }
+    
+    &.assessed-students .stat-icon {
+      background: linear-gradient(135deg, #10b981, #047857);
+    }
+  }
+}
+
+// Filters Section
+.filters-section {
+  margin-bottom: 2rem;
+  
+  .filters-card {
+    &::ng-deep .p-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      
+      .p-card-header {
+        background: transparent;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 1.5rem 1.5rem 1rem;
+      }
+      
+      .p-card-content {
+        padding: 1.5rem;
+        padding-top: 1rem;
+      }
+    }
+    
+    .card-header {
+      text-align: center;
+      
+      h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0 0 0.5rem;
+      }
+      
+      .header-subtitle {
+        color: #7f8c8d;
+        margin: 0;
+        font-size: 1rem;
+      }
+    }
+  }
+  
+  .filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    .filter-group {
+      .filter-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+        
+        i {
+          color: #3b82f6;
+        }
+      }
+      
+      .filter-multiselect {
+        &::ng-deep .p-multiselect {
+          width: 100%;
+          border-radius: 8px;
+          border: 2px solid #e2e8f0;
+          transition: all 0.2s ease;
+          
+          &:hover {
+            border-color: #3b82f6;
+          }
+          
+          &.p-focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+          }
+          
+          .p-multiselect-label {
+            padding: 0.75rem;
+            font-size: 0.95rem;
+          }
+          
+          .p-multiselect-token {
+            background: #3b82f6;
+            color: white;
+            border-radius: 6px;
+            padding: 0.25rem 0.5rem;
+            margin: 0.125rem;
+            font-size: 0.85rem;
+          }
+        }
+      }
+      
+      .filter-hint {
+        color: #6b7280;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+        display: block;
+      }
+    }
+  }
+  
+  .selection-summary {
+    margin-top: 1rem;
+    
+    .summary-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      color: #3b82f6;
+      font-weight: 500;
+      
+      i {
+        font-size: 1.1rem;
       }
     }
   }
 }
 
-// Animation for chart appearance
+// Chart Section
+.chart-section {
+  margin-bottom: 2rem;
+  
+  .chart-card {
+    &::ng-deep .p-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      
+      .p-card-header {
+        background: transparent;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 1.5rem 1.5rem 1rem;
+      }
+      
+      .p-card-content {
+        padding: 1.5rem;
+        padding-top: 1rem;
+      }
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+      
+      h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+      }
+      
+      .header-subtitle {
+        color: #7f8c8d;
+        margin: 0.25rem 0 0;
+        font-size: 1rem;
+      }
+      
+      .chart-loading {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #3b82f6;
+        font-weight: 500;
+        
+        i {
+          font-size: 1.2rem;
+        }
+      }
+    }
+    
+    .chart-container {
+      height: 400px;
+      position: relative;
+      margin-top: 1rem;
+      
+      canvas {
+        border-radius: 8px;
+      }
+    }
+    
+    .chart-loading-container {
+      margin-top: 1rem;
+    }
+  }
+}
+
+// Animations
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -581,49 +373,297 @@
   }
 }
 
-.chart-card {
-  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+.static-cards-row,
+.filters-section,
+.chart-section,
+.level-labels-section,
+.progress-section {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.static-cards-row { animation-delay: 0.1s; }
+.filters-section { animation-delay: 0.2s; }
+.chart-section { animation-delay: 0.3s; }
+.level-labels-section { animation-delay: 0.4s; }
+.progress-section { animation-delay: 0.5s; }
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  :host {
+    padding: 0.5rem;
+  }
   
-  &:nth-child(1) { animation-delay: 0.1s; }
-  &:nth-child(2) { animation-delay: 0.2s; }
-  &:nth-child(3) { animation-delay: 0.3s; }
-}
-
-.dashboard-loading-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 300px;
-  width: 100%;
-  text-align: center;
-}
-
-.dashboard-loading-text {
-  text-align: center;
-  width: 100%;
-  font-size: 1.1rem;
-  color: #6c757d;
-  margin-top: 1rem;
-}
-
-@media (min-width: 768px) {
-  .dashboard-loading-center {
-    min-height: 400px;
-    max-width: 600px;
-    margin: 0 auto;
+  .dashboard-container {
+    padding: 0;
   }
-  .dashboard-loading-text {
-    font-size: 1.25rem;
+  
+  .dashboard-header {
+    margin-bottom: 1.5rem;
+  }
+  
+  .static-cards-row,
+  .filters-section,
+  .chart-section,
+  .level-labels-section,
+  .progress-section {
+    margin-bottom: 1.5rem;
   }
 }
 
-@media (min-width: 1200px) {
-  .dashboard-loading-center {
-    min-height: 500px;
-    max-width: 800px;
+// Level Labels Section
+.level-labels-section {
+  margin-bottom: 2rem;
+  
+  .labels-card {
+    &::ng-deep .p-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      
+      .p-card-header {
+        background: transparent;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 1.5rem 1.5rem 1rem;
+      }
+      
+      .p-card-content {
+        padding: 1.5rem;
+        padding-top: 1rem;
+      }
+    }
+    
+    .card-header {
+      text-align: center;
+      
+      h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0 0 0.5rem;
+      }
+      
+      .header-subtitle {
+        color: #7f8c8d;
+        margin: 0;
+        font-size: 1rem;
+      }
+    }
   }
-  .dashboard-loading-text {
-    font-size: 1.5rem;
+  
+  .level-labels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+    
+    .level-label {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: rgba(248, 250, 252, 0.8);
+      border-radius: 12px;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.9);
+      }
+      
+      .level-indicator {
+        width: 12px;
+        height: 40px;
+        border-radius: 6px;
+        flex-shrink: 0;
+      }
+      
+      .level-content {
+        flex: 1;
+        
+        h4 {
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: #2c3e50;
+          margin: 0 0 0.25rem;
+        }
+        
+        .level-count {
+          font-size: 1.4rem;
+          font-weight: 700;
+          color: #3b82f6;
+          margin: 0 0 0.25rem;
+        }
+        
+        .level-description {
+          font-size: 0.9rem;
+          color: #6b7280;
+          margin: 0;
+          line-height: 1.4;
+        }
+      }
+    }
   }
 }
+
+// Progress Section
+.progress-section {
+  margin-bottom: 2rem;
+  
+  .progress-card {
+    &::ng-deep .p-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      
+      .p-card-header {
+        background: transparent;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 1.5rem 1.5rem 1rem;
+      }
+      
+      .p-card-content {
+        padding: 1.5rem;
+        padding-top: 1rem;
+      }
+    }
+    
+    .card-header {
+      text-align: center;
+      
+      h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0 0 0.5rem;
+      }
+      
+      .header-subtitle {
+        color: #7f8c8d;
+        margin: 0;
+        font-size: 1rem;
+      }
+    }
+  }
+  
+  .progress-content {
+    .progress-stats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      
+      .progress-stat {
+        text-align: center;
+        
+        h4 {
+          font-size: 2rem;
+          font-weight: 700;
+          color: #2c3e50;
+          margin: 0 0 0.25rem;
+        }
+        
+        p {
+          font-size: 0.9rem;
+          color: #6b7280;
+          margin: 0;
+          font-weight: 500;
+        }
+      }
+      
+      .progress-divider {
+        font-size: 2rem;
+        font-weight: 300;
+        color: #cbd5e1;
+      }
+    }
+    
+    .progress-bar-container {
+      position: relative;
+      margin-bottom: 1rem;
+      
+      &::ng-deep .p-progressbar {
+        background: #e2e8f0;
+        border-radius: 6px;
+        
+        .p-progressbar-value {
+          background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+          border-radius: 6px;
+        }
+      }
+      
+      .progress-percentage {
+        position: absolute;
+        top: -30px;
+        right: 0;
+        font-weight: 700;
+        color: #3b82f6;
+        font-size: 1.1rem;
+      }
+    }
+    
+    .progress-note {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      color: #6b7280;
+      font-size: 0.9rem;
+      
+      i {
+        color: #3b82f6;
+      }
+    }
+  }
+}
+
+// No Selection State
+.no-selection-state {
+  .empty-state-card {
+    &::ng-deep .p-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      
+      .p-card-content {
+        padding: 3rem 1.5rem;
+      }
+    }
+    
+    .empty-state-content {
+      text-align: center;
+      
+      .empty-state-icon {
+        font-size: 4rem;
+        color: #cbd5e1;
+        margin-bottom: 1rem;
+      }
+      
+      h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0 0 0.5rem;
+      }
+      
+      p {
+        color: #6b7280;
+        margin: 0 0 1.5rem;
+        font-size: 1rem;
+        line-height: 1.5;
+      }
+    }
+  }
+}
+

@@ -1,122 +1,304 @@
 <div class="dashboard-container">
   <!-- Loading State -->
-  <div *ngIf="loading" class="loading-state dashboard-loading-center">
-    <app-skeleton-loader type="rect" width="100%" height="2.5em" style="margin-bottom: 1em;"></app-skeleton-loader>
-    <app-skeleton-loader type="rect" width="100%" height="200px" style="margin-bottom: 1em;"></app-skeleton-loader>
-    <app-skeleton-loader type="rect" width="100%" height="2.5em"></app-skeleton-loader>
-    <p class="dashboard-loading-text">Loading student data...</p>
+  <div *ngIf="loading" class="loading-state">
+    <app-skeleton-loader type="rect" width="100%" height="60px" style="margin-bottom: 1em;"></app-skeleton-loader>
+    <app-skeleton-loader type="rect" width="100%" height="300px" style="margin-bottom: 1em;"></app-skeleton-loader>
+    <app-skeleton-loader type="rect" width="100%" height="400px"></app-skeleton-loader>
+    <p class="loading-text">Loading dashboard data...</p>
   </div>
 
   <!-- Main Content -->
   <div *ngIf="!loading">
     <!-- Header Section -->
     <div class="dashboard-header">
-      <div class="container">
-        <div class="header-content">
-          <h1 class="heading-heading">
-            <span class="heading-highlight">Anganwadi</span> Dashboard
-          </h1>
-        </div>
+      <div class="header-content">
+        <h1 class="dashboard-title">
+          <i class="pi pi-chart-bar"></i>
+          Anganwadi Dashboard
+        </h1>
+        <p class="dashboard-subtitle">Monitor student assessments and progress</p>
       </div>
     </div>
 
-    <!-- Main Dashboard Content -->
-    <div class="container">
-      <div class="chart-row">
-        <!-- Gender Distribution Card -->
-        <div class="chart-card gender-card">
-          <div class="card-header">
-            <div class="card-title-section">
-              <h3 class="card-title">Student Gender Distribution</h3>
-              <p class="card-subtitle">Total Students: {{ totalStudents }}</p>
-              <p class="card-updated">Last updated: Just now</p>
-            </div>
-            <div class="card-stats">
-              <div class="stat-item boys">
-                <span class="stat-value">{{ genderDistribution.male }}</span>
-                <span class="stat-label">Boys</span>
-              </div>
-              <div class="stat-item girls">
-                <span class="stat-value">{{ genderDistribution.female }}</span>
-                <span class="stat-label">Girls</span>
-              </div>
-            </div>
+    <!-- Static Cards Section -->
+    <div class="static-cards-row">
+      <p-card class="stat-card total-students">
+        <div class="stat-content">
+          <div class="stat-icon">
+            <i class="pi pi-users"></i>
           </div>
-          <div class="chart-container" style="height: 250px;">
-            <canvas 
-              baseChart
-              [data]="genderChartData"
-              [options]="genderChartOptions"
-              type="doughnut">
-            </canvas>
+          <div class="stat-details">
+            <h3 class="stat-value">{{ dashboardData.totalStudents }}</h3>
+            <p class="stat-label">Total Students</p>
+            <p class="stat-sublabel">Assigned to you</p>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card class="stat-card assessed-students">
+        <div class="stat-content">
+          <div class="stat-icon">
+            <i class="pi pi-check-circle"></i>
+          </div>
+          <div class="stat-details">
+            <h3 class="stat-value">{{ dashboardData.assessedStudents }}</h3>
+            <p class="stat-label">Students Assessed</p>
+            <p class="stat-sublabel">Based on current filters</p>
+          </div>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-section">
+      <p-card class="filters-card">
+        <ng-template pTemplate="header">
+          <div class="card-header">
+            <h3>Filter Assessment Data</h3>
+            <p class="header-subtitle">Select sessions, domains, and competencies to view assessment results</p>
+          </div>
+        </ng-template>
+
+        <div class="filters-grid">
+          <!-- Sessions Filter -->
+          <div class="filter-group">
+            <label class="filter-label">
+              <i class="pi pi-calendar"></i>
+              Sessions
+            </label>
+            <p-multiSelect
+              [options]="sessionOptions"
+              [(ngModel)]="selectedSessions"
+              optionLabel="label"
+              placeholder="Select sessions"
+              [showClear]="true"
+              [filter]="false"
+              (onChange)="onSessionChange()"
+              [style]="{'width': '100%', 'min-height': '42px'}"
+              class="filter-multiselect"
+              display="chip">
+              <ng-template pTemplate="selectedItems" let-selectedOptions>
+                <p-tag 
+                  *ngFor="let option of selectedOptions" 
+                  [value]="option.code" 
+                  [style]="{'margin-right': '0.5rem', 'margin-bottom': '0.25rem'}"
+                  severity="info">
+                </p-tag>
+              </ng-template>
+            </p-multiSelect>
+            <small class="filter-hint">Select one or more assessment sessions (4 total)</small>
+          </div>
+
+          <!-- Domains Filter -->
+          <div class="filter-group">
+            <label class="filter-label">
+              <i class="pi pi-sitemap"></i>
+              Domains
+            </label>
+            <p-multiSelect
+              [options]="domainOptions"
+              [(ngModel)]="selectedDomains"
+              optionLabel="label"
+              placeholder="Select domains"
+              [showClear]="true"
+              [filter]="true"
+              (onChange)="onDomainChange()"
+              [style]="{'width': '100%', 'min-height': '42px'}"
+              class="filter-multiselect"
+              display="chip">
+              <ng-template pTemplate="selectedItems" let-selectedOptions>
+                <p-tag 
+                  *ngFor="let option of selectedOptions" 
+                  [value]="option.code" 
+                  [style]="{'margin-right': '0.5rem', 'margin-bottom': '0.25rem'}"
+                  severity="success">
+                </p-tag>
+              </ng-template>
+            </p-multiSelect>
+            <small class="filter-hint">Select learning domains (6 total)</small>
+          </div>
+
+          <!-- Competencies Filter -->
+          <div class="filter-group">
+            <label class="filter-label">
+              <i class="pi pi-bookmark"></i>
+              Competencies
+            </label>
+            <p-multiSelect
+              [options]="filteredCompetencyOptions"
+              [(ngModel)]="selectedCompetencies"
+              optionLabel="label"
+              placeholder="Select competencies"
+              [showClear]="true"
+              [filter]="true"
+              (onChange)="onCompetencyChange()"
+              [style]="{'width': '100%', 'min-height': '42px'}"
+              class="filter-multiselect"
+              display="chip"
+              [disabled]="selectedDomains.length === 0">
+              <ng-template pTemplate="selectedItems" let-selectedOptions>
+                <p-tag 
+                  *ngFor="let option of selectedOptions" 
+                  [value]="option.code" 
+                  [style]="{'margin-right': '0.5rem', 'margin-bottom': '0.25rem'}"
+                  severity="warning">
+                </p-tag>
+              </ng-template>
+            </p-multiSelect>
+            <small class="filter-hint">Select specific competencies (17 total)</small>
           </div>
         </div>
 
-        <!-- Student Levels Card -->
-        <div class="chart-card levels-card" style="flex: 2;">
-          <div class="card-header">
-            <div class="card-title-section">
-              <h3 class="card-title">Student Learning Levels</h3>
-              <p class="card-subtitle">Distribution across assessment levels</p>
-            </div>
-            <div class="levels-summary">
-              <div class="summary-grid">
-                <div class="summary-item beginner">
-                  <span class="summary-value">{{ studentLevels.beginner }}</span>
-                  <span class="summary-label">Beginner</span>
-                </div>
-                <div class="summary-item progressing">
-                  <span class="summary-value">{{ studentLevels.progressing }}</span>
-                  <span class="summary-label">Progressing</span>
-                </div>
-                <div class="summary-item advancing">
-                  <span class="summary-value">{{ studentLevels.advancing }}</span>
-                  <span class="summary-label">Advancing</span>
-                </div>
-                <div class="summary-item ready">
-                  <span class="summary-value">{{ studentLevels.preschoolReady }}</span>
-                  <span class="summary-label">Ready</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="chart-container levels-chart">
-            <canvas 
-              baseChart
-              [data]="levelChartData"
-              [options]="levelChartOptions"
-              type="bar">
-            </canvas>
+        <!-- Selection Summary -->
+        <div class="selection-summary" *ngIf="hasSelections">
+          <p-divider></p-divider>
+          <div class="summary-content">
+            <i class="pi pi-info-circle"></i>
+            <span>Currently viewing: {{ selectionSummary }}</span>
           </div>
         </div>
-      </div>
+      </p-card>
+    </div>
 
-      <!-- Additional Info Section -->
-      <div class="info-section">
-        <div class="info-cards">
-          <div class="info-card">
-            <div class="info-icon">👥</div>
-            <div class="info-content">
-              <h4>Total Enrollment</h4>
-              <p>{{ totalStudents }} active students</p>
+    <!-- Chart Section -->
+    <div class="chart-section" *ngIf="hasSelections">
+      <p-card class="chart-card">
+        <ng-template pTemplate="header">
+          <div class="card-header">
+            <h3>Assessment Level Distribution</h3>
+            <p class="header-subtitle">Number of students by assessment level</p>
+            <div class="chart-loading" *ngIf="loadingAssessments">
+              <i class="pi pi-spin pi-spinner"></i>
+              <span>Loading assessment data...</span>
             </div>
           </div>
-          <div class="info-card">
-            <div class="info-icon">📈</div>
-            <div class="info-content">
-              <h4>Progress Rate</h4>
-              <p>{{ competencyProgress.completed }}/{{ competencyProgress.total }} competencies</p>
+        </ng-template>
+
+        <!-- Chart Container -->
+        <div class="chart-container" *ngIf="!loadingAssessments">
+          <canvas 
+            baseChart
+            [data]="chartData"
+            [options]="chartOptions"
+            type="bar"
+            #chart>
+          </canvas>
+        </div>
+
+        <!-- Loading State for Chart -->
+        <div class="chart-loading-container" *ngIf="loadingAssessments">
+          <app-skeleton-loader type="rect" width="100%" height="300px"></app-skeleton-loader>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Assessment Level Labels -->
+    <div class="level-labels-section" *ngIf="hasSelections && !loadingAssessments">
+      <p-card class="labels-card">
+        <ng-template pTemplate="header">
+          <div class="card-header">
+            <h3>Level Summary</h3>
+            <p class="header-subtitle">Detailed breakdown of student assessment levels</p>
+          </div>
+        </ng-template>
+
+        <div class="level-labels-grid">
+          <div class="level-label beginner">
+            <div class="level-indicator" style="background-color: #ff9800;"></div>
+            <div class="level-content">
+              <h4>Beginner</h4>
+              <p class="level-count">{{ dashboardData.levelDistribution.beginner }} students</p>
+              <p class="level-description">Initial learning stage with basic understanding</p>
             </div>
           </div>
-          <div class="info-card">
-            <div class="info-icon">🎯</div>
-            <div class="info-content">
-              <h4>Ready for School</h4>
-              <p>{{ studentLevels.preschoolReady }} students</p>
+
+          <div class="level-label progressing">
+            <div class="level-indicator" style="background-color: #2196f3;"></div>
+            <div class="level-content">
+              <h4>Progressing</h4>
+              <p class="level-count">{{ dashboardData.levelDistribution.progressing }} students</p>
+              <p class="level-description">Making good progress with support</p>
+            </div>
+          </div>
+
+          <div class="level-label advanced">
+            <div class="level-indicator" style="background-color: #9c27b0;"></div>
+            <div class="level-content">
+              <h4>Advanced</h4>
+              <p class="level-count">{{ dashboardData.levelDistribution.advanced }} students</p>
+              <p class="level-description">Strong understanding and application</p>
+            </div>
+          </div>
+
+          <div class="level-label school-ready">
+            <div class="level-indicator" style="background-color: #4caf50;"></div>
+            <div class="level-content">
+              <h4>School Ready</h4>
+              <p class="level-count">{{ dashboardData.levelDistribution.schoolReady }} students</p>
+              <p class="level-description">Prepared for next educational level</p>
             </div>
           </div>
         </div>
-      </div>
+      </p-card>
+    </div>
+
+    <!-- Assessment Progress Counter -->
+    <div class="progress-section" *ngIf="hasSelections">
+      <p-card class="progress-card">
+        <ng-template pTemplate="header">
+          <div class="card-header">
+            <h3>Assessment Progress</h3>
+            <p class="header-subtitle">Track assessment completion based on selected filters</p>
+          </div>
+        </ng-template>
+
+        <div class="progress-content">
+          <div class="progress-stats">
+            <div class="progress-stat">
+              <h4>{{ dashboardData.assessedStudents }}</h4>
+              <p>Students Assessed</p>
+            </div>
+            <div class="progress-divider">/</div>
+            <div class="progress-stat">
+              <h4>{{ dashboardData.totalStudents }}</h4>
+              <p>Total Students</p>
+            </div>
+          </div>
+          
+          <div class="progress-bar-container">
+            <p-progressBar 
+              [value]="getAssessmentProgress()" 
+              [style]="{'height': '12px'}"
+              [showValue]="false">
+            </p-progressBar>
+            <div class="progress-percentage">
+              {{ getAssessmentProgress() }}%
+            </div>
+          </div>
+
+          <div class="progress-note">
+            <i class="pi pi-info-circle"></i>
+            <span>Progress is calculated based on the current filter selections</span>
+          </div>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- No Selection State -->
+    <div class="no-selection-state" *ngIf="!hasSelections && !loading">
+      <p-card class="empty-state-card">
+        <div class="empty-state-content">
+          <i class="pi pi-filter empty-state-icon"></i>
+          <h3>Select Filters to View Data</h3>
+          <p>Choose sessions, domains, and competencies above to see assessment results and analytics.</p>
+          <p-button 
+            label="Select All Sessions" 
+            icon="pi pi-calendar"
+            (onClick)="selectedSessions = sessionOptions; onSessionChange()"
+            severity="secondary">
+          </p-button>
+        </div>
+      </p-card>
     </div>
   </div>
 </div>
