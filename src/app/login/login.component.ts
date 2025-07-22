@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { UserService } from '../services/user.service';
 import { ErrorHandlerService } from '../core/error/error-handler.service';
+import { SkeletonLoaderComponent } from '../components/skeleton-loader';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SkeletonLoaderComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })

@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, ViewChild } from '@angular/core';
+import { Component, OnInit, Inject, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -13,6 +13,9 @@ import { StudentService, Student } from '../student.service';
 import { MessageService } from 'primeng/api';
 import { HostListener } from '@angular/core';
 import { ErrorHandlerService } from '../../../core/error/error-handler.service';
+import { UserService } from '../../../services/user.service';
+import { SkeletonLoaderComponent } from '../../../components/skeleton-loader';
+import { LoggerService } from '../../../core/logger.service';
 
 @Component({
   selector: 'app-students-list',
@@ -26,59 +29,89 @@ import { ErrorHandlerService } from '../../../core/error/error-handler.service';
     MatTooltipModule,
     MatDialogModule,
     MatPaginatorModule,
-
+    SkeletonLoaderComponent
   ],
   templateUrl: './students-list.component.html',
   styleUrls: ['./students-list.component.scss']
 })
-export class StudentsListComponent implements OnInit {
+export class StudentsListComponent implements OnInit, OnDestroy {
   dataSource = new MatTableDataSource<Student>([]);
   displayedColumns: string[] = ['name', 'age', 'gender', 'dateOfBirth', 'symbol', 'height', 'weight', 'language', 'anganwadi', 'actions'];
   allColumns: string[] = ['name', 'age', 'gender', 'dateOfBirth', 'symbol', 'height', 'weight', 'language', 'anganwadi', 'actions'];
-  mobileColumns: string[] = ['name', 'age', 'gender', 'actions'];
+  // Removed mobileColumns as it's no longer needed
   
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  pageSize = 10;
+
+  isLoading = true;
+
+  private userSubscription: any;
 
   constructor(
     private studentService: StudentService,
     private router: Router,
     private dialog: MatDialog,
     private messageService: MessageService,
-    private errorHandler: ErrorHandlerService
+    private errorHandler: ErrorHandlerService,
+    private userService: UserService,
+    private logger: LoggerService
   ) {
-    this.updateDisplayedColumns();
+    // Always show all columns
+    this.displayedColumns = this.allColumns;
   }
 
   ngOnInit() {
-    this.loadStudents();
+    this.setPageSize();
+    window.addEventListener('resize', this.setPageSize.bind(this));
+    // Subscribe to user changes and reload students when user changes
+    this.userSubscription = this.userService.currentUser$.subscribe(() => {
+      this.loadStudents();
+    });
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener('resize', this.setPageSize.bind(this));
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
+    }
   }
   
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
+    this.paginator.pageSize = this.pageSize;
   }
 
   @HostListener('window:resize', ['$event'])
   onResize() {
-    this.updateDisplayedColumns();
+    // No longer update columns based on window size
   }
 
-  updateDisplayedColumns() {
-    if (window.innerWidth < 768) {
-      this.displayedColumns = this.mobileColumns;
-    } else {
-      this.displayedColumns = this.allColumns;
+  setPageSize() {
+    const width = window.innerWidth;
+    this.pageSize = width <= 768 ? 5 : 10;
+    if (this.paginator) {
+      this.paginator.pageSize = this.pageSize;
+      this.paginator._changePageSize(this.pageSize);
     }
   }
 
+  updateDisplayedColumns() {
+    // Always show all columns
+    this.displayedColumns = this.allColumns;
+  }
+
   loadStudents() {
+    this.isLoading = true;
     this.studentService.getStudents().subscribe({
       next: (students) => {
         this.dataSource.data = students;
+        this.isLoading = false;
         // No toast on successful loading to avoid too many notifications
         // Only show toast on initial component load or errors
       },
       error: (error) => {
-        console.error('Error loading students:', error);
+        this.isLoading = false;
+        this.logger.error('Error loading students:', error);
         // Error toast is already handled in the service, do not call errorHandler here
       }
     });
@@ -122,7 +155,7 @@ export class StudentsListComponent implements OnInit {
         this.loadStudents();
       },
       error: (error) => {
-        console.error('Error deleting student:', error);
+        this.logger.error('Error deleting student:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',

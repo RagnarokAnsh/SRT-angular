@@ -5,6 +5,8 @@ import { MessageService } from 'primeng/api';
 import { AppStateService } from '../state/app.state';
 import { catchError } from 'rxjs/operators';
 import { UXErrorService, UXErrorMessage } from './ux-error.service';
+import { LoggerService } from '../logger.service';
+import { inject } from '@angular/core';
 
 export interface ErrorInfo {
   code: string;
@@ -38,6 +40,7 @@ export class ErrorHandlerService {
   
   private errorHistory: ErrorInfo[] = [];
   private retryCount = 0;
+  private logger = inject(LoggerService);
   
   constructor(
     private messageService: MessageService,
@@ -251,7 +254,7 @@ export class ErrorHandlerService {
   // Network Error Handling
   private handleNetworkError(): void {
     // Implement offline mode or retry logic
-    console.warn('Network error detected - implementing offline mode');
+    this.logger.warn('Network error detected - implementing offline mode');
   }
   
   // Rate Limit Error Handling
@@ -279,7 +282,7 @@ export class ErrorHandlerService {
       catchError(error => {
         if (this.retryCount < maxRetries) {
           this.retryCount++;
-          console.log(`Retrying operation (${this.retryCount}/${maxRetries})`);
+          this.logger.log(`Retrying operation (${this.retryCount}/${maxRetries})`);
           
                      return new Observable<T>(observer => {
              setTimeout(() => {
@@ -401,8 +404,7 @@ export class ErrorHandlerService {
       url: window.location.href,
       stack: errorInfo.context?.stack
     };
-    
-    console.error('Error Log:', logEntry);
+    this.logger.error('Error Log:', logEntry);
     
     // Store in error history
     this.errorHistory.push(errorInfo);
@@ -420,7 +422,7 @@ export class ErrorHandlerService {
   private sendToErrorTracking(logEntry: any): void {
     // Implementation for production error tracking
     // Example: Sentry, LogRocket, etc.
-    console.log('Sending error to tracking service:', logEntry);
+    this.logger.log('Sending error to tracking service:', logEntry);
   }
   
   // Error History

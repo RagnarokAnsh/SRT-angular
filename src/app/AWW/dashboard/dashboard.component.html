@@ -1,8 +1,10 @@
 <div class="dashboard-container">
   <!-- Loading State -->
-  <div *ngIf="loading" class="loading-state">
-    <div class="spinner"></div>
-    <p>Loading student data...</p>
+  <div *ngIf="loading" class="loading-state dashboard-loading-center">
+    <app-skeleton-loader type="rect" width="100%" height="2.5em" style="margin-bottom: 1em;"></app-skeleton-loader>
+    <app-skeleton-loader type="rect" width="100%" height="200px" style="margin-bottom: 1em;"></app-skeleton-loader>
+    <app-skeleton-loader type="rect" width="100%" height="2.5em"></app-skeleton-loader>
+    <p class="dashboard-loading-text">Loading student data...</p>
   </div>
 
   <!-- Main Content -->

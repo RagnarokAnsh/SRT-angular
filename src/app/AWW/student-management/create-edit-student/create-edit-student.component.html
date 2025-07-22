@@ -7,9 +7,10 @@
   </div>
   
   <div *ngIf="isLoading" class="loading-container">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
+    <app-skeleton-loader type="rect" width="100%" height="2.5em" style="margin-bottom: 1em;"></app-skeleton-loader>
+    <app-skeleton-loader type="rect" width="100%" height="2.5em" style="margin-bottom: 1em;"></app-skeleton-loader>
+    <app-skeleton-loader type="rect" width="100%" height="2.5em" style="margin-bottom: 1em;"></app-skeleton-loader>
+    <app-skeleton-loader type="rect" width="60%" height="2.5em"></app-skeleton-loader>
     <p class="mt-2">Loading data...</p>
   </div>
 
@@ -132,7 +133,7 @@
 
     <div class="form-actions">
       <button class="btn btn-outline-secondary" type="button" (click)="goBack()">Cancel</button>
-      <button type="submit" [disabled]="studentForm.invalid" [ngClass]="{'btn-secondary': studentForm.invalid, 'btn-primary': !studentForm.invalid}" class="btn submit-btn">
+      <button style="margin: 1rem;" type="submit" [disabled]="studentForm.invalid" [ngClass]="{'btn-secondary': studentForm.invalid, 'btn-primary': !studentForm.invalid}" class="btn submit-btn">
         {{isEditMode ? 'Update' : 'Create'}} Student
       </button>
     </div>

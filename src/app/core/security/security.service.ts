@@ -3,6 +3,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, tap, map } from 'rxjs/operators';
 import { AppStateService } from '../state/app.state';
+import { LoggerService } from '../logger.service';
+import { inject } from '@angular/core';
 
 export interface SecurityConfig {
   tokenRefreshThreshold: number; // seconds before expiry to refresh
@@ -40,6 +42,7 @@ export class SecurityService {
   
   private sessionTimer: any;
   private lastActivity = Date.now();
+  private logger = inject(LoggerService);
   
   constructor(
     private http: HttpClient,
@@ -360,8 +363,7 @@ export class SecurityService {
       userAgent: navigator.userAgent,
       url: window.location.href
     };
-    
-    console.log('Security Event:', logEntry);
+    this.logger.log('Security Event:', logEntry);
     // In production, send to security monitoring service
   }
   

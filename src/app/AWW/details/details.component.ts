@@ -8,6 +8,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import { LoggerService } from '../../core/logger.service';
 
 register(); // Register Swiper custom elements
 
@@ -27,7 +28,8 @@ export class DetailsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private competencyService: CompetencyService
+    private competencyService: CompetencyService,
+    private logger: LoggerService
   ) { }
 
   ngOnInit(): void {
@@ -51,10 +53,11 @@ export class DetailsComponent implements OnInit {
     if (this.competency) {
       // Store the competency name in localStorage for backward compatibility
       localStorage.setItem('selectedCompetencyName', this.competency.name);
-      
+      this.logger.log('Navigating to assessments for competency:', this.competency.name);
       // Navigate to the assessments page with the competency ID
       this.router.navigate(['/assessments', this.competency.id]);
     } else {
+      this.logger.warn('No competency available, navigating to /assessments');
       // Fallback to the regular assessments route if no competency is available
       this.router.navigate(['/assessments']);
     }

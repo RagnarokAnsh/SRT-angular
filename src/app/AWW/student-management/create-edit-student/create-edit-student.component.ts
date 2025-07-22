@@ -15,6 +15,8 @@ import { UserService } from '../../../services/user.service';
 
 import { MessageService } from 'primeng/api';
 import { ErrorHandlerService } from '../../../core/error/error-handler.service';
+import { SkeletonLoaderComponent } from '../../../components/skeleton-loader';
+import { LoggerService } from '../../../core/logger.service';
 
 @Component({
   selector: 'app-create-edit-student',
@@ -29,7 +31,7 @@ import { ErrorHandlerService } from '../../../core/error/error-handler.service';
     MatDatepickerModule,
     MatNativeDateModule,
     MatSelectModule,
-
+    SkeletonLoaderComponent
   ],
   templateUrl: './create-edit-student.component.html',
   styles: []
@@ -54,7 +56,8 @@ export class CreateEditStudentComponent implements OnInit {
     private http: HttpClient,
     private userService: UserService,
     private messageService: MessageService,
-    private errorHandler: ErrorHandlerService
+    private errorHandler: ErrorHandlerService,
+    private logger: LoggerService
   ) {
     this.studentForm = this.fb.group({
       firstName: ['', Validators.required],
@@ -99,10 +102,10 @@ export class CreateEditStudentComponent implements OnInit {
         this.studentForm.get('anganwadiId')?.disable();
         // If currentAnganwadiName is already set from constructor, great.
         // loadAnganwadiCenters will still run to populate the list for other roles
-        // or if the name wasn't on the currentUser object.
+        // or if the name wasn't on the currentUser object.anganwadi.name.
       } else {
         // This means an AWW user does not have an anganwadi_id from the constructor.
-        console.error("CreateEditStudentComponent (ngOnInit): AWW user's anganwadi center ID is missing. This is a data issue.");
+        this.logger.error("CreateEditStudentComponent (ngOnInit): AWW user's anganwadi center ID is missing. This is a data issue.");
         this.messageService.add({
           severity: 'error',
           summary: 'Configuration Error',
@@ -152,7 +155,7 @@ export class CreateEditStudentComponent implements OnInit {
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Error loading anganwadi centers:', error);
+          this.logger.error('Error loading anganwadi centers:', error);
           this.isLoading = false;
         }
       });
@@ -170,7 +173,7 @@ export class CreateEditStudentComponent implements OnInit {
         });
       },
       error: (error) => {
-        console.error('Error loading student:', error);
+        this.logger.error('Error loading student:', error);
         // Error toast is already handled in the service, do not call errorHandler here
         this.goBack();
       }
@@ -180,7 +183,7 @@ export class CreateEditStudentComponent implements OnInit {
   onSubmit() {
     if (this.studentForm.valid) {
       const studentData = this.studentForm.value;
-      console.log('Form data being submitted:', studentData);
+      this.logger.log('Form data being submitted:', studentData);
       
       // Make sure anganwadiId is a number
       if (studentData.anganwadiId && typeof studentData.anganwadiId === 'string') {
@@ -190,7 +193,7 @@ export class CreateEditStudentComponent implements OnInit {
       if (this.isEditMode && this.studentId) {
         this.studentService.updateStudent(this.studentId, studentData).subscribe({
           next: (response) => {
-            console.log('Update successful:', response);
+            this.logger.log('Update successful:', response);
             this.messageService.add({
               severity: 'success',
               summary: 'Student Updated',
@@ -200,15 +203,15 @@ export class CreateEditStudentComponent implements OnInit {
             this.goBack();
           },
           error: (error) => {
-            console.error('Error updating student:', error);
+            this.logger.error('Error updating student:', error);
             // Error toast is already handled in the service, do not call errorHandler here
           }
         });
       } else {
-        console.log('Creating new student with data:', studentData);
+        this.logger.log('Creating new student with data:', studentData);
         this.studentService.createStudent(studentData).subscribe({
           next: (response) => {
-            console.log('Create successful:', response);
+            this.logger.log('Create successful:', response);
             this.messageService.add({
               severity: 'success',
               summary: 'Student Created',
@@ -218,18 +221,18 @@ export class CreateEditStudentComponent implements OnInit {
             this.goBack();
           },
           error: (error) => {
-            console.error('Error creating student:', error);
+            this.logger.error('Error creating student:', error);
             // Error toast is already handled in the service, do not call errorHandler here
           }
         });
       }
     } else {
-      console.error('Form is invalid:', this.studentForm.errors);
+      this.logger.error('Form is invalid:', this.studentForm.errors);
       // Mark all form controls as touched to show validation errors
       Object.keys(this.studentForm.controls).forEach(key => {
         const control = this.studentForm.get(key);
         control?.markAsTouched();
-        console.log(`Form control ${key} errors:`, control?.errors);
+        this.logger.log(`Form control ${key} errors:`, control?.errors);
       });
       
       this.messageService.add({

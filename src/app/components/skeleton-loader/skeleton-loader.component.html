@@ -1,0 +1,21 @@
+<ng-container [ngSwitch]="variant">
+  <!-- Table row skeleton -->
+  <div *ngSwitchCase="'table-row'" class="skeleton-table-row">
+    <div class="skeleton skeleton-table-cell" *ngFor="let c of [].constructor(variant === 'table-row' ? 6 : 1)" [ngStyle]="{height: height, borderRadius: borderRadius, '--shimmer-speed': shimmerSpeed + 's'}"></div>
+  </div>
+  <!-- Button spinner -->
+  <div *ngSwitchCase="'button'" class="skeleton-button-spinner">
+    <span class="spinner"></span>
+  </div>
+  <!-- Default skeletons -->
+  <ng-container *ngSwitchDefault>
+    <ng-container [ngSwitch]="type">
+      <div *ngSwitchCase="'rect'" class="skeleton skeleton-rect" [ngStyle]="{width: width, height: height, borderRadius: borderRadius, '--shimmer-speed': shimmerSpeed + 's'}"></div>
+      <div *ngSwitchCase="'circle'" class="skeleton skeleton-circle" [ngStyle]="{width: width, height: height, '--shimmer-speed': shimmerSpeed + 's'}"></div>
+      <ng-container *ngSwitchCase="'text'">
+        <div *ngFor="let l of [].constructor(lines)" class="skeleton skeleton-text" [ngStyle]="{width: width, height: height, borderRadius: borderRadius, '--shimmer-speed': shimmerSpeed + 's'}"></div>
+      </ng-container>
+      <div *ngSwitchDefault class="skeleton skeleton-rect" [ngStyle]="{width: width, height: height, borderRadius: borderRadius, '--shimmer-speed': shimmerSpeed + 's'}"></div>
+    </ng-container>
+  </ng-container>
+</ng-container> 

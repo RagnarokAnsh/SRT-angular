@@ -209,9 +209,13 @@
           </table>
 
           <!-- No data message -->
-          <div *ngIf="filteredStudents.length === 0" class="no-data">
+          <div *ngIf="!isLoading && filteredStudents.length === 0" class="no-data">
             <mat-icon>people_outline</mat-icon>
             <p>No students available. Please add students to proceed.</p>
+          </div>
+          <div *ngIf="isLoading" class="loading-container">
+            <app-skeleton-loader variant="table-row" height="2.5em" *ngFor="let i of [1,2,3,4,5]"></app-skeleton-loader>
+            <p>Loading students...</p>
           </div>
         </div>
 

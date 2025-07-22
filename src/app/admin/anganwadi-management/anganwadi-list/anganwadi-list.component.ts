@@ -10,6 +10,8 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { AnganwadiService, AnganwadiCenter } from '../anganwadi.service';
 import { MessageService } from 'primeng/api';
+import { SkeletonLoaderComponent } from '../../../components/skeleton-loader';
+import { LoggerService } from '../../../core/logger.service';
 
 
 @Component({
@@ -24,7 +26,7 @@ import { MessageService } from 'primeng/api';
     MatTooltipModule,
     MatDialogModule,
     MatPaginatorModule,
-
+    SkeletonLoaderComponent
   ],
 
   templateUrl: './anganwadi-list.component.html',
@@ -33,32 +35,53 @@ import { MessageService } from 'primeng/api';
 export class AnganwadiListComponent implements OnInit {
   dataSource = new MatTableDataSource<AnganwadiCenter>([]);
   displayedColumns: string[] = ['name', 'code', 'project', 'sector', 'country', 'state', 'district', 'actions'];
+  isLoading = true;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  pageSize = 10;
 
   private messageService = inject(MessageService);
 
   constructor(
     private anganwadiService: AnganwadiService,
     private router: Router,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private logger: LoggerService
   ) { }
 
   ngOnInit() {
+    this.setPageSize();
+    window.addEventListener('resize', this.setPageSize.bind(this));
     this.loadAnganwadiCenters();
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener('resize', this.setPageSize.bind(this));
   }
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
+    this.paginator.pageSize = this.pageSize;
+  }
+
+  setPageSize() {
+    const width = window.innerWidth;
+    this.pageSize = width <= 768 ? 5 : 10;
+    if (this.paginator) {
+      this.paginator.pageSize = this.pageSize;
+      this.paginator._changePageSize(this.pageSize);
+    }
   }
 
   loadAnganwadiCenters() {
+    this.isLoading = true;
     this.anganwadiService.getAnganwadiCentersWithNamesDetailed().subscribe({
       next: (centers) => {
         this.dataSource.data = centers;
+        this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading centers with names, falling back to basic load:', error);
+        this.logger.error('Error loading centers with names, falling back to basic load:', error);
         // Fallback to basic centers
         this.anganwadiService.getAnganwadiCenters().subscribe({
           next: (centers) => {
@@ -68,10 +91,12 @@ export class AnganwadiListComponent implements OnInit {
               state_name: `State ID: ${center.state_id}`,
               district_name: `District ID: ${center.district_id}`
             }));
+            this.isLoading = false;
           },
           error: (basicError) => {
-            console.error('Error loading anganwadi centers:', basicError);
+            this.logger.error('Error loading anganwadi centers:', basicError);
             this.dataSource.data = [];
+            this.isLoading = false;
           }
         });
       }
@@ -114,7 +139,7 @@ export class AnganwadiListComponent implements OnInit {
             life: 5000
           });
         }, 0);
-        console.error('Error deleting anganwadi center:', error);
+        this.logger.error('Error deleting anganwadi center:', error);
       }
     });
   }

@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, of, throwError, BehaviorSubject, Subscription } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
-import { UserService } from '../../services/user.service';
+import { UserService, User } from '../../services/user.service';
+import { LoggerService } from '../../core/logger.service';
+import { inject } from '@angular/core';
 
 export interface Anganwadi {
   id: number;
@@ -30,7 +32,7 @@ export interface ApiStudent {
   created_at: string;
   updated_at: string;
   anganwadi?: Anganwadi;
-  gender: string; 
+  gender: string;
 }
 
 export interface Student {
@@ -53,37 +55,22 @@ export interface Student {
 })
 export class StudentService {
   private apiUrl = 'http://3.111.249.111/sribackend/api';
-  private currentUserAnganwadiId: number | null = null;
-  private currentUserId: number | null = null;
+  private currentUser: User | null = null;
+  private currentUserSubscription: Subscription;
+  private logger = inject(LoggerService);
 
   constructor(private http: HttpClient, private userService: UserService) {
-    // Get the current user's ID
-    const currentUser = this.userService.getCurrentUser();
-    if (currentUser) {
-      this.currentUserId = currentUser.id;
-      console.log('Current user ID:', this.currentUserId);
-    }
-    
-    // Try to get the anganwadi center ID for the current user synchronously
-    if (currentUser && this.userService.isAWW() && currentUser.anganwadi_id) {
-      this.currentUserAnganwadiId = currentUser.anganwadi_id;
-      console.log('Current user anganwadi ID (sync from constructor):', this.currentUserAnganwadiId);
-    } else if (currentUser && this.userService.isAWW()) {
-      // Fallback to async if not directly on currentUser, though ideally it should be
-      this.getCurrentUserAnganwadiId().subscribe(id => {
-        // This subscription in constructor is less ideal, but acts as a fallback
-        // if anganwadi_id wasn't immediately available on the currentUser object.
-        // The getCurrentUserAnganwadiId method itself will cache the ID.
-        console.log('Current user anganwadi ID (async fallback from constructor):', id);
-      });
-    }
+    // Subscribe to currentUser$ to always have the latest user
+    this.currentUserSubscription = this.userService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+    });
   }
 
   // Helper method to convert API student format to our application format
   private mapApiStudentToStudent(apiStudent: any): Student {
     // Handle case where apiStudent might be undefined or null
     if (!apiStudent) {
-      console.warn('Received null or undefined apiStudent in mapApiStudentToStudent');
+      this.logger.warn('Received null or undefined apiStudent in mapApiStudentToStudent');
       return {
         id: 0,
         firstName: '',
@@ -94,40 +81,40 @@ export class StudentService {
         weight: 0,
         language: '',
         anganwadiId: 1,
-        awwId: this.currentUserId || undefined,
+        awwId: this.currentUser?.id || undefined,
         gender: '' // Default gender
       };
     }
-    
+
     try {
       // Safely get name parts
       let firstName = '';
       let lastName = '';
-      
+
       if (apiStudent.name) {
         const nameParts = apiStudent.name.split(' ');
         firstName = nameParts[0] || '';
         lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
       }
-      
+
       // Safely parse numeric values
       const height = apiStudent.height_cm ? parseFloat(apiStudent.height_cm) : 0;
       const weight = apiStudent.weight_kg ? parseFloat(apiStudent.weight_kg) : 0;
-      
+
       // Create date safely
       let dateOfBirth: Date;
       try {
         dateOfBirth = apiStudent.date_of_birth ? new Date(apiStudent.date_of_birth) : new Date();
       } catch (error) {
-        console.error('Error parsing date of birth:', error);
+        this.logger.error('Error parsing date of birth:', error);
         dateOfBirth = new Date();
       }
-      
+
       // Log the anganwadi information if available
       if (apiStudent.anganwadi) {
-        console.log('Student has anganwadi data:', apiStudent.anganwadi);
+        this.logger.log('Student has anganwadi data:', apiStudent.anganwadi);
       }
-      
+
       return {
         id: apiStudent.id || 0,
         firstName: firstName,
@@ -138,12 +125,12 @@ export class StudentService {
         weight: isNaN(weight) ? 0 : weight,
         language: apiStudent.language || '',
         anganwadiId: apiStudent.anganwadi_id || 1,
-        awwId: apiStudent.aww_id || this.currentUserId || undefined,
+        awwId: apiStudent.aww_id || this.currentUser?.id || undefined,
         anganwadi: apiStudent.anganwadi,
         gender: apiStudent.gender || '' // Map gender
       };
     } catch (error) {
-      console.error('Error in mapApiStudentToStudent:', error);
+      this.logger.error('Error mapping API student:', error);
       // Return a default student object if mapping fails
       return {
         id: 0,
@@ -172,25 +159,25 @@ export class StudentService {
         const date = new Date(student.dateOfBirth);
         formattedDate = date.toISOString().split('T')[0];
       } else {
-        console.log('Date of birth is neither Date nor string:', student.dateOfBirth);
+        this.logger.log('Date of birth is neither Date nor string:', student.dateOfBirth);
         formattedDate = new Date().toISOString().split('T')[0]; // Fallback to today
       }
     } catch (error) {
-      console.error('Error formatting date:', error, 'Using current date instead');
+      this.logger.error('Error formatting date:', error, 'Using current date instead');
       formattedDate = new Date().toISOString().split('T')[0]; // Fallback to today if there's an error
     }
-    
+
     // Make sure anganwadiId is a number
     let anganwadiId: number;
     try {
-      anganwadiId = typeof student.anganwadiId === 'string' 
-        ? parseInt(student.anganwadiId, 10) 
+      anganwadiId = typeof student.anganwadiId === 'string'
+        ? parseInt(student.anganwadiId, 10)
         : (student.anganwadiId || 1); // Default to 1 if undefined
     } catch (error) {
-      console.error('Error parsing anganwadiId:', error, 'Using default value 1');
+      this.logger.error('Error parsing anganwadiId:', error, 'Using default value 1');
       anganwadiId = 1; // Default to 1 if there's an error
     }
-    
+
     // Calculate age from date of birth
     let age = 0;
     try {
@@ -204,13 +191,13 @@ export class StudentService {
         }
       }
     } catch (error) {
-      console.error('Error calculating age:', error);
+      this.logger.error('Error calculating age:', error);
       age = 0;
     }
-    
+
     // Log the student data for debugging
-    console.log('Student data before mapping:', student);
-    
+    this.logger.log('Student data before mapping:', student);
+
     // Create the API student object with safe values
     // Only include fields that the API expects
     const apiStudent: any = {
@@ -224,18 +211,18 @@ export class StudentService {
       anganwadi_id: anganwadiId,
       age: age
     };
-    
+
     // Only add the ID if it's provided (for updates)
     if (id) {
       apiStudent.id = id;
     }
-    
+
     // Only add the AWW ID if we have a current user
-    if (this.currentUserId) {
-      apiStudent.aww_id = this.currentUserId;
+    if (this.currentUser?.id) {
+      apiStudent.aww_id = this.currentUser.id;
     }
-    
-    console.log('Sending to API:', apiStudent);
+
+    this.logger.log('Sending to API:', apiStudent);
     return apiStudent;
   }
 
@@ -243,31 +230,21 @@ export class StudentService {
    * Get the anganwadi center ID for the current user
    */
   getCurrentUserAnganwadiId(): Observable<number | null> {
-    // If we already have the ID cached, return it
-    if (this.currentUserAnganwadiId !== null) {
-      return of(this.currentUserAnganwadiId);
-    }
-    
-    const currentUser = this.userService.getCurrentUser();
-    
-    if (currentUser && this.userService.isAWW()) {
-      if (typeof currentUser.anganwadi_id === 'number') {
-        this.currentUserAnganwadiId = currentUser.anganwadi_id;
-        console.log('getCurrentUserAnganwadiId: Fetched AWW anganwadi_id directly:', this.currentUserAnganwadiId);
-        return of(this.currentUserAnganwadiId);
-      } else if (currentUser.anganwadi && typeof currentUser.anganwadi.id === 'number') {
+    const user = this.currentUser;
+    if (user && this.userService.isAWW()) {
+      if (typeof user.anganwadi_id === 'number') {
+        return of(user.anganwadi_id);
+      } else if (user.anganwadi && typeof user.anganwadi.id === 'number') {
         // Fallback if anganwadi_id is not directly on user, but on user.anganwadi.id
-        this.currentUserAnganwadiId = currentUser.anganwadi.id;
-        console.log('getCurrentUserAnganwadiId: Fetched AWW anganwadi_id from anganwadi object:', this.currentUserAnganwadiId);
-        return of(this.currentUserAnganwadiId);
+        return of(user.anganwadi.id);
       } else {
-        console.warn('getCurrentUserAnganwadiId: AWW user ' + currentUser.id + ' does not have a valid anganwadi_id. This needs to be fixed in user data.');
+        this.logger.warn('getCurrentUserAnganwadiId: AWW user ' + user.id + ' does not have a valid anganwadi_id. This needs to be fixed in user data.');
         return of(null);
       }
     }
-    
+
     // If not an AWW, or no current user, return null
-    // console.log('getCurrentUserAnganwadiId: User is not AWW or no current user, returning null.');
+    // this.logger.log('getCurrentUserAnganwadiId: User is not AWW or no current user, returning null.');
     return of(null);
   }
 
@@ -275,19 +252,19 @@ export class StudentService {
    * Helper method to get anganwadi center details by ID
    */
   getAnganwadiDetails(anganwadiId: number): Observable<Anganwadi | null> {
-    // console.log('Looking up anganwadi details for ID:', anganwadiId);
+    // this.logger.log('Looking up anganwadi details for ID:', anganwadiId);
     return this.http.get<Anganwadi[]>(`${this.apiUrl}/anganwadi-centers`).pipe(
       map(centers => {
         const center = centers.find(c => c.id === anganwadiId);
         if (center) {
-          // console.log('Found matching anganwadi center:', center);
+          // this.logger.log('Found matching anganwadi center:', center);
           return center;
         }
-        // console.warn('No anganwadi center found with ID:', anganwadiId);
+        // this.logger.warn('No anganwadi center found with ID:', anganwadiId);
         return null;
       }),
       catchError(error => {
-        console.error('Error getting anganwadi centers in getAnganwadiDetails:', error);
+        this.logger.error('Error getting anganwadi centers in getAnganwadiDetails:', error);
         return of(null);
       })
     );
@@ -301,14 +278,14 @@ export class StudentService {
       return this.getCurrentUserAnganwadiId().pipe(
         switchMap(awwAnganwadiId => {
           if (awwAnganwadiId === null) { // Check for null specifically
-            console.warn('getStudents: AWW user has no anganwadiId, returning empty list of students.');
+            this.logger.warn('getStudents: AWW user has no anganwadiId, returning empty list of students.');
             return of([]); // Return empty array if AWW has no anganwadi ID
           }
-          // console.log('getStudents: Filtering students by anganwadi ID:', awwAnganwadiId);
+          // this.logger.log('getStudents: Filtering students by anganwadi ID:', awwAnganwadiId);
           return this.http.get<ApiStudent[]>(`${this.apiUrl}/children`).pipe(
             map(apiStudents => {
               const filteredApiStudents = apiStudents.filter(apiStudent => apiStudent.anganwadi_id === awwAnganwadiId);
-              // console.log(`getStudents: Total students ${apiStudents.length}, filtered to ${filteredApiStudents.length} for anganwadi ID ${awwAnganwadiId}`);
+              // this.logger.log(`getStudents: Total students ${apiStudents.length}, filtered to ${filteredApiStudents.length} for anganwadi ID ${awwAnganwadiId}`);
               return filteredApiStudents.map(apiStudent => this.mapApiStudentToStudent(apiStudent));
             }),
             catchError(this.handleError) // Handle errors from fetching children
@@ -318,7 +295,7 @@ export class StudentService {
       );
     } else {
       // For non-AWW users or when filtering is disabled, get all students
-      // console.log('getStudents: Fetching all students (user not AWW or filter disabled).');
+      // this.logger.log('getStudents: Fetching all students (user not AWW or filter disabled).');
       return this.http.get<ApiStudent[]>(`${this.apiUrl}/children`).pipe(
         map(apiStudents => apiStudents.map(apiStudent => this.mapApiStudentToStudent(apiStudent))),
         catchError(this.handleError)
@@ -334,11 +311,11 @@ export class StudentService {
           return this.getCurrentUserAnganwadiId().pipe(
             map(awwAnganwadiId => {
               if (!awwAnganwadiId) {
-                console.error('AWW user does not have an Anganwadi ID. Access denied for student:', id);
+                this.logger.error('AWW user does not have an Anganwadi ID. Access denied for student:', id);
                 throw new Error('Access Denied: Your Anganwadi center information is missing.');
               } // This closes: if (!awwAnganwadiId)
               if (student.anganwadiId !== awwAnganwadiId) {
-                console.warn(`Access Denied: AWW (Anganwadi ID: ${awwAnganwadiId}) attempting to access student (ID: ${id}) from different Anganwadi (ID: ${student.anganwadiId}).`);
+                this.logger.warn(`Access Denied: AWW (Anganwadi ID: ${awwAnganwadiId}) attempting to access student (ID: ${id}) from different Anganwadi (ID: ${student.anganwadiId}).`);
                 throw new Error('Access Denied: You do not have permission to view this student.');
               }
               return student; // Return the student if access is permitted
@@ -448,11 +425,11 @@ deleteStudent(id: number): Observable<void> {
 private handleError = (error: HttpErrorResponse): Observable<never> => {
   if (error.error instanceof ErrorEvent) {
     // A client-side or network error occurred. Handle it accordingly.
-    console.error('An error occurred:', error.error.message);
+    this.logger.error('An error occurred:', error.error.message);
   } else {
     // The backend returned an unsuccessful response code.
     // The response body may contain clues as to what went wrong.
-    console.error(
+    this.logger.error(
       `Backend returned code ${error.status}, ` +
       `body was: ${JSON.stringify(error.error)}`);
   }

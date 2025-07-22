@@ -1,0 +1,91 @@
+.skeleton {
+  display: block;
+  background: linear-gradient(90deg, var(--background-color) 25%, #ececec 37%, var(--background-color) 63%);
+  background-size: 400% 100%;
+  animation: shimmer var(--shimmer-speed, 1.2s) linear infinite;
+  margin-bottom: 0.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-rect {
+  border-radius: var(--border-radius-sm);
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+}
+
+.skeleton-text {
+  height: 1.1em;
+  width: 100%;
+  border-radius: var(--border-radius-sm);
+  margin-bottom: 0.4em;
+}
+
+.skeleton-table-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+.skeleton-table-cell {
+  flex: 1 1 0;
+  height: 2.5em;
+  border-radius: var(--border-radius-sm);
+  margin-bottom: 0;
+}
+
+.skeleton-button-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 2.5em;
+  min-width: 80px;
+  min-height: 2em;
+}
+.spinner {
+  display: inline-block;
+  width: 1.5em;
+  height: 1.5em;
+  border: 3px solid #ececec;
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -400% 0;
+  }
+  100% {
+    background-position: 400% 0;
+  }
+}
+
+// Mobile-first: ensure skeletons scale well
+@media (max-width: 768px) {
+  .skeleton {
+    margin-bottom: 0.35rem;
+  }
+  .skeleton-text {
+    height: 1em;
+    margin-bottom: 0.3em;
+  }
+  .skeleton-table-row {
+    gap: 0.5rem;
+  }
+  .skeleton-button-spinner {
+    width: 80px;
+    height: 2em;
+  }
+  .spinner {
+    width: 1.2em;
+    height: 1.2em;
+  }
+} 

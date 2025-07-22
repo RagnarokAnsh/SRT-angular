@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError, throwError, of, forkJoin } from 'rxjs';
 import { UserService } from '../../services/user.service';
+import { LoggerService } from '../../core/logger.service';
+import { inject } from '@angular/core';
 
 export interface AssessmentStudent {
   name: string;
@@ -43,6 +45,7 @@ export interface AssessmentSubmission {
 })
 export class AssessmentService {
   private apiUrl = 'http://3.111.249.111/sribackend/api';
+  private logger = inject(LoggerService);
 
   constructor(
     private http: HttpClient,
@@ -89,7 +92,7 @@ export class AssessmentService {
     }
 
     // Log the assessment data being sent
-    console.log('Assessment data being submitted:', JSON.stringify(assessments, null, 2));
+    this.logger.log('Assessment data being submitted:', JSON.stringify(assessments, null, 2));
 
     // Create an array of observables, one for each assessment submission
     const submissionObservables = assessments.map(assessment =>
@@ -98,10 +101,10 @@ export class AssessmentService {
         observe: 'response' 
       }).pipe(
         catchError(err => {
-          console.error(`Error submitting assessment for children ${assessment.children}:`, err);
-          console.log('Failed assessment payload:', JSON.stringify(assessment, null, 2));
+          this.logger.error(`Error submitting assessment for children ${assessment.children}:`, err);
+          this.logger.log('Failed assessment payload:', JSON.stringify(assessment, null, 2));
           if (err.error) {
-            console.error('Server error details:', err.error);
+            this.logger.error('Server error details:', err.error);
           }
           // Return the error wrapped in an observable so forkJoin continues with other requests
           return throwError(() => new Error(`Assessment submission failed for children ${assessment.children}: ${err.status} ${err.statusText}`));
@@ -112,7 +115,7 @@ export class AssessmentService {
     // Use forkJoin to wait for all submissions to complete
     return forkJoin(submissionObservables).pipe(
       catchError(error => {
-        console.error('Error in forkJoin for assessments:', error);
+        this.logger.error('Error in forkJoin for assessments:', error);
         return throwError(() => new Error('Failed to submit one or more assessments. Please try again.'));
       })
     );
@@ -121,7 +124,7 @@ export class AssessmentService {
   // updateStudentRemarks method removed
 
   private handleError(error: any) {
-    console.error('An error occurred:', error);
+    this.logger.error('An error occurred:', error);
     
     // Extract more specific error message if available
     let errorMessage = 'Something went wrong. Please try again later.';

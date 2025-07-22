@@ -5,6 +5,8 @@ import { catchError, map, switchMap, tap, retry, timeout, shareReplay, filter } 
 import { SecurityService } from '../security/security.service';
 import { ErrorHandlerService } from '../error/error-handler.service';
 import { AppStateService } from '../state/app.state';
+import { LoggerService } from '../logger.service';
+import { inject } from '@angular/core';
 
 export interface HttpConfig {
   baseUrl: string;
@@ -40,6 +42,7 @@ export class HttpService {
   private requestQueue = new Map<string, Observable<any>>();
   private loadingSubject = new BehaviorSubject<boolean>(false);
   public loading$ = this.loadingSubject.asObservable();
+  private logger = inject(LoggerService);
   
   constructor(
     private http: HttpClient,
@@ -332,7 +335,7 @@ export class HttpService {
       userAgent: navigator.userAgent
     };
     
-    console.log('HTTP Request:', logEntry);
+    this.logger.log('HTTP Request:', logEntry);
   }
   
   // Performance Monitoring
@@ -342,11 +345,11 @@ export class HttpService {
   
   private endRequestTimer(startTime: number, method: string, url: string): void {
     const duration = Date.now() - startTime;
-    console.log(`Request completed in ${duration}ms: ${method} ${url}`);
+    this.logger.log(`Request completed in ${duration}ms: ${method} ${url}`);
     
     // Log slow requests
     if (duration > 5000) {
-      console.warn(`Slow request detected: ${method} ${url} took ${duration}ms`);
+      this.logger.warn(`Slow request detected: ${method} ${url} took ${duration}ms`);
     }
   }
   

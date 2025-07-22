@@ -337,7 +337,7 @@
 
     ::ng-deep .p-inputnumber-input {
       width: 100%;
-      min-width: 32px;
+      min-width: 44px;
       border: 1px solid #52525b;
       background: transparent;
       box-shadow: none;
@@ -825,11 +825,13 @@ td.psr {
     width: auto;
   }
   @media (max-width: 600px) {
-    min-height: 24px;
-  
+    min-height: 32px;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    max-width: 100%;
   }
 }
-
 /* Success/Error Messages - Mobile First */
 .success-message, .error-message {
   position: fixed;

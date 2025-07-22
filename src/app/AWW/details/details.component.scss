@@ -350,6 +350,9 @@ h2, h3 {
   .form-check {
     margin-bottom: var(--spacing-xs) !important;
     padding-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
   }
   // Add more space between the last checkbox and the button
   .form-check:last-of-type {
@@ -372,10 +375,12 @@ h2, h3 {
     width: 20px;
     height: 20px;
     margin-top: 0.1rem;
+    margin-right: 0.5rem;
+    margin-left: 0;
   }
   .form-check-label {
     font-size: 0.95rem;
-    padding-left: 0.5rem;
+    padding-left: 0;
     line-height: 1.5;
   }
 }

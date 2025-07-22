@@ -74,7 +74,12 @@
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
-        <mat-paginator [pageSizeOptions]="[5, 10, 25, 50]" showFirstLastButtons aria-label="Select page of anganwadi centers"></mat-paginator>
+        <mat-paginator [pageSize]="pageSize" [showFirstLastButtons]="false" [hidePageSize]="true" aria-label="Select page of anganwadi centers"></mat-paginator>
+      </div>
+
+      <div *ngIf="isLoading" class="loading-container">
+        <app-skeleton-loader variant="table-row" height="2.5em" *ngFor="let i of [1,2,3,4,5]"></app-skeleton-loader>
+        <p>Loading anganwadi centers...</p>
       </div>
 
       <div *ngIf="dataSource.data.length === 0" class="text-center py-4">

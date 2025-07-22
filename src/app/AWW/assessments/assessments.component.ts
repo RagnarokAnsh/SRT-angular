@@ -41,6 +41,8 @@ import { AssessmentService, AssessmentSubmission } from './assessment.service';
 import { UserService } from '../../services/user.service';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 import { ErrorHandlerService } from '../../core/error/error-handler.service';
+import { SkeletonLoaderComponent } from '../../components/skeleton-loader';
+import { LoggerService } from '../../core/logger.service';
 
 /**
  * Interface for Assessment data structure
@@ -131,7 +133,8 @@ interface LevelDescription {
     MatSortModule,
     MatPaginatorModule,
 
-    InputNumberModule
+    InputNumberModule,
+    SkeletonLoaderComponent
   ],
   templateUrl: './assessments.component.html',
   styleUrls: ['./assessments.component.scss'],
@@ -153,6 +156,7 @@ export class AssessmentsComponent implements OnInit {
   @ViewChild('remarksDialog') remarksDialog!: TemplateRef<any>;
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  pageSize = 10;
   @ViewChild('videoPlayer') videoPlayer!: ElementRef;
 
   // UI control
@@ -200,18 +204,21 @@ export class AssessmentsComponent implements OnInit {
     private messageService: MessageService,
     private assessmentService: AssessmentService,
     private userService: UserService,
-    private errorHandler: ErrorHandlerService
+    private errorHandler: ErrorHandlerService,
+    private logger: LoggerService
   ) {}
 
   /**
    * Initialize component
    */
   ngOnInit() {
+    this.setPageSize();
+    window.addEventListener('resize', this.setPageSize.bind(this));
     // Get the current user's anganwadi ID
     const currentUser = this.userService.getCurrentUser();
     if (currentUser && this.userService.isAWW() && currentUser.anganwadi_id) {
       this.currentUserAnganwadiId = currentUser.anganwadi_id;
-      console.log('Current user anganwadi ID:', this.currentUserAnganwadiId);
+      this.logger.log('Current user anganwadi ID:', this.currentUserAnganwadiId);
     }
 
     // Get competency ID from route params
@@ -232,13 +239,18 @@ export class AssessmentsComponent implements OnInit {
     this.loadStudents();
   }
 
+  ngOnDestroy() {
+    window.removeEventListener('resize', this.setPageSize.bind(this));
+  }
+
   loadStudents() {
     if (!this.currentUserAnganwadiId) {
-      console.warn('Cannot load students: missing current user anganwadi ID.');
+      this.logger.warn('Cannot load students: missing current user anganwadi ID.');
       this.students = [];
       this.allStudents = [];
       this.updateDataSource();
       this.checkAndLoadAssessments(); // Still attempt, in case anganwadi ID is set later by another means
+      this.isLoading = false;
       return;
     }
     this.isLoading = true;
@@ -276,11 +288,11 @@ export class AssessmentsComponent implements OnInit {
         this.allStudents = [...this.students];
         this.updateDataSource();
         this.isLoading = false;
-        console.log('Students loaded and processed.');
+        this.logger.log('Students loaded and processed.');
         this.checkAndLoadAssessments();
       },
       error: (err: any) => {
-        console.error('Error loading students:', err);
+        this.logger.error('Error loading students:', err);
         this.showMessage('Failed to load students.', true);
         this.students = [];
         this.allStudents = [];
@@ -293,14 +305,14 @@ export class AssessmentsComponent implements OnInit {
 
   private checkAndLoadAssessments() {
     if (this.students && this.students.length > 0 && this.assessment && this.assessment.competency_id && this.currentUserAnganwadiId) {
-      console.log('checkAndLoadAssessments: Prerequisites met. Calling loadAssessments.');
+      this.logger.log('checkAndLoadAssessments: Prerequisites met. Calling loadAssessments.');
       this.loadAssessments();
     } else {
       let missing = [];
       if (!this.students || this.students.length === 0) missing.push('students not loaded or empty');
       if (!this.assessment || !this.assessment.competency_id) missing.push('assessment.competency_id not set');
       if (!this.currentUserAnganwadiId) missing.push('currentUserAnganwadiId not set');
-      console.log(`checkAndLoadAssessments: Prerequisites not met. Missing: ${missing.join('; ')}.`);
+      this.logger.log(`checkAndLoadAssessments: Prerequisites not met. Missing: ${missing.join('; ')}.`);
     }
   }
 
@@ -327,7 +339,7 @@ export class AssessmentsComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Error fetching competency data:', err);
+        this.logger.error('Error fetching competency data:', err);
         this.showMessage('Failed to load competency information.', true);
 
         // Set a default competency ID for fallback
@@ -382,7 +394,7 @@ export class AssessmentsComponent implements OnInit {
         this.checkAndLoadAssessments();
       },
       error: (err) => {
-        console.error('Error fetching competencies:', err);
+        this.logger.error('Error fetching competencies:', err);
         this.showMessage('Failed to load competency information.', true);
 
         // Set a default competency ID for fallback
@@ -400,7 +412,7 @@ export class AssessmentsComponent implements OnInit {
     // Always clear remarks when loading new assessments
     this.assessment.remarks = '';
     if (!this.currentUserAnganwadiId || !this.assessment.competency_id) {
-      console.warn('Cannot load assessments: missing anganwadi ID or competency ID');
+      this.logger.warn('Cannot load assessments: missing anganwadi ID or competency ID');
       // Clear existing assessment data from students if competency changes to nothing valid
       this.students.forEach(student => {
         student.assessed = false; student.assessmentLevel = ''; student.assessmentDate = '';
@@ -413,21 +425,21 @@ export class AssessmentsComponent implements OnInit {
       this.updateDisplayedColumns();
       return;
     }
-    console.log(`Loading assessments for competency_id: ${this.assessment.competency_id} and anganwadi_id: ${this.currentUserAnganwadiId}`);
+    this.logger.log(`Loading assessments for competency_id: ${this.assessment.competency_id} and anganwadi_id: ${this.currentUserAnganwadiId}`);
 
     this.assessmentService.getAssessmentsByAnganwadiAndCompetency(
       this.currentUserAnganwadiId,
       this.assessment.competency_id
     ).pipe(
       tap(rawAssessmentData => {
-      console.log('[AssessmentsComponent] Raw data from assessmentService.getAssessmentsByAnganwadiAndCompetency:', JSON.parse(JSON.stringify(rawAssessmentData)));
+      this.logger.log('[AssessmentsComponent] Raw data from assessmentService.getAssessmentsByAnganwadiAndCompetency:', JSON.parse(JSON.stringify(rawAssessmentData)));
       
       // Extract general assessment remarks from the first assessment if available
       if (rawAssessmentData && rawAssessmentData.length > 0) {
         // First check if there's a top-level remarks field in the first assessment
         if (rawAssessmentData[0].remarks) {
           this.assessment.remarks = rawAssessmentData[0].remarks;
-          console.log('Loaded general assessment remarks from top-level field:', this.assessment.remarks);
+          this.logger.log('Loaded general assessment remarks from top-level field:', this.assessment.remarks);
         } 
         // If no top-level remarks, check if the latest session has remarks
         else {
@@ -435,36 +447,36 @@ export class AssessmentsComponent implements OnInit {
           // Check session 4 first (most recent), then 3, 2, 1
           if (firstAssessment.session_4 && typeof firstAssessment.session_4 === 'object' && firstAssessment.session_4.remarks) {
             this.assessment.remarks = firstAssessment.session_4.remarks;
-            console.log('Loaded general assessment remarks from session 4:', this.assessment.remarks);
+            this.logger.log('Loaded general assessment remarks from session 4:', this.assessment.remarks);
           } else if (firstAssessment.session_3 && typeof firstAssessment.session_3 === 'object' && firstAssessment.session_3.remarks) {
             this.assessment.remarks = firstAssessment.session_3.remarks;
-            console.log('Loaded general assessment remarks from session 3:', this.assessment.remarks);
+            this.logger.log('Loaded general assessment remarks from session 3:', this.assessment.remarks);
           } else if (firstAssessment.session_2 && typeof firstAssessment.session_2 === 'object' && firstAssessment.session_2.remarks) {
             this.assessment.remarks = firstAssessment.session_2.remarks;
-            console.log('Loaded general assessment remarks from session 2:', this.assessment.remarks);
+            this.logger.log('Loaded general assessment remarks from session 2:', this.assessment.remarks);
           } else if (firstAssessment.session_1 && typeof firstAssessment.session_1 === 'object' && firstAssessment.session_1.remarks) {
             this.assessment.remarks = firstAssessment.session_1.remarks;
-            console.log('Loaded general assessment remarks from session 1:', this.assessment.remarks);
+            this.logger.log('Loaded general assessment remarks from session 1:', this.assessment.remarks);
           }
         }
       }
     }),
     map((assessmentStudents: any[]) => {
-        console.log('Loaded assessments:', assessmentStudents);
+        this.logger.log('Loaded assessments:', assessmentStudents);
         
         // Debug: Log the raw structure of the first assessment to understand the API response format
         if (assessmentStudents && assessmentStudents.length > 0) {
-          console.log('First assessment data structure:', JSON.stringify(assessmentStudents[0], null, 2));
+          this.logger.log('First assessment data structure:', JSON.stringify(assessmentStudents[0], null, 2));
           
           // Check session structure specifically
           const firstAssessment = assessmentStudents[0];
-          console.log('Session 1 type:', typeof firstAssessment.session_1);
-          console.log('Session 1 value:', firstAssessment.session_1);
+          this.logger.log('Session 1 type:', typeof firstAssessment.session_1);
+          this.logger.log('Session 1 value:', firstAssessment.session_1);
           
           if (typeof firstAssessment.session_1 === 'object' && firstAssessment.session_1 !== null) {
-            console.log('Session 1 properties:', Object.keys(firstAssessment.session_1));
-            console.log('Session 1 observation:', firstAssessment.session_1.observation);
-            console.log('Session 1 created_at:', firstAssessment.session_1.created_at);
+            this.logger.log('Session 1 properties:', Object.keys(firstAssessment.session_1));
+            this.logger.log('Session 1 observation:', firstAssessment.session_1.observation);
+            this.logger.log('Session 1 created_at:', firstAssessment.session_1.created_at);
           }
         }
 
@@ -487,7 +499,7 @@ export class AssessmentsComponent implements OnInit {
           });
           
           // Log whether we found a match for this student
-          console.log(`Student ${student.first_name} (ID: ${student.id}) match found:`, !!assessmentData);
+          this.logger.log(`Student ${student.first_name} (ID: ${student.id}) match found:`, !!assessmentData);
 
           const updatedStudent = { ...student };
           // Reset assessment fields before populating
@@ -502,11 +514,11 @@ export class AssessmentsComponent implements OnInit {
             let sessionCount = 0;
             
             // Log the raw session data for debugging
-            console.log('Session data for student:', student.first_name);
-            console.log('Session 1:', assessmentData.session_1);
-            console.log('Session 2:', assessmentData.session_2);
-            console.log('Session 3:', assessmentData.session_3);
-            console.log('Session 4:', assessmentData.session_4);
+            this.logger.log('Session data for student:', student.first_name);
+            this.logger.log('Session 1:', assessmentData.session_1);
+            this.logger.log('Session 2:', assessmentData.session_2);
+            this.logger.log('Session 3:', assessmentData.session_3);
+            this.logger.log('Session 4:', assessmentData.session_4);
             
             // Helper function to process session data
             const processSession = (sessionData: any, sessionNumber: number) => {
@@ -530,39 +542,39 @@ export class AssessmentsComponent implements OnInit {
                 switch (sessionNumber) {
                   case 1:
                     updatedStudent.assessed = true;
-                    console.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
+                    this.logger.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
                     updatedStudent.assessmentLevel = level;
                     updatedStudent.assessmentDate = this.formatDateForDisplay(sessionData.created_at);
                     // Store session-specific remarks
                     updatedStudent.remarks1 = sessionData.remarks || '';
-                    console.log(`Session 1 remarks for ${updatedStudent.first_name}:`, updatedStudent.remarks1);
+                    this.logger.log(`Session 1 remarks for ${updatedStudent.first_name}:`, updatedStudent.remarks1);
                     break;
                   case 2:
                     updatedStudent.assessed2 = true;
-                    console.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
+                    this.logger.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
                     updatedStudent.assessmentLevel2 = level;
                     updatedStudent.assessmentDate2 = this.formatDateForDisplay(sessionData.created_at);
                     // Store session-specific remarks
                     updatedStudent.remarks2 = sessionData.remarks || '';
-                    console.log(`Session 2 remarks for ${updatedStudent.first_name}:`, updatedStudent.remarks2);
+                    this.logger.log(`Session 2 remarks for ${updatedStudent.first_name}:`, updatedStudent.remarks2);
                     break;
                   case 3:
                     updatedStudent.assessed3 = true;
-                    console.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
+                    this.logger.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
                     updatedStudent.assessmentLevel3 = level;
                     updatedStudent.assessmentDate3 = this.formatDateForDisplay(sessionData.created_at);
                     // Store session-specific remarks
                     updatedStudent.remarks3 = sessionData.remarks || '';
-                    console.log(`Session 3 remarks for ${updatedStudent.first_name}:`, updatedStudent.remarks3);
+                    this.logger.log(`Session 3 remarks for ${updatedStudent.first_name}:`, updatedStudent.remarks3);
                     break;
                   case 4:
                     updatedStudent.assessed4 = true;
-                    console.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
+                    this.logger.log(`Student: ${updatedStudent.first_name}, Session: ${sessionNumber}, API Observation: ${sessionData.observation}, Calculated Level: '${level}'`);
                     updatedStudent.assessmentLevel4 = level;
                     updatedStudent.assessmentDate4 = this.formatDateForDisplay(sessionData.created_at);
                     // Store session-specific remarks
                     updatedStudent.remarks4 = sessionData.remarks || '';
-                    console.log(`Session 4 remarks for ${updatedStudent.first_name}:`, updatedStudent.remarks4);
+                    this.logger.log(`Session 4 remarks for ${updatedStudent.first_name}:`, updatedStudent.remarks4);
                     break;
                 }
                 return true; // Session processed, contributes to sessionCount
@@ -629,7 +641,7 @@ export class AssessmentsComponent implements OnInit {
         });
       }),
       catchError(error => {
-        console.error('Error loading assessments:', error);
+        this.logger.error('Error loading assessments:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -673,14 +685,14 @@ export class AssessmentsComponent implements OnInit {
     
     // Add remarks column at the end - temporarily disabled
     // this.displayedColumns.push('remarks');
-    console.log('Updated displayed columns:', this.displayedColumns);
+    this.logger.log('Updated displayed columns:', this.displayedColumns);
   }
 
   /**
    * Handle form submission
    */
   onSubmit() {
-    console.log('onSubmit called');
+    this.logger.log('onSubmit called');
     
     if (!this.assessment.observation) {
       this.showMessage('Please select an assessment level.', true);
@@ -699,7 +711,7 @@ export class AssessmentsComponent implements OnInit {
     // Set assessment date to today
     this.assessment.assessment_date = new Date().toISOString().split('T')[0];
     
-    console.log('Submitting assessment with data:', this.assessment);
+    this.logger.log('Submitting assessment with data:', this.assessment);
     
     // Call the submit assessment method
     this.submitAssessment();
@@ -717,7 +729,7 @@ export class AssessmentsComponent implements OnInit {
       return;
     }
     
-    console.log('Selected student IDs:', selectedStudentIds);
+    this.logger.log('Selected student IDs:', selectedStudentIds);
     
     // Update the assessment object with the selected student IDs
     this.assessment.child_ids = selectedStudentIds;
@@ -773,12 +785,12 @@ export class AssessmentsComponent implements OnInit {
       };
     });
     
-    console.log('Submitting assessments:', submissions);
+    this.logger.log('Submitting assessments:', submissions);
     
     // Submit assessments using the multiple assessments method
     this.assessmentService.submitMultipleAssessments(submissions).subscribe({
       next: (response) => {
-        console.log('All assessments submitted successfully');
+        this.logger.log('All assessments submitted successfully');
         this.showMessage('Assessment submitted successfully!', false);
         
         // Reset height/weight inputs after successful submission
@@ -800,7 +812,7 @@ export class AssessmentsComponent implements OnInit {
         this.setActiveTab('students');
       },
       error: (error) => {
-        console.error('Error submitting assessments:', error);
+        this.logger.error('Error submitting assessments:', error);
         this.showMessage('Error submitting assessment. Please try again.', true);
       }
     });
@@ -868,6 +880,7 @@ export class AssessmentsComponent implements OnInit {
       }
       if (this.paginator) {
         this.dataSource.paginator = this.paginator;
+        this.paginator.pageSize = this.pageSize;
       }
       this.cdr.detectChanges();
     });
@@ -1089,7 +1102,7 @@ export class AssessmentsComponent implements OnInit {
             }
           }
         }
-        console.warn('Invalid date string for formatting:', dateString);
+        this.logger.warn('Invalid date string for formatting:', dateString);
         return dateString; 
       }
 
@@ -1098,7 +1111,7 @@ export class AssessmentsComponent implements OnInit {
       const y = date.getUTCFullYear();
       return `${d}/${m}/${y}`;
     } catch (e) {
-      console.error('Error formatting date:', dateString, e);
+      this.logger.error('Error formatting date:', dateString, e);
       return dateString;
     }
   }
@@ -1331,8 +1344,17 @@ export class AssessmentsComponent implements OnInit {
   onHeightWeightInputChange(): void {
     const validation = this.validateHeightWeightInputs();
     if (!validation.isValid) {
-      console.log('Height/Weight validation:', validation.message);
+      this.logger.log('Height/Weight validation:', validation.message);
     }
     this.onStudentSelectionChange();
+  }
+
+  setPageSize() {
+    const width = window.innerWidth;
+    this.pageSize = width <= 768 ? 5 : 10;
+    if (this.paginator) {
+      this.paginator.pageSize = this.pageSize;
+      this.paginator._changePageSize(this.pageSize);
+    }
   }
 }

@@ -8,9 +8,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
 import { AnganwadiService, Country, State, District } from '../anganwadi.service';
 import { MessageService } from 'primeng/api';
 import { ErrorHandlerService } from '../../../core/error/error-handler.service';
+import { SkeletonLoaderComponent } from '../../../components/skeleton-loader';
 
 
 @Component({
@@ -25,7 +27,8 @@ import { ErrorHandlerService } from '../../../core/error/error-handler.service';
     MatCardModule,
     MatSelectModule,
     MatProgressSpinnerModule,
-
+    MatIconModule,
+    SkeletonLoaderComponent
   ],
 
   templateUrl: './create-edit-anganwadi.component.html',

@@ -12,6 +12,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { UserService, User, Country, State, District, Project, Sector, AnganwadiCenter } from '../user.service';
 import { MessageService } from 'primeng/api';
 import { ErrorHandlerService } from '../../../core/error/error-handler.service';
+import { SkeletonLoaderComponent } from '../../../components/skeleton-loader';
+import { LoggerService } from '../../../core/logger.service';
 
 @Component({
   selector: 'app-create-edit-user',
@@ -25,7 +27,8 @@ import { ErrorHandlerService } from '../../../core/error/error-handler.service';
     MatCardModule,
     MatSelectModule,
     MatProgressSpinnerModule,
-    MatIconModule
+    MatIconModule,
+    SkeletonLoaderComponent
   ],
   templateUrl: './create-edit-user.component.html',
   styleUrl: './create-edit-user.component.scss'
@@ -36,6 +39,7 @@ export class CreateEditUserComponent implements OnInit {
   userId: number | null = null;
   isLoading = false;
   showLocationFields = false;
+  isLoadingUserData = false; // <-- Add this flag
 
   // Data arrays
   availableRoles: string[] = [];
@@ -55,7 +59,8 @@ export class CreateEditUserComponent implements OnInit {
     private router: Router,
     private userService: UserService,
     private messageService: MessageService,
-    private errorHandler: ErrorHandlerService
+    private errorHandler: ErrorHandlerService,
+    private logger: LoggerService
   ) {
     this.userForm = this.fb.group({
       name: ['', Validators.required],
@@ -77,14 +82,14 @@ export class CreateEditUserComponent implements OnInit {
     this.loadCountries();
 
     const id = this.route.snapshot.paramMap.get('id');
-    console.log('ngOnInit - id from route:', id);
+    this.logger.log('ngOnInit - id from route:', id);
     if (id) {
       this.isEditMode = true;
       this.userId = +id;
       // In edit mode, password is optional
       this.userForm.get('password')?.clearValidators();
       this.userForm.get('password')?.updateValueAndValidity();
-      console.log('ngOnInit - Calling loadUserData with userId:', this.userId);
+      this.logger.log('ngOnInit - Calling loadUserData with userId:', this.userId);
       this.loadUserData(this.userId);
     }
   }
@@ -95,28 +100,51 @@ export class CreateEditUserComponent implements OnInit {
         this.countries = countries;
       },
       error: (error) => {
-        console.error('Error loading countries:', error);
+        this.logger.error('Error loading countries:', error);
       }
     });
   }
 
-  loadUserData(id: number) {
-    console.log('loadUserData - called with id:', id);
+  async loadUserData(id: number) {
+    this.isLoadingUserData = true;
     this.userService.getUser(id).subscribe({
-      next: (user) => {
-        console.log('loadUserData - user data received:', user);
+      next: async (user) => {
+        // Patch basic fields first
         this.userForm.patchValue({
           name: user.name,
           email: user.email,
           role: user.roles[0]?.name || '',
-          country_id: user.country_id,
-          state_id: user.state_id,
-          district_id: user.district_id,
-          project: user.project,
-          sector: user.sector,
-          anganwadi_id: user.anganwadi_id,
           gender: user.gender
         });
+
+        // Set role-based requirements
+        if (user.roles[0]?.name) {
+          this.onRoleChange(user.roles[0].name);
+        }
+
+        // Now load and patch location fields in sequence
+        if (user.country_id) {
+          await this.loadStates(user.country_id, user.state_id);
+        }
+        if (user.state_id !== null && user.state_id !== undefined) {
+          await this.loadDistricts(Number(user.state_id), user.district_id);
+        }
+        if (user.district_id !== null && user.district_id !== undefined) {
+          await this.loadProjects(Number(user.district_id), user.project);
+        }
+        if (
+          user.district_id !== null && user.district_id !== undefined &&
+          user.project
+        ) {
+          await this.loadSectors(Number(user.district_id), user.project, user.sector);
+        }
+        if (
+          user.district_id !== null && user.district_id !== undefined &&
+          user.project &&
+          user.sector
+        ) {
+          await this.loadAnganwadiCenters(Number(user.district_id), user.project, user.sector, user.anganwadi_id);
+        }
 
         this.messageService.add({
           severity: 'info',
@@ -124,34 +152,62 @@ export class CreateEditUserComponent implements OnInit {
           detail: `Successfully loaded user data for ${user.name}`,
           life: 3000
         });
-
-        // Load dependent data if values exist
-        if (user.country_id) {
-          this.onCountryChange(user.country_id);
-        }
-        if (user.state_id) {
-          this.onStateChange(user.state_id);
-        }
-        if (user.district_id) {
-          this.onDistrictChange(user.district_id);
-        }
-        if (user.project) {
-          this.onProjectChange(user.project);
-        }
-        if (user.sector) {
-          this.onSectorChange(user.sector);
-        }
-
-        // Set role-based requirements
-        if (user.roles[0]?.name) {
-          this.onRoleChange(user.roles[0].name);
-        }
+        this.isLoadingUserData = false;
       },
       error: (error) => {
-        console.error('Error loading user:', error);
-        // Error toast is already handled in the service, do not call errorHandler here
+        this.isLoadingUserData = false;
         this.goBack();
       }
+    });
+  }
+
+  loadStates(countryId: number, stateId: number | null): Promise<void> {
+    return new Promise((resolve) => {
+      this.userService.getStatesByCountry(countryId).subscribe(states => {
+        this.states = states;
+        this.userForm.patchValue({ country_id: countryId, state_id: stateId });
+        resolve();
+      });
+    });
+  }
+  loadDistricts(stateId: number, districtId: number | null): Promise<void> {
+    return new Promise((resolve) => {
+      this.userService.getDistrictsByState(stateId).subscribe(districts => {
+        this.districts = districts;
+        this.userForm.patchValue({ state_id: stateId, district_id: districtId });
+        resolve();
+      });
+    });
+  }
+  loadProjects(districtId: number, project: string | null): Promise<void> {
+    return new Promise((resolve) => {
+      this.userService.getProjectsByDistrict(districtId).subscribe(projects => {
+        this.projects = projects;
+        this.userForm.patchValue({ district_id: districtId, project: project });
+        resolve();
+      });
+    });
+  }
+  loadSectors(districtId: number, project: string, sector: string | null): Promise<void> {
+    return new Promise((resolve) => {
+      this.userService.getSectorsByProject(districtId, project).subscribe(sectors => {
+        this.sectors = sectors;
+        this.userForm.patchValue({ project: project, sector: sector });
+        resolve();
+      });
+    });
+  }
+  loadAnganwadiCenters(districtId: number, project: string, sector: string, anganwadi_id: number | null): Promise<void> {
+    return new Promise((resolve) => {
+      this.userService.getAnganwadiCenters().subscribe(centers => {
+        this.anganwadiCenters = centers.filter(center =>
+          center.district_id === districtId &&
+          center.project === project &&
+          center.sector === sector
+        );
+        this.userForm.patchValue({ sector: sector, anganwadi_id: anganwadi_id });
+        resolve();
+      });
     });
   }
 
@@ -204,23 +260,23 @@ export class CreateEditUserComponent implements OnInit {
           this.states = states;
         },
         error: (error) => {
-          console.error('Error loading states:', error);
+          this.logger.error('Error loading states:', error);
         }
       });
     }
-
-    // Reset dependent fields
-    this.userForm.patchValue({
-      state_id: null,
-      district_id: null,
-      project: null,
-      sector: null,
-      anganwadi_id: null
-    });
-    this.districts = [];
-    this.projects = [];
-    this.sectors = [];
-    this.anganwadiCenters = [];
+    if (!this.isLoadingUserData) { // <-- Only reset if not loading user data
+      this.userForm.patchValue({
+        state_id: null,
+        district_id: null,
+        project: null,
+        sector: null,
+        anganwadi_id: null
+      });
+      this.districts = [];
+      this.projects = [];
+      this.sectors = [];
+      this.anganwadiCenters = [];
+    }
   }
 
   onStateChange(stateId: number) {
@@ -230,21 +286,21 @@ export class CreateEditUserComponent implements OnInit {
           this.districts = districts;
         },
         error: (error) => {
-          console.error('Error loading districts:', error);
+          this.logger.error('Error loading districts:', error);
         }
       });
     }
-
-    // Reset dependent fields
-    this.userForm.patchValue({
-      district_id: null,
-      project: null,
-      sector: null,
-      anganwadi_id: null
-    });
-    this.projects = [];
-    this.sectors = [];
-    this.anganwadiCenters = [];
+    if (!this.isLoadingUserData) { // <-- Only reset if not loading user data
+      this.userForm.patchValue({
+        district_id: null,
+        project: null,
+        sector: null,
+        anganwadi_id: null
+      });
+      this.projects = [];
+      this.sectors = [];
+      this.anganwadiCenters = [];
+    }
   }
 
   onDistrictChange(districtId: number) {
@@ -254,19 +310,19 @@ export class CreateEditUserComponent implements OnInit {
           this.projects = projects;
         },
         error: (error) => {
-          console.error('Error loading projects:', error);
+          this.logger.error('Error loading projects:', error);
         }
       });
     }
-
-    // Reset dependent fields
-    this.userForm.patchValue({
-      project: null,
-      sector: null,
-      anganwadi_id: null
-    });
-    this.sectors = [];
-    this.anganwadiCenters = [];
+    if (!this.isLoadingUserData) { // <-- Only reset if not loading user data
+      this.userForm.patchValue({
+        project: null,
+        sector: null,
+        anganwadi_id: null
+      });
+      this.sectors = [];
+      this.anganwadiCenters = [];
+    }
   }
 
   onProjectChange(project: string) {
@@ -277,17 +333,17 @@ export class CreateEditUserComponent implements OnInit {
           this.sectors = sectors;
         },
         error: (error) => {
-          console.error('Error loading sectors:', error);
+          this.logger.error('Error loading sectors:', error);
         }
       });
     }
-
-    // Reset dependent fields
-    this.userForm.patchValue({
-      sector: null,
-      anganwadi_id: null
-    });
-    this.anganwadiCenters = [];
+    if (!this.isLoadingUserData) { // <-- Only reset if not loading user data
+      this.userForm.patchValue({
+        sector: null,
+        anganwadi_id: null
+      });
+      this.anganwadiCenters = [];
+    }
   }
 
   onSectorChange(sector: string) {
@@ -306,15 +362,15 @@ export class CreateEditUserComponent implements OnInit {
           );
         },
         error: (error) => {
-          console.error('Error loading anganwadi centers:', error);
+          this.logger.error('Error loading anganwadi centers:', error);
         }
       });
     }
-
-    // Reset anganwadi field
-    this.userForm.patchValue({
-      anganwadi_id: null
-    });
+    if (!this.isLoadingUserData) { // <-- Only reset if not loading user data
+      this.userForm.patchValue({
+        anganwadi_id: null
+      });
+    }
   }
 
   isFieldRequired(fieldName: string): boolean {
@@ -368,7 +424,7 @@ export class CreateEditUserComponent implements OnInit {
         formData.anganwadi_id = Number(this.userForm.get('anganwadi_id')?.value);
       }
 
-      console.log('Submitting user data:', formData);
+      this.logger.log('Submitting user data:', formData);
 
       const operation = this.isEditMode && this.userId
         ? this.userService.updateUser(this.userId, formData)
@@ -376,7 +432,7 @@ export class CreateEditUserComponent implements OnInit {
 
       operation.subscribe({
         next: (response) => {
-          console.log('User operation successful, attempting to go back.');
+          this.logger.log('User operation successful, attempting to go back.');
 
           // Show success message with the user's name
           const userName = this.userForm.get('name')?.value;
@@ -401,8 +457,8 @@ export class CreateEditUserComponent implements OnInit {
         },
         error: (error) => {
           this.isLoading = false;
-          console.error('Error saving user:', error);
-          console.error('Error details:', error.error);
+          this.logger.error('Error saving user:', error);
+          this.logger.error('Error details:', error.error);
 
           this.errorHandler.handleError(error, this.isEditMode ? 'user-edit' : 'user-create').subscribe();
         }
@@ -411,7 +467,7 @@ export class CreateEditUserComponent implements OnInit {
   }
 
   goBack() {
-    console.log('goBack called, navigating to /admin/users');
+    this.logger.log('goBack called, navigating to /admin/users');
     this.router.navigate(['/admin/users']);
   }
 }

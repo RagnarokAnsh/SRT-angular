@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { LoggerService } from '../logger.service';
+import { inject } from '@angular/core';
 
 export interface PerformanceMetrics {
   memoryUsage: number;
@@ -43,6 +45,7 @@ export class PerformanceService {
   
   private performanceObserver: PerformanceObserver | null = null;
   private memoryObserver: any = null;
+  private logger = inject(LoggerService);
   
   constructor() {
     if (this.config.enableMonitoring) {
@@ -165,7 +168,7 @@ export class PerformanceService {
     this.clearUnusedCaches();
     
     // Log optimization attempt
-    console.log('Memory optimization performed');
+    this.logger.log('Memory optimization performed');
   }
   
   // Cache Management
@@ -191,8 +194,7 @@ export class PerformanceService {
       userAgent: navigator.userAgent,
       url: window.location.href
     };
-    
-    console.warn('Performance Issue:', logEntry);
+    this.logger.warn('Performance Issue:', logEntry);
     
     // In production, send to monitoring service
     // this.sendToMonitoringService(logEntry);

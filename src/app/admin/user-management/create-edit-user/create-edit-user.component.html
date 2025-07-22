@@ -175,10 +175,13 @@
         <!-- Submit Buttons -->
         <div class="d-flex justify-content-end gap-2 mt-4">
           <button class="btn btn-primary" (click)="goBack()">Cancel</button>
-          <button type="submit" 
-                 [disabled]="userForm.invalid || isLoading" class="btn btn-primary">
-            <mat-spinner *ngIf="isLoading" diameter="20" class="me-2"></mat-spinner>
-            {{isEditMode ? 'Update' : 'Create'}} User
+          <button type="submit" [disabled]="userForm.invalid || isLoading" class="btn btn-primary">
+            <ng-container *ngIf="isLoading; else submitText">
+              <app-skeleton-loader type="rect" width="80px" height="1.5em" style="vertical-align: middle;"></app-skeleton-loader>
+            </ng-container>
+            <ng-template #submitText>
+              {{isEditMode ? 'Update' : 'Create'}} User
+            </ng-template>
           </button>
         </div>
       </form>

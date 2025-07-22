@@ -7,6 +7,9 @@ import { AssessmentService } from '../assessments/assessment.service';
 import { forkJoin, of, Observable } from 'rxjs';
 import { catchError, switchMap, map } from 'rxjs/operators';
 import { MessageService } from 'primeng/api';
+import { SkeletonLoaderComponent } from '../../components/skeleton-loader';
+import { LoggerService } from '../../core/logger.service';
+import { Injectable } from '@angular/core';
 
 interface StudentWithGender extends Student {
   gender: string;
@@ -28,10 +31,11 @@ interface DashboardData {
   };
 }
 
+@Injectable()
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective],
+  imports: [CommonModule, BaseChartDirective, SkeletonLoaderComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -240,7 +244,8 @@ export class DashboardComponent implements OnInit {
     private studentService: StudentService,
     private assessmentService: AssessmentService,
     private cdr: ChangeDetectorRef,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private logger: LoggerService
   ) {
     // Register Chart.js components
     Chart.register(...registerables);
@@ -262,7 +267,7 @@ export class DashboardComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error loading students:', error);
+        this.logger.error('Error loading students:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -312,7 +317,7 @@ export class DashboardComponent implements OnInit {
       }
     });
 
-    console.log('Gender Distribution Updated:', this._genderDistribution);
+    this.logger.log('Gender Distribution Updated:', this._genderDistribution);
   }
   
   private updateCharts(): void {

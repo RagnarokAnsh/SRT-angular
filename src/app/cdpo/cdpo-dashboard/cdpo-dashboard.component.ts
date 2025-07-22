@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { LoggerService } from '../../core/logger.service';
 
 @Component({
   selector: 'app-cdpo-dashboard',
@@ -6,6 +7,12 @@ import { Component } from '@angular/core';
   templateUrl: './cdpo-dashboard.component.html',
   styleUrl: './cdpo-dashboard.component.scss'
 })
-export class CdpoDashboardComponent {
+export class CdpoDashboardComponent implements OnInit {
+  constructor(
+    private logger: LoggerService
+  ) {}
 
+  ngOnInit(): void {
+    this.logger.log('CdpoDashboardComponent initialized');
+  }
 }

@@ -5,6 +5,28 @@ import { MatIconModule } from '@angular/material/icon';
 import { UserService, User } from '../../services/user.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../AWW/assessments/confirm-dialog/confirm-dialog.component';
+import { Inject } from '@angular/core';
+import { MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+
+@Component({
+  selector: 'logout-confirm-dialog',
+  template: `
+    <h2 mat-dialog-title>Logout</h2>
+    <mat-dialog-content>
+      Are you sure you want to logout?
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button type="button" class="btn btn-outline-secondary me-2" mat-dialog-close>Cancel</button>
+      <button type="button" class="btn btn-danger" [mat-dialog-close]="true">Logout</button>
+    </mat-dialog-actions>
+  `,
+  standalone: true,
+  imports: [MatDialogModule, MatButtonModule]
+})
+export class LogoutConfirmDialog {
+  constructor(@Inject(MAT_DIALOG_DATA) public data: any) {}
+}
 
 @Component({
   selector: 'app-navbar',
@@ -165,7 +187,7 @@ import { ConfirmDialogComponent } from '../../AWW/assessments/confirm-dialog/con
       color: #373a47;
       text-decoration: none;
       font-weight: 500;
-      font-size: 0.6rem;
+      font-size: 14px;
       padding: 0.4rem 0.75rem;
       border-radius: 0.5rem;
       transition: background 0.2s, color 0.2s;
@@ -343,7 +365,7 @@ import { ConfirmDialogComponent } from '../../AWW/assessments/confirm-dialog/con
         box-shadow: none;
         padding: 0;
         background: transparent;
-        margin: 0.5rem 0 0 1.5rem;
+        // margin: 0.5rem 0 0 1.5rem;
         border: none;
         backdrop-filter: none;
       }
@@ -414,12 +436,8 @@ export class NavbarComponent implements OnInit {
   }
 
   async logout() {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        title: 'Confirm Logout',
-        message: 'Are you sure you want to logout?',
-        confirmText: 'Logout'
-      }
+    const dialogRef = this.dialog.open(LogoutConfirmDialog, {
+      width: '300px'
     });
     const confirmed = await dialogRef.afterClosed().toPromise();
     if (confirmed) {

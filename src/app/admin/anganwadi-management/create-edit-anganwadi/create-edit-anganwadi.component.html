@@ -68,7 +68,7 @@
                        [disabled]="!anganwadiForm.get('country_id')?.value || loadingStates"
                        (selectionChange)="onStateChange($event.value)">
               <mat-option *ngIf="loadingStates" disabled>
-                <mat-spinner diameter="20"></mat-spinner> Loading...
+                <app-skeleton-loader type="rect" width="80px" height="1.5em"></app-skeleton-loader> Loading...
               </mat-option>
               <mat-option *ngFor="let state of states" [value]="state.id">
                 {{state.name}}
@@ -86,7 +86,7 @@
             <mat-select formControlName="district_id" 
                        [disabled]="!anganwadiForm.get('state_id')?.value || loadingDistricts">
               <mat-option *ngIf="loadingDistricts" disabled>
-                <mat-spinner diameter="20"></mat-spinner> Loading...
+                <app-skeleton-loader type="rect" width="80px" height="1.5em"></app-skeleton-loader> Loading...
               </mat-option>
               <mat-option *ngFor="let district of districts" [value]="district.id">
                 {{district.name}}
@@ -102,8 +102,12 @@
       <div class="d-flex justify-content-end gap-2 mt-4">
         <button type="button" class="btn btn-outline-secondary" (click)="goBack()">Cancel</button>
         <button type="submit" class="btn btn-primary" [disabled]="anganwadiForm.invalid || submitting">
-          <mat-spinner *ngIf="submitting" diameter="20" class="me-2"></mat-spinner>
-          {{isEditMode ? 'Update' : 'Create'}} Center
+          <ng-container *ngIf="submitting; else submitText">
+            <app-skeleton-loader type="rect" width="80px" height="1.5em" style="vertical-align: middle;"></app-skeleton-loader>
+          </ng-container>
+          <ng-template #submitText>
+            {{isEditMode ? 'Update' : 'Create'}} Center
+          </ng-template>
         </button>
       </div>
     </form>
