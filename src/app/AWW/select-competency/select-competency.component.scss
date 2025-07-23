@@ -126,7 +126,7 @@
   
   @media (min-width: 768px) {
     padding: var(--spacing-md);
-    min-height: 140px;
+    min-height: 156px;
   }
 
   &:hover {
@@ -135,6 +135,7 @@
     .competency-description {
       opacity: 1;
       visibility: visible;
+      
     }
   }
 
@@ -150,7 +151,7 @@
     
     @media (min-width: 768px) {
       max-width: 125px;
-      max-height: 80px;
+      max-height: 90px;
       margin-bottom: var(--spacing-sm);
     }
   }

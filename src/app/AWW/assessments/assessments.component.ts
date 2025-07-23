@@ -1006,26 +1006,132 @@ export class AssessmentsComponent implements OnInit {
     // Clear assessment form (including remarks) when switching competencies
     this.clearAssessmentForm();
 
-    if (competencyName.includes('gross motor')) {
+    if (competencyName.includes('classification')) {
       this.levelDescriptions = [
-        { level: 'Beginner', description: 'Balances and coordinates well in a variety of activities, such as throwing a ball with aim or kicking a ball at a given target', color: '#FFD657' },
-        { level: 'Progressing', description: 'Balances and coordinates well in a variety of activities, such as throwing a ball with aim or kicking a ball at a given target', color: '#FFC067' },
-        { level: 'Advanced', description: 'Balances and coordinates well in a variety of activities, such as throwing a ball with aim or kicking a ball at a given target', color: '#AFD588' },
-        { level: 'PSR', description: 'Balances and coordinates well in a variety of activities, such as throwing a ball with aim or kicking a ball at a given target', color: '#9FDFF8' }
+        { level: 'Beginning', description: 'Unable to sort objects based on any characteristic', color: '#FFD657' },
+        { level: 'Progressing', description: 'Sorts objects based on any one characteristic', color: '#FFC067' },
+        { level: 'Advancing', description: 'Classifies objects based on any two characteristics', color: '#AFD588' },
+        { level: 'School Ready', description: 'Classifies objects based on three characteristics', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('emergent writing')) {
+      this.levelDescriptions = [
+        { level: 'Beginning', description: 'Scribbles to represent writing', color: '#FFD657' },
+        { level: 'Progressing', description: 'Draws shapes to represent writing', color: '#FFC067' },
+        { level: 'Advancing', description: 'Engages in make-believe writing by using a combination of drawing and writing to express an idea', color: '#AFD588' },
+        { level: 'School Ready', description: 'Uses inventive spelling (based on phonics) to write words that are connected to a given topic', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('book handling') || competencyName.includes('emergent reading')) {
+      this.levelDescriptions = [
+        { level: 'Beginning', description: 'Picks up books and explores them', color: '#FFD657' },
+        { level: 'Progressing', description: 'Identifies the cover page of a book', color: '#FFC067' },
+        { level: 'Advancing', description: 'Differentiates text from pictures', color: '#AFD588' },
+        { level: 'School Ready', description: 'Understands directionality of the text', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('creative expression')) {
+      this.levelDescriptions = [
+        { level: 'Beginning', description: 'Unable to create something to represent an idea or object (e.g., by using arts and crafts, dance or music)', color: '#FFD657' },
+        { level: 'Progressing', description: 'Creates something with an adult assistance', color: '#FFC067' },
+        { level: 'Advancing', description: 'Creates something on her/his own', color: '#AFD588' },
+        { level: 'School Ready', description: 'Creates something innovative to represent an idea or object', color: '#9FDFF8' }
       ];
     } else if (competencyName.includes('fine motor')) {
       this.levelDescriptions = [
-        { level: 'Beginner', description: 'Controls and coordinates well in a variety of small muscle activities', color: '#FFD657' },
-        { level: 'Progressing', description: 'Controls and coordinates well in a variety of small muscle activities', color: '#FFC067' },
-        { level: 'Advanced', description: 'Controls and coordinates well in a variety of small muscle activities', color: '#AFD588' },
-        { level: 'PSR', description: 'Controls and coordinates well in a variety of small muscle activities', color: '#9FDFF8' }
+        { level: 'Beginning', description: 'Limited coordination of small muscles in fine motor activities', color: '#FFD657' },
+        { level: 'Progressing', description: 'Maintains coordination of small muscles in fine motor activities', color: '#FFC067' },
+        { level: 'Advancing', description: 'Maintains coordination of small muscles while manipulating objects', color: '#AFD588' },
+        { level: 'School Ready', description: 'Controls and coordinates well in a variety of small muscle activities', color: '#9FDFF8' }
       ];
-    } else {
+    } else if (competencyName.includes('imagination') || competencyName.includes('story')) {
+      this.levelDescriptions = [
+        { level: 'Beginning', description: 'Unable to answer questions about what would happen next in a story', color: '#FFD657' },
+        { level: 'Progressing', description: 'Answers questions about what would happen next in a story', color: '#FFC067' },
+        { level: 'Advancing', description: 'Role-plays characters in a story or uses props to tell a story', color: '#AFD588' },
+        { level: 'School Ready', description: 'Makes up and tells own story', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('gross motor')) {
+      this.levelDescriptions = [
+        { level: 'Beginning', description: 'Limited balance in gross motor activities, e.g., jumping', color: '#FFD657' },
+        { level: 'Progressing', description: 'Maintains balance in gross motor activities', color: '#FFC067' },
+        { level: 'Advancing', description: 'Maintains balance and controls body while moving quickly', color: '#AFD588' },
+        { level: 'School Ready', description: 'Balances and coordinates well in a variety of activities, such as throwing a ball with aim or kicking a ball at a given target', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('emotional') || competencyName.includes('emotion')) {
+      this.levelDescriptions = [
+        { level: 'Beginning', description: 'Unable to identify emotions', color: '#FFD657' },
+        { level: 'Progressing', description: 'Identifies own emotions', color: '#FFC067' },
+        { level: 'Advancing', description: 'Understands what triggers emotions', color: '#AFD588' },
+        { level: 'School Ready', description: 'Gives appropriate response to her/his emotions', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('initiative')) {
+      this.levelDescriptions = [
+        { level: 'Beginning', description: 'Does not take action even after being asked to do something', color: '#FFD657' },
+        { level: 'Progressing', description: 'Begins to take initiative when encouraged', color: '#FFC067' },
+        { level: 'Advancing', description: 'Takes initiative in some activities which she/he likes', color: '#AFD588' },
+        { level: 'School Ready', description: 'Takes initiative readily in most/all of the classroom activities', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('number concept') || competencyName.includes('numerals')) {
+      this.levelDescriptions = [
+        { level: 'Beginning', description: 'Unable to compare quantities', color: '#FFD657' },
+        { level: 'Progressing', description: 'Connects a number with an object and counts each object with understanding', color: '#FFC067' },
+        { level: 'Advancing', description: 'Identifies numerals and can link them with concrete objects', color: '#AFD588' },
+        { level: 'School Ready', description: 'Identifies both the smallest and the largest numerals within 1 to 10', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('interaction') || competencyName.includes('social interaction')) {
+      this.levelDescriptions = [
+        { level: 'Beginning', description: 'Plays alongside or near others but not with others', color: '#FFD657' },
+        { level: 'Progressing', description: 'Starts to play with others', color: '#FFC067' },
+        { level: 'Advancing', description: 'Plays with others to make/create something jointly', color: '#AFD588' },
+        { level: 'School Ready', description: 'Engages in games with rules with other children', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('listening') || competencyName.includes('comprehension')) {
+      this.levelDescriptions = [
+        { level: 'Beginning', description: 'Does not pay attention to a story/conversation', color: '#FFD657' },
+        { level: 'Progressing', description: 'Listens actively to a story/conversation', color: '#FFC067' },
+        { level: 'Advancing', description: 'Understands a story/conversation – responds to simple/close-ended questions (e.g., what, when, who)', color: '#AFD588' },
+        { level: 'School Ready', description: 'Understands a story/conversation –responds to complex/open-ended questions (e.g., why and how)', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('seriation') || competencyName.includes('ordering')) {
+      this.levelDescriptions = [
+        { level: 'Beginning', description: 'Unable to compare two objects in terms of size, length, or quantity', color: '#FFD657' },
+        { level: 'Progressing', description: 'Compares two similar objects based on size, length, or quantity', color: '#FFC067' },
+        { level: 'Advancing', description: 'Arranges up to three objects by size, length, or quantity', color: '#AFD588' },
+        { level: 'School Ready', description: 'Arranges up to five objects by size, length, or quantity', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('sharing') || competencyName.includes('sharing with others')) {
+      this.levelDescriptions = [
+        { level: 'Beginning', description: 'Shares unwillingly with peers and only when asked', color: '#FFD657' },
+        { level: 'Progressing', description: 'Begins to share selectively when encouraged', color: '#FFC067' },
+        { level: 'Advancing', description: 'Comes forward and shares with selected/few peers', color: '#AFD588' },
+        { level: 'School Ready', description: 'Comes forward and shares with all/any peers on her/his own', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('patterns') || competencyName.includes('pattern')) {
+      this.levelDescriptions = [
+        { level: 'Beginning', description: 'Unable to copy patterns', color: '#FFD657' },
+        { level: 'Progressing', description: 'Copies patterns', color: '#FFC067' },
+        { level: 'Advancing', description: 'Completes simple alternating patterns', color: '#AFD588' },
+        { level: 'School Ready', description: 'Completes complex patterns', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('task persistence') || competencyName.includes('persistence')) {
+      this.levelDescriptions = [
+        { level: 'Beginning', description: 'Focuses on play activities for a short period of time (about 5 minutes)', color: '#FFD657' },
+        { level: 'Progressing', description: 'Engages in play activities for about 10 minutes', color: '#FFC067' },
+        { level: 'Advancing', description: 'Sustains focus in play activities for about 15 minutes', color: '#AFD588' },
+        { level: 'School Ready', description: 'Sustains focus in play activities for at least 20-25 minutes, even if there are distractions', color: '#9FDFF8' }
+      ];
+    } else if (competencyName.includes('vocabulary') || competencyName.includes('expression')) {
+      this.levelDescriptions = [
+        { level: 'Beginning', description: 'Uses gestures to express/describe any event', color: '#FFD657' },
+        { level: 'Progressing', description: 'Uses words to express/describe any event', color: '#FFC067' },
+        { level: 'Advancing', description: 'Uses incomplete sentences to express/describe any event', color: '#AFD588' },
+        { level: 'School Ready', description: 'Uses complete sentences to express/describe any event', color: '#9FDFF8' }
+      ];
+    }
+     else {
       this.levelDescriptions = [
         { level: 'Beginner', description: 'The child shows initial attempts with limited success. Assess based on effort and support needed.', color: '#FFD657' },
         { level: 'Progressing', description: 'The child shows improvement with some support. Assess based on progress and guidance needed.', color: '#FFC067' },
         { level: 'Advanced', description: 'The child shows good understanding and application. Assess based on mastery and independence.', color: '#AFD588' },
-        { level: 'PSR', description: 'The child masters the task and applies it in context. Assess based on readiness for next stage.', color: '#9FDFF8' }
+        { level: 'School Ready', description: 'The child masters the task and applies it in context. Assess based on readiness for next stage.', color: '#9FDFF8' }
       ];
     }
   }
@@ -1158,12 +1264,26 @@ export class AssessmentsComponent implements OnInit {
   }
 
   /**
+   * Handle student removal from chip (deselection)
+   */
+  onChipStudentRemoved(student: Student) {
+    this.selection.deselect(student);
+    this.onStudentSelectionChange();
+    if (this.selection.selected.length === 0) {
+      this.assessment.observation = '';
+    }
+  }
+
+  /**
    * Handle student selection change
    */
   onStudentSelectionChange(): void {
     // Clear height/weight inputs when selection changes to prevent showing old data
     this.clearHeightWeightInputsForUnselectedStudents();
-    
+    // Reset radio if selection is empty
+    if (this.selection.selected.length === 0) {
+      this.assessment.observation = '';
+    }
     // Force change detection to update button state
     this.cdr.detectChanges();
   }

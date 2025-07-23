@@ -598,6 +598,13 @@ td.psr {
   @media (min-width: 992px) {
     grid-template-columns: repeat(4, 1fr);
   }
+  
+  /* Force 2x2 grid on mobile for 4 options */
+  @media (max-width: 767.98px) {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+  }
 }
 
 .level-option-wrapper, .level-option-container {
@@ -723,7 +730,7 @@ td.psr {
   background-color: white;
   display: flex;
   flex-direction: column;
-  height: 140px; 
+  height: 160px; 
   width: 100%; 
   
   @media (min-width: 768px) {
@@ -830,6 +837,10 @@ td.psr {
     font-size: 0.85rem;
     border-radius: 8px;
     max-width: 100%;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 }
 /* Success/Error Messages - Mobile First */

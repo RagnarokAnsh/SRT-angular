@@ -107,7 +107,7 @@ export class LogoutConfirmDialog {
       background: rgba(255, 255, 255, 0.85);
       box-shadow: 0 4px 24px rgba(80, 80, 180, 0.08);
       backdrop-filter: blur(2px);
-      border-radius: 1.5rem;
+      // border-radius: 1.5rem;
       margin: 0 auto 0;
       padding: 0.25rem 0.5rem;
       position: sticky;
