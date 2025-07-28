@@ -1,122 +1,339 @@
 <div class="dashboard-container">
   <!-- Loading State -->
-  <div *ngIf="loading" class="loading-state dashboard-loading-center">
-    <app-skeleton-loader type="rect" width="100%" height="2.5em" style="margin-bottom: 1em;"></app-skeleton-loader>
-    <app-skeleton-loader type="rect" width="100%" height="200px" style="margin-bottom: 1em;"></app-skeleton-loader>
-    <app-skeleton-loader type="rect" width="100%" height="2.5em"></app-skeleton-loader>
-    <p class="dashboard-loading-text">Loading student data...</p>
+  <div *ngIf="loading" class="loading-state">
+    <app-skeleton-loader type="rect" width="100%" height="60px" style="margin-bottom: 1em;"></app-skeleton-loader>
+    <app-skeleton-loader type="rect" width="100%" height="300px" style="margin-bottom: 1em;"></app-skeleton-loader>
+    <app-skeleton-loader type="rect" width="100%" height="400px"></app-skeleton-loader>
+    <p class="loading-text">Loading dashboard data...</p>
   </div>
 
   <!-- Main Content -->
   <div *ngIf="!loading">
     <!-- Header Section -->
     <div class="dashboard-header">
-      <div class="container">
-        <div class="header-content">
-          <h1 class="heading-heading">
-            <span class="heading-highlight">Anganwadi</span> Dashboard
-          </h1>
-        </div>
+      <div class="main-heading-container">
+        <h1 class="heading-heading">
+          <i class="pi pi-chart-bar"></i>
+          Anganwadi <span class="heading-highlight">Dashboard</span>
+        </h1>
+        <p class="dashboard-subtitle" style="color: #6366f1;">Monitor student assessments and progress</p>
       </div>
     </div>
 
-    <!-- Main Dashboard Content -->
-    <div class="container">
-      <div class="chart-row">
-        <!-- Gender Distribution Card -->
-        <div class="chart-card gender-card">
-          <div class="card-header">
-            <div class="card-title-section">
-              <h3 class="card-title">Student Gender Distribution</h3>
-              <p class="card-subtitle">Total Students: {{ totalStudents }}</p>
-              <p class="card-updated">Last updated: Just now</p>
+    <!-- Static Cards Section -->
+    <div class="static-cards-row">
+      <!-- Desktop View: 3 separate cards -->
+      <div class="desktop-cards">
+        <p-card class="stat-card total-students">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <i class="pi pi-users"></i>
             </div>
-            <div class="card-stats">
-              <div class="stat-item boys">
-                <span class="stat-value">{{ genderDistribution.male }}</span>
-                <span class="stat-label">Boys</span>
-              </div>
-              <div class="stat-item girls">
-                <span class="stat-value">{{ genderDistribution.female }}</span>
-                <span class="stat-label">Girls</span>
+            <div class="stat-details">
+              <h3 class="stat-value">{{ dashboardData.totalStudents }}</h3>
+              <p class="stat-label">Total Students</p>
+              <p class="stat-sublabel">Assigned to you</p>
+            </div>
+          </div>
+        </p-card>
+
+        <p-card class="stat-card boys-students">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <i class="pi pi-mars"></i>
+            </div>
+            <div class="stat-details">
+              <h3 class="stat-value">{{ dashboardData.genderDistribution.boys }}</h3>
+              <p class="stat-label">Boys</p>
+              <p class="stat-sublabel">Male students enrolled</p>
+            </div>
+          </div>
+        </p-card>
+
+        <p-card class="stat-card girls-students">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <i class="pi pi-venus"></i>
+            </div>
+            <div class="stat-details">
+              <h3 class="stat-value">{{ dashboardData.genderDistribution.girls }}</h3>
+              <p class="stat-label">Girls</p>
+              <p class="stat-sublabel">Female students enrolled</p>
+            </div>
+          </div>
+        </p-card>
+      </div>
+
+      <!-- Mobile View: Single combined card -->
+      <div class="mobile-card">
+        <p-card class="stat-card combined-students">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <i class="pi pi-users"></i>
+            </div>
+            <div class="stat-details">
+              <h3 class="stat-value">{{ dashboardData.totalStudents }}</h3>
+              <p class="stat-label">Total Students</p>
+              <div class="gender-breakdown">
+                <div class="gender-item">
+                  <i class="pi pi-mars"></i>
+                  <span>{{ dashboardData.genderDistribution.boys }} Boys</span>
+                </div>
+                <div class="gender-item">
+                  <i class="pi pi-venus"></i>
+                  <span>{{ dashboardData.genderDistribution.girls }} Girls</span>
+                </div>
               </div>
             </div>
           </div>
-          <div class="chart-container" style="height: 250px;">
-            <canvas 
-              baseChart
-              [data]="genderChartData"
-              [options]="genderChartOptions"
-              type="doughnut">
-            </canvas>
+        </p-card>
+      </div>
+    </div>
+
+    <!-- Integrated Chart & Filters Section -->
+    <div class="chart-section">
+      <p-card class="chart-card">
+        <ng-template pTemplate="header">
+          <div class="integrated-header">
+            <!-- Title & Actions Row -->
+            <div class="header-row">
+              <div class="header-main">
+                <h3>Assessment Dashboard</h3>
+                <p class="header-subtitle">Interactive data visualization and filtering</p>
+              </div>
+              <div class="header-actions">
+                <div class="chart-loading" *ngIf="loadingAssessments">
+                  <i class="pi pi-spin pi-spinner"></i>
+                  <span>Refreshing chart...</span>
+                </div>
+                <div class="buttons-grid" *ngIf="!loadingAssessments">
+                  <!-- First row: 3 action buttons -->
+                  <div class="action-buttons">
+                    <p-button 
+                      icon="pi pi-download" 
+                      severity="secondary" 
+                      size="small"
+                      pTooltip="Export to Excel"
+                      (onClick)="exportChartData()">
+                    </p-button>
+                    <p-button 
+                      icon="pi pi-refresh" 
+                      severity="secondary" 
+                      size="small"
+                      pTooltip="Refresh chart data (F5/Ctrl+R)"
+                      [loading]="loading || loadingAssessments"
+                      [disabled]="loading || loadingAssessments"
+                      (onClick)="onRefreshClick($event)">
+                    </p-button>
+                    <p-button 
+                      icon="pi pi-expand" 
+                      severity="secondary" 
+                      size="small"
+                      pTooltip="Fullscreen"
+                      (onClick)="toggleFullscreen()">
+                    </p-button>
+                  </div>
+                  
+                  <!-- Second row: Reset button taking full width -->
+                  <div class="reset-button-container">
+                    <p-button 
+                      icon="pi pi-refresh"
+                      label="Reset Filters"
+                      severity="secondary"
+                      size="small"
+                      pTooltip="Clear all filters"
+                      (onClick)="resetFilters()">
+                    </p-button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Compact Filters Row -->
+            <div class="filters-row">
+              <div class="inline-filters">
+                <div class="filter-item">
+                  <label><i class="pi pi-calendar"></i> Sessions</label>
+                  <app-custom-dropdown
+                    #sessionsDropdown
+                    [options]="sessionOptions"
+                    [(ngModel)]="selectedSessionValues"
+                    [multiple]="true"
+                    placeholder="Select Session/s"
+                    [showClear]="true"
+                    icon="pi pi-calendar"
+                    (selectionChange)="onSessionChange($event)">
+                  </app-custom-dropdown>
+                </div>
+                
+                <div class="filter-item">
+                  <label><i class="pi pi-sitemap"></i> Domain</label>
+                  <app-custom-dropdown
+                    #domainDropdown
+                    [options]="domainOptions"
+                    [(ngModel)]="selectedDomainValue"
+                    [multiple]="false"
+                    placeholder="Select Domain"
+                    [showClear]="true"
+                    icon="pi pi-sitemap"
+                    (selectionChange)="onDomainChange($event)">
+                  </app-custom-dropdown>
+                </div>
+
+                <div class="filter-item">
+                  <label><i class="pi pi-bookmark"></i> Competencies</label>
+                  <app-custom-dropdown
+                    #competenciesDropdown
+                    [options]="filteredCompetencyOptions"
+                    [(ngModel)]="selectedCompetencyValues"
+                    [multiple]="true"
+                    placeholder="Select Competencies"
+                    [showClear]="true"
+                    [disabled]="!selectedDomain"
+                    icon="pi pi-bookmark"
+                    (selectionChange)="onCompetencyChange($event)">
+                  </app-custom-dropdown>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+
+        <!-- Chart Container -->
+        <div class="chart-container" *ngIf="!loadingAssessments && hasSelections">
+          <!-- Chart Legend Helper -->
+          <div class="chart-legend-helper" *ngIf="hasSelections">
+            <div class="legend-info">
+              <i class="pi pi-info-circle"></i>
+              <span>Colors represent assessment levels. Border colors identify different competencies.</span>
+            </div>
+            
+            <!-- Interactive Competency Legend -->
+            <div class="competency-legend">
+              <h4>Competencies: <small>(hover to highlight, click to hide/show)</small></h4>
+              <div class="competency-items">
+                <div 
+                  *ngFor="let competency of selectedCompetencies; let i = index" 
+                  class="competency-item interactive-legend"
+                  [class.legend-hidden]="hiddenCompetencies.has(competency.value)"
+                  (mouseenter)="onLegendHover('competency', i, true)"
+                  (mouseleave)="onLegendHover('competency', i, false)"
+                  (click)="onLegendClick('competency', competency.value)">
+                  <div 
+                    class="competency-indicator"
+                    [style.border-color]="getCompetencyColor(i)"
+                    [style.background-color]="getCompetencyColor(i)">
+                  </div>
+                  <span>{{ competency.label }}</span>
+                  <i class="pi pi-eye-slash legend-visibility-icon" *ngIf="hiddenCompetencies.has(competency.value)"></i>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Interactive Level Legend -->
+            <div class="level-legend">
+              <h4>Assessment Levels: <small>(hover to highlight, click to hide/show)</small></h4>
+              <div class="level-items">
+                <div 
+                  *ngFor="let level of assessmentLevels; let i = index" 
+                  class="level-item interactive-legend"
+                  [class.legend-hidden]="hiddenLevels.has(level.value)"
+                  (mouseenter)="onLegendHover('level', i, true)"
+                  (mouseleave)="onLegendHover('level', i, false)"
+                  (click)="onLegendClick('level', level.value)">
+                  <div 
+                    class="level-indicator"
+                    [style.background-color]="level.color">
+                  </div>
+                  <span>{{ level.label }}</span>
+                  <i class="pi pi-eye-slash legend-visibility-icon" *ngIf="hiddenLevels.has(level.value)"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div 
+            #chart
+            class="echarts-container"
+            style="width: 100%; height: 450px;"
+            [style.opacity]="hasSelections && !loadingAssessments ? '1' : '0'"
+            [style.pointer-events]="hasSelections && !loadingAssessments ? 'auto' : 'none'">
+          </div>
+          <div *ngIf="!hasSelections" class="no-data-state">
+            <div class="no-data-content">
+              <i class="pi pi-chart-bar no-data-icon"></i>
+              <h3>No Data to Display</h3>
+              <p>Please select sessions, domain, and competencies to view the assessment chart.</p>
+            </div>
           </div>
         </div>
 
-        <!-- Student Levels Card -->
-        <div class="chart-card levels-card" style="flex: 2;">
-          <div class="card-header">
-            <div class="card-title-section">
-              <h3 class="card-title">Student Learning Levels</h3>
-              <p class="card-subtitle">Distribution across assessment levels</p>
-            </div>
-            <div class="levels-summary">
-              <div class="summary-grid">
-                <div class="summary-item beginner">
-                  <span class="summary-value">{{ studentLevels.beginner }}</span>
-                  <span class="summary-label">Beginner</span>
-                </div>
-                <div class="summary-item progressing">
-                  <span class="summary-value">{{ studentLevels.progressing }}</span>
-                  <span class="summary-label">Progressing</span>
-                </div>
-                <div class="summary-item advancing">
-                  <span class="summary-value">{{ studentLevels.advancing }}</span>
-                  <span class="summary-label">Advancing</span>
-                </div>
-                <div class="summary-item ready">
-                  <span class="summary-value">{{ studentLevels.preschoolReady }}</span>
-                  <span class="summary-label">Ready</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="chart-container levels-chart">
-            <canvas 
-              baseChart
-              [data]="levelChartData"
-              [options]="levelChartOptions"
-              type="bar">
-            </canvas>
-          </div>
+        <!-- Loading State for Chart -->
+        <div class="chart-loading-container" *ngIf="loadingAssessments">
+          <app-skeleton-loader variant="graph"></app-skeleton-loader>
         </div>
-      </div>
+      </p-card>
+    </div>
 
-      <!-- Additional Info Section -->
-      <div class="info-section">
-        <div class="info-cards">
-          <div class="info-card">
-            <div class="info-icon">👥</div>
-            <div class="info-content">
-              <h4>Total Enrollment</h4>
-              <p>{{ totalStudents }} active students</p>
+
+
+    <!-- Assessment Progress Counter -->
+    <div class="progress-section" *ngIf="hasSelections">
+      <p-card class="progress-card">
+        <ng-template pTemplate="header">
+          <div class="card-header">
+            <h3>Assessment Progress</h3>
+            <p class="header-subtitle">Track assessment completion based on selected filters</p>
+          </div>
+        </ng-template>
+
+        <div class="progress-content">
+          <div class="progress-stats">
+            <div class="progress-stat">
+              <h4>{{ dashboardData.assessedStudents }}</h4>
+              <p>Students Assessed</p>
+            </div>
+            <div class="progress-divider">/</div>
+            <div class="progress-stat">
+              <h4>{{ dashboardData.totalStudents }}</h4>
+              <p>Total Students</p>
             </div>
           </div>
-          <div class="info-card">
-            <div class="info-icon">📈</div>
-            <div class="info-content">
-              <h4>Progress Rate</h4>
-              <p>{{ competencyProgress.completed }}/{{ competencyProgress.total }} competencies</p>
+          
+          <div class="progress-bar-container">
+            <p-progressBar 
+              [value]="getAssessmentProgress()" 
+              [style]="{'height': '12px'}"
+              [showValue]="false">
+            </p-progressBar>
+            <div class="progress-percentage">
+              {{ getAssessmentProgress() }}%
             </div>
           </div>
-          <div class="info-card">
-            <div class="info-icon">🎯</div>
-            <div class="info-content">
-              <h4>Ready for School</h4>
-              <p>{{ studentLevels.preschoolReady }} students</p>
-            </div>
+
+          <div class="progress-note">
+            <i class="pi pi-info-circle"></i>
+            <span>Progress is calculated based on the current filter selections</span>
           </div>
         </div>
-      </div>
+      </p-card>
+    </div>
+
+    <!-- No Selection State -->
+    <div class="no-selection-state" *ngIf="!hasSelections && !loading">
+      <p-card class="empty-state-card">
+        <div class="empty-state-content">
+          <i class="pi pi-filter empty-state-icon"></i>
+          <h3>Select Filters to View Data</h3>
+          <p>Choose sessions, domains, and competencies above to see assessment results and analytics.</p>
+          <p-button 
+            label="Select All Sessions" 
+            icon="pi pi-calendar"
+            (onClick)="selectedSessions = sessionOptions; onSessionChange()"
+            severity="secondary">
+          </p-button>
+        </div>
+      </p-card>
     </div>
   </div>
 </div>

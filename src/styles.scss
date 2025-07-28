@@ -386,7 +386,7 @@ table.mat-mdc-table {
 
 // Enhanced mobile navigation
 @media (max-width: 768px) {
-  // Improve mobile navigation touch targets
+  
   .mat-mdc-tab-group {
     .mat-mdc-tab-header {
       .mat-mdc-tab-label-container {
@@ -484,5 +484,126 @@ table.mat-mdc-table {
     font-size: 1rem !important;
     width: 1rem !important;
     height: 1rem !important;
+  }
+}
+
+/* Global Custom Scrollbar Styles */
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #6366f1;
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4f46e5;
+}
+
+::-webkit-scrollbar-corner {
+  background: #f1f5f9;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #6366f1 #f1f5f9;
+}
+
+/* Specific scrollbar styles for different elements */
+/* For tables and data containers */
+.table-responsive::-webkit-scrollbar,
+.options-container::-webkit-scrollbar,
+.dropdown-panel::-webkit-scrollbar {
+  height: 4px; /* Thinner for horizontal scrollbars */
+}
+
+.table-responsive::-webkit-scrollbar-track,
+.options-container::-webkit-scrollbar-track,
+.dropdown-panel::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 2px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb,
+.options-container::-webkit-scrollbar-thumb,
+.dropdown-panel::-webkit-scrollbar-thumb {
+  background: #6366f1;
+  border-radius: 2px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover,
+.options-container::-webkit-scrollbar-thumb:hover,
+.dropdown-panel::-webkit-scrollbar-thumb:hover {
+  background: #4f46e5;
+}
+
+/* For search inputs and text areas */
+.search-input::-webkit-scrollbar,
+textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+.search-input::-webkit-scrollbar-track,
+textarea::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 2px;
+}
+
+.search-input::-webkit-scrollbar-thumb,
+textarea::-webkit-scrollbar-thumb {
+  background: #6366f1;
+  border-radius: 2px;
+}
+
+.search-input::-webkit-scrollbar-thumb:hover,
+textarea::-webkit-scrollbar-thumb:hover {
+  background: #4f46e5;
+}
+
+/* Mobile scrollbar adjustments */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  
+  .table-responsive::-webkit-scrollbar,
+  .options-container::-webkit-scrollbar,
+  .dropdown-panel::-webkit-scrollbar {
+    height: 3px;
+  }
+  
+  .search-input::-webkit-scrollbar,
+  textarea::-webkit-scrollbar {
+    width: 3px;
+  }
+}
+
+/* Extra small mobile screens */
+@media (max-width: 480px) {
+  ::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
+  
+  .table-responsive::-webkit-scrollbar,
+  .options-container::-webkit-scrollbar,
+  .dropdown-panel::-webkit-scrollbar {
+    height: 2px;
+  }
+  
+  .search-input::-webkit-scrollbar,
+  textarea::-webkit-scrollbar {
+    width: 2px;
   }
 }

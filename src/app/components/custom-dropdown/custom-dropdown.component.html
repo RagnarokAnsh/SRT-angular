@@ -1,0 +1,104 @@
+<div class="custom-dropdown" #dropdownContainer>
+  <!-- Main Trigger Button -->
+  <div class="dropdown-trigger" 
+       [class.open]="isOpen" 
+       [class.disabled]="disabled"
+       [class.has-selections]="selectedOptions.length > 0"
+       (click)="toggleDropdown()">
+    
+    <!-- Icon and Label Section -->
+    <div class="trigger-content">
+      <i *ngIf="icon" [class]="icon" class="dropdown-icon"></i>
+      
+      <!-- Single Selection Display -->
+      <span *ngIf="!multiple" 
+            class="dropdown-label"
+            [class.placeholder]="shouldShowPlaceholder">
+        <ng-container *ngIf="shouldShowPlaceholder">{{ placeholder || 'Select option' }}</ng-container>
+        <ng-container *ngIf="!shouldShowPlaceholder && selectedOptions && selectedOptions[0]">{{ selectedOptions[0].label }}</ng-container>
+        <ng-container *ngIf="!shouldShowPlaceholder && (!selectedOptions || !selectedOptions[0])">{{ placeholder || 'Select option' }}</ng-container>
+      </span>
+      
+      <!-- Multiple Selection - Always show chips or placeholder -->
+      <div *ngIf="multiple" class="chips-container">
+        <!-- Placeholder when no selections -->
+        <span *ngIf="shouldShowPlaceholder" 
+              class="dropdown-label placeholder">
+          {{ placeholder || 'Select options' }}
+        </span>
+        
+        <!-- Chips for selections -->
+        <ng-container *ngIf="!shouldShowPlaceholder && selectedOptions && selectedOptions.length > 0">
+          <span *ngFor="let option of selectedOptions.slice(0, maxSelectedLabels)" 
+                class="chip">
+            {{ option.label }}
+            <i class="pi pi-times chip-remove" 
+               (click)="removeOption(option, $event)"></i>
+          </span>
+          <span *ngIf="selectedOptions.length > maxSelectedLabels" 
+                class="chip more-chip">
+            +{{ selectedOptions.length - maxSelectedLabels }}
+          </span>
+        </ng-container>
+        
+        <!-- Fallback placeholder if something goes wrong -->
+        <span *ngIf="!shouldShowPlaceholder && (!selectedOptions || selectedOptions.length === 0)" 
+              class="dropdown-label placeholder">
+          {{ placeholder || 'Select options' }}
+        </span>
+      </div>
+    </div>
+    
+    <!-- Action Icons -->
+    <div class="trigger-actions">
+      <i *ngIf="showClear && !shouldShowPlaceholder" 
+         class="pi pi-times clear-icon"
+         (click)="clearAll($event)"></i>
+      <i class="pi dropdown-arrow" 
+         [class.pi-chevron-up]="isOpen"
+         [class.pi-chevron-down]="!isOpen"></i>
+    </div>
+  </div>
+  
+  <!-- Dropdown Panel -->
+  <div class="dropdown-panel" *ngIf="isOpen">
+    <!-- Search Input for Multiple -->
+    <div *ngIf="multiple && options.length > 5" class="search-container">
+      <i class="pi pi-search search-icon"></i>
+      <input type="text" 
+             class="search-input"
+             placeholder="Search options..."
+             [(ngModel)]="searchTerm"
+             (input)="filterOptions()">
+    </div>
+    
+    <!-- Options List -->
+    <div class="options-container">
+      <div *ngFor="let option of filteredOptions" 
+           class="dropdown-option"
+           [class.selected]="isSelected(option)"
+           (click)="selectOption(option)">
+        
+        <!-- Checkbox for Multiple -->
+        <div *ngIf="multiple" class="option-checkbox">
+          <div class="checkbox-box" [class.checked]="isSelected(option)">
+            <i *ngIf="isSelected(option)" class="pi pi-check"></i>
+          </div>
+        </div>
+        
+        <!-- Option Label -->
+        <span class="option-label">{{ option.label }}</span>
+        
+        <!-- Selected Indicator for Single -->
+        <i *ngIf="!multiple && isSelected(option)" 
+           class="pi pi-check selected-icon"></i>
+      </div>
+      
+      <!-- No Options Found -->
+      <div *ngIf="filteredOptions.length === 0" class="no-options">
+        <i class="pi pi-info-circle"></i>
+        <span>No options found</span>
+      </div>
+    </div>
+  </div>
+</div> 

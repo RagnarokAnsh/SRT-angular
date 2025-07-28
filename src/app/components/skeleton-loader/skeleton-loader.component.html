@@ -7,6 +7,41 @@
   <div *ngSwitchCase="'button'" class="skeleton-button-spinner">
     <span class="spinner"></span>
   </div>
+  <!-- Graph skeleton -->
+  <div *ngSwitchCase="'graph'" class="skeleton-graph" [ngStyle]="{'--shimmer-speed': shimmerSpeed + 's'}">
+    <div class="graph-header">
+      <div class="skeleton skeleton-text" style="width: 60%; height: 1.2em; margin-bottom: 0.5rem;"></div>
+      <div class="skeleton skeleton-text" style="width: 40%; height: 1em;"></div>
+    </div>
+    <div class="graph-content">
+      <div class="graph-y-axis">
+        <div class="skeleton skeleton-text" style="width: 30px; height: 0.8em; margin-bottom: 0.3rem;"></div>
+        <div class="skeleton skeleton-text" style="width: 25px; height: 0.8em; margin-bottom: 0.3rem;"></div>
+        <div class="skeleton skeleton-text" style="width: 35px; height: 0.8em; margin-bottom: 0.3rem;"></div>
+        <div class="skeleton skeleton-text" style="width: 20px; height: 0.8em; margin-bottom: 0.3rem;"></div>
+        <div class="skeleton skeleton-text" style="width: 25px; height: 0.8em;"></div>
+      </div>
+      <div class="graph-chart-area">
+        <div class="chart-bars">
+          <div class="bar-group" *ngFor="let group of [].constructor(4)">
+            <div class="skeleton skeleton-bar" *ngFor="let bar of [].constructor(3)" [ngStyle]="{'height': (20 + Math.random() * 60) + '%', '--shimmer-speed': shimmerSpeed + 's'}"></div>
+          </div>
+        </div>
+        <div class="graph-x-axis">
+          <div class="skeleton skeleton-text" style="width: 60%; height: 0.8em; margin-bottom: 0.2rem;"></div>
+          <div class="skeleton skeleton-text" style="width: 70%; height: 0.8em; margin-bottom: 0.2rem;"></div>
+          <div class="skeleton skeleton-text" style="width: 50%; height: 0.8em; margin-bottom: 0.2rem;"></div>
+          <div class="skeleton skeleton-text" style="width: 65%; height: 0.8em;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="graph-legend">
+      <div class="legend-item" *ngFor="let item of [].constructor(4)">
+        <div class="skeleton skeleton-circle" style="width: 12px; height: 12px; margin-right: 0.5rem;"></div>
+        <div class="skeleton skeleton-text" style="width: 80px; height: 0.8em;"></div>
+      </div>
+    </div>
+  </div>
   <!-- Default skeletons -->
   <ng-container *ngSwitchDefault>
     <ng-container [ngSwitch]="type">

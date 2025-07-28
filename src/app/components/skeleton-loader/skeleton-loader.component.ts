@@ -34,7 +34,10 @@ export class SkeletonLoaderComponent {
    */
   @Input() shimmerSpeed: number = 1.2;
   /**
-   * Skeleton variant for special layouts: 'table-row', 'button', or undefined
+   * Skeleton variant for special layouts: 'table-row', 'button', 'graph', or undefined
    */
-  @Input() variant?: 'table-row' | 'button';
+  @Input() variant?: 'table-row' | 'button' | 'graph';
+
+  // Make Math available in template
+  Math = Math;
 } 

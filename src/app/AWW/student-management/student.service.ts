@@ -112,7 +112,7 @@ export class StudentService {
 
       // Log the anganwadi information if available
       if (apiStudent.anganwadi) {
-        this.logger.log('Student has anganwadi data:', apiStudent.anganwadi);
+
       }
 
       return {

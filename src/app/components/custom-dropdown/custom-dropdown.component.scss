@@ -1,0 +1,519 @@
+.custom-dropdown {
+  position: relative;
+  width: 100%;
+  font-family: inherit;
+}
+
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 1rem;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: default;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    border-color: #f84525;
+  }
+  
+  &.open {
+    border-color: #f84525;
+    box-shadow: 0 0 0 3px rgba(248, 69, 37, 0.1);
+  }
+  
+  &.disabled {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
+  &:not(.disabled) {
+    cursor: default;
+    
+    &.has-selections,
+    &.open {
+      cursor: pointer;
+    }
+  }
+}
+
+.trigger-content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.dropdown-icon {
+  color: #f84525;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.dropdown-label {
+  color: #374151;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: ellipsis;
+  display: inline-block;
+  min-width: 100px;
+  
+  &.placeholder {
+    color: #9ca3af !important;
+    font-style: italic;
+    background-color: transparent !important;
+    cursor: default !important;
+  }
+}
+
+.chips-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+  overflow: visible;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #f84525;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+  
+  .chip-remove {
+    cursor: pointer;
+    font-size: 0.75rem;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+    flex-shrink: 0;
+    
+    &:hover {
+      opacity: 1;
+    }
+  }
+  
+  &.more-chip {
+    background: #6b7280;
+    max-width: 40px;
+    
+    .chip-remove {
+      display: none;
+    }
+  }
+}
+
+.trigger-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.clear-icon {
+  color: #6b7280;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: #f84525;
+  }
+}
+
+.dropdown-arrow {
+  color: #6b7280;
+  font-size: 0.875rem;
+  transition: transform 0.2s ease;
+}
+
+.dropdown-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 9999;
+  margin-top: 4px;
+  max-height: 300px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideDown 0.2s ease-out;
+}
+
+.search-container {
+  position: relative;
+  padding: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #374151;
+  background: white;
+  outline: none;
+  transition: border-color 0.2s ease;
+  
+  &:focus {
+    border-color: #f84525;
+  }
+  
+  &::placeholder {
+    color: #9ca3af;
+  }
+}
+
+.options-container {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 240px;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #6366f1;
+    border-radius: 3px;
+    
+    &:hover {
+      background: #4f46e5;
+    }
+  }
+  
+  scrollbar-width: thin;
+  scrollbar-color: #6366f1 #f1f5f9;
+}
+
+.dropdown-option {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #374151;
+  
+  &:hover {
+    background: rgba(248, 69, 37, 0.1);
+    color: #f84525;
+  }
+  
+  &.selected {
+    background: rgba(248, 69, 37, 0.1);
+    color: #f84525;
+    font-weight: 500;
+  }
+}
+
+.option-checkbox {
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.checkbox-box {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #d1d5db;
+  border-radius: 3px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  
+  &.checked {
+    background: #f84525;
+    border-color: #f84525;
+    
+    .pi-check {
+      color: white;
+      font-size: 0.75rem;
+    }
+  }
+  
+  &:hover {
+    border-color: #f84525;
+  }
+}
+
+.option-label {
+  flex: 1;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.selected-icon {
+  color: #f84525;
+  font-size: 0.875rem;
+  margin-left: auto;
+}
+
+.no-options {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  
+  .pi-info-circle {
+    font-size: 1rem;
+  }
+}
+
+// Mobile responsiveness
+@media (max-width: 768px) {
+  .dropdown-trigger {
+    height: 40px;
+    padding: 0 0.75rem;
+  }
+  
+  .dropdown-label {
+    font-size: 0.875rem;
+  }
+  
+  .chip {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
+    max-width: 80px;
+    
+    .chip-remove {
+      font-size: 0.7rem;
+    }
+  }
+  
+  .dropdown-panel {
+    max-height: 250px;
+    margin-top: 2px;
+  }
+  
+  .options-container {
+    max-height: 190px;
+  }
+  
+  .dropdown-option {
+    padding: 0.625rem 0.75rem;
+  }
+  
+  .option-label {
+    font-size: 0.875rem;
+  }
+  
+  .search-container {
+    padding: 0.5rem;
+  }
+  
+  .search-input {
+    padding: 0.4rem 0.6rem 0.4rem 1.75rem;
+    font-size: 0.8rem;
+  }
+  
+  .search-icon {
+    left: 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+// Very small mobile screens
+@media (max-width: 480px) {
+  .dropdown-trigger {
+    height: 38px;
+    padding: 0 0.5rem;
+  }
+  
+  .dropdown-label {
+    font-size: 0.8rem;
+    min-width: 80px;
+  }
+  
+  .dropdown-icon {
+    font-size: 0.875rem;
+  }
+  
+  .chip {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.3rem;
+    max-width: 60px;
+    
+    .chip-remove {
+      font-size: 0.65rem;
+    }
+    
+    &.more-chip {
+      max-width: 30px;
+    }
+  }
+  
+  .clear-icon,
+  .dropdown-arrow {
+    font-size: 0.75rem;
+  }
+  
+  .dropdown-panel {
+    max-height: 200px;
+    margin-top: 1px;
+  }
+  
+  .options-container {
+    max-height: 150px;
+  }
+  
+  .dropdown-option {
+    padding: 0.5rem 0.625rem;
+  }
+  
+  .option-label {
+    font-size: 0.8rem;
+  }
+  
+  .checkbox-box {
+    width: 14px;
+    height: 14px;
+    
+    .pi-check {
+      font-size: 0.7rem;
+    }
+  }
+  
+  .search-container {
+    padding: 0.4rem;
+  }
+  
+  .search-input {
+    padding: 0.35rem 0.5rem 0.35rem 1.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .search-icon {
+    left: 0.625rem;
+    font-size: 0.75rem;
+  }
+}
+
+// Extra small mobile screens
+@media (max-width: 360px) {
+  .dropdown-trigger {
+    height: 36px;
+    padding: 0 0.4rem;
+  }
+  
+  .dropdown-label {
+    font-size: 0.75rem;
+    min-width: 70px;
+  }
+  
+  .dropdown-icon {
+    font-size: 0.8rem;
+  }
+  
+  .chip {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.25rem;
+    max-width: 50px;
+    
+    .chip-remove {
+      font-size: 0.6rem;
+    }
+    
+    &.more-chip {
+      max-width: 25px;
+    }
+  }
+  
+  .clear-icon,
+  .dropdown-arrow {
+    font-size: 0.7rem;
+  }
+  
+  .dropdown-panel {
+    max-height: 180px;
+  }
+  
+  .options-container {
+    max-height: 130px;
+  }
+  
+  .dropdown-option {
+    padding: 0.4rem 0.5rem;
+  }
+  
+  .option-label {
+    font-size: 0.75rem;
+  }
+  
+  .checkbox-box {
+    width: 12px;
+    height: 12px;
+    
+    .pi-check {
+      font-size: 0.65rem;
+    }
+  }
+  
+  .search-container {
+    padding: 0.3rem;
+  }
+  
+  .search-input {
+    padding: 0.3rem 0.4rem 0.3rem 1.25rem;
+    font-size: 0.7rem;
+  }
+  
+  .search-icon {
+    left: 0.5rem;
+    font-size: 0.7rem;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} 

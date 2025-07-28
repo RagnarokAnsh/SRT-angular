@@ -118,7 +118,7 @@ export class CompetencyService {
         });
         return Array.from(domainsMap.values());
       }),
-      tap(appDomains => console.log('Processed Domains with Competencies:', appDomains)), 
+      tap(appDomains => {}), 
       catchError(error => {
         console.error('Error fetching or processing competencies:', error);
         this.competenciesCache = []; // Initialize cache as empty array on error

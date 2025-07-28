@@ -68,6 +68,90 @@
   }
 }
 
+// Graph skeleton styles
+.skeleton-graph {
+  width: 100%;
+  height: 400px;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--border-radius-md);
+  background: #fff;
+}
+
+.graph-header {
+  margin-bottom: 1rem;
+}
+
+.graph-content {
+  display: flex;
+  height: 280px;
+  margin-bottom: 1rem;
+}
+
+.graph-y-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 50px;
+  margin-right: 1rem;
+  padding-top: 1rem;
+  padding-bottom: 2rem;
+}
+
+.graph-chart-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-bars {
+  flex: 1;
+  display: flex;
+  align-items: end;
+  justify-content: space-around;
+  gap: 0.5rem;
+  padding: 1rem 0;
+  margin-bottom: 1rem;
+}
+
+.bar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  width: 20%;
+  height: 100%;
+  align-items: center;
+}
+
+.skeleton-bar {
+  width: 100%;
+  min-height: 20px;
+  border-radius: var(--border-radius-sm);
+  margin-bottom: 0;
+  background: linear-gradient(90deg, var(--background-color) 25%, #ececec 37%, var(--background-color) 63%);
+  background-size: 400% 100%;
+  animation: shimmer var(--shimmer-speed, 1.2s) linear infinite;
+}
+
+.graph-x-axis {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 2rem;
+}
+
+.graph-legend {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+}
+
 // Mobile-first: ensure skeletons scale well
 @media (max-width: 768px) {
   .skeleton {
@@ -87,5 +171,73 @@
   .spinner {
     width: 1.2em;
     height: 1.2em;
+  }
+  
+  // Mobile graph skeleton adjustments
+  .skeleton-graph {
+    height: 300px;
+    padding: 0.75rem;
+  }
+  
+  .graph-content {
+    height: 200px;
+  }
+  
+  .graph-y-axis {
+    width: 40px;
+    margin-right: 0.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 1.5rem;
+  }
+  
+  .chart-bars {
+    gap: 0.25rem;
+    padding: 0.5rem 0;
+  }
+  
+  .bar-group {
+    width: 18%;
+    gap: 0.1rem;
+  }
+  
+  .graph-legend {
+    gap: 1rem;
+  }
+  
+  .legend-item {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .skeleton-graph {
+    height: 250px;
+    padding: 0.5rem;
+  }
+  
+  .graph-content {
+    height: 160px;
+  }
+  
+  .graph-y-axis {
+    width: 30px;
+    margin-right: 0.25rem;
+  }
+  
+  .chart-bars {
+    gap: 0.15rem;
+  }
+  
+  .bar-group {
+    width: 16%;
+  }
+  
+  .graph-legend {
+    gap: 0.75rem;
+    justify-content: space-around;
+  }
+  
+  .legend-item {
+    font-size: 0.8rem;
   }
 } 
