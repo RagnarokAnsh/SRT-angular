@@ -68,6 +68,25 @@ export class AssessmentService {
     );
   }
 
+  // PRODUCTION API: Get ALL assessments for an anganwadi at once
+  getAllAssessmentsByAnganwadi(anganwadiId: number): Observable<AssessmentStudent[]> {
+    return this.http.get<AssessmentStudent[]>(
+      `${this.apiUrl}/assessments/anganwadi/${anganwadiId}/all`
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  // ALTERNATIVE API: Get assessments for multiple competencies at once
+  getAssessmentsByAnganwadiAndCompetencies(anganwadiId: number, competencyIds: number[]): Observable<AssessmentStudent[]> {
+    const competencyIdsParam = competencyIds.join(',');
+    return this.http.get<AssessmentStudent[]>(
+      `${this.apiUrl}/assessments/anganwadi/${anganwadiId}/competencies/${competencyIdsParam}`
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
   // Submit a new assessment
   submitAssessment(assessment: AssessmentSubmission): Observable<any> {
     const headers = new HttpHeaders({

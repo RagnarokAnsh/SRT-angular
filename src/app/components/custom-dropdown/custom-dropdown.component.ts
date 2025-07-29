@@ -139,6 +139,8 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
   }
 
   selectOption(option: DropdownOption) {
+    console.log('Dropdown option clicked:', option);
+    
     if (this.multiple) {
       const index = this.selectedOptions.findIndex(o => o.value === option.value);
       if (index > -1) {
@@ -153,6 +155,8 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
     
     this.emitChange();
   }
+
+
 
   removeOption(option: DropdownOption, event?: Event) {
     if (event) {

@@ -83,8 +83,18 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   // Data
   students: Student[] = [];
   domains: AppDomain[] = [];
-  assessmentData: AssessmentStudent[] = [];
+  
+  // PRODUCTION APPROACH: Store ALL assessment data once
+  allAssessmentData: AssessmentStudent[] = []; // Complete dataset
+  assessmentData: AssessmentStudent[] = []; // Filtered data for current selections
+  assessmentDataByCompetency: Map<number, AssessmentStudent[]> = new Map(); // Cached by competency
+  
   currentUserAnganwadiId: number | null = null;
+  
+  // Cache management
+  private dataLoaded = false;
+  private lastDataLoadTime: number = 0;
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
 
   // ECharts instance
   chartInstance: echarts.ECharts | null = null;
@@ -158,10 +168,24 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    // Wait a bit for the view to be fully rendered
-    setTimeout(() => {
+    // Initialize chart immediately after view init if selections exist
+    if (this.hasSelections) {
       this.initializeChart();
+    }
+    
+    // Ensure chart is properly initialized after view is stable
+    setTimeout(() => {
+      if (!this.chartInstance && this.chart?.nativeElement && this.hasSelections) {
+        this.initializeChart();
+      }
     }, 100);
+    
+    // Also try to initialize on any future changes when chart element becomes available
+    setTimeout(() => {
+      if (!this.chartInstance && this.hasSelections) {
+        this.initializeChart();
+      }
+    }, 500);
   }
 
   ngOnDestroy() {
@@ -173,7 +197,13 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   private initializeChart(): void {
     if (this.chart?.nativeElement) {
       try {
-            this.chartInstance = echarts.init(this.chart.nativeElement);
+        // Dispose existing instance if it exists
+        if (this.chartInstance) {
+          this.chartInstance.dispose();
+          this.chartInstance = null;
+        }
+        
+        this.chartInstance = echarts.init(this.chart.nativeElement);
         
         // Resize chart on window resize
         window.addEventListener('resize', () => {
@@ -182,15 +212,14 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           }
         });
         
-        // If we already have data, update the chart
-        if (this.hasValidSelections()) {
-          this.updateChart();
-        }
+        // Don't update chart here - let the calling method handle it
       } catch (error) {
         this.logger.error('Error initializing ECharts:', error);
+        this.chartInstance = null;
       }
     } else {
-      this.logger.warn('Chart element not found during initialization');
+      // If chart element is not ready, don't warn - it might be hidden
+      console.debug('Chart element not available for initialization');
     }
   }
 
@@ -351,19 +380,24 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedCompetencyValues = [];
     }
     
-    // Clear chart instance to force recreation with new data
-    if (this.chartInstance) {
-      this.chartInstance.dispose();
-      this.chartInstance = null;
-    }
-    
-    // Trigger change detection to show chart element
+    // Trigger change detection
     this.cdr.detectChanges();
     
-    // Wait a moment for DOM update, then update dashboard
-    setTimeout(() => {
-      this.updateDashboard();
-    }, 150);
+    // Update dashboard - load data if not cached, otherwise just filter
+    if (this.hasValidSelections()) {
+      if (this.dataLoaded) {
+        // Data already loaded, just filter and update
+        this.filterAssessmentData();
+        this.calculateDashboardMetrics();
+        this.cdr.detectChanges();
+        setTimeout(() => this.ensureChartAndUpdate(), 100);
+      } else {
+        // Load data first time
+        this.updateDashboard();
+      }
+    } else {
+      this.resetDashboardData();
+    }
   }
 
   onCompetencyChange(competencies?: CompetencyOption[]): void {
@@ -378,17 +412,24 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedCompetencyValues = this.selectedCompetencies.map(c => c.value);
     }
     
-    // Clear chart instance to force recreation with new data
-    if (this.chartInstance) {
-      this.chartInstance.dispose();
-      this.chartInstance = null;
-    }
-    
-    // Trigger change detection and update dashboard
+    // Trigger change detection
     this.cdr.detectChanges();
-    setTimeout(() => {
-      this.updateDashboard();
-    }, 150);
+    
+    // Update dashboard - filter existing data since all competencies are loaded
+    if (this.hasValidSelections()) {
+      if (this.dataLoaded) {
+        // Data already loaded, just filter and update
+        this.filterAssessmentData();
+        this.calculateDashboardMetrics();
+        this.cdr.detectChanges();
+        setTimeout(() => this.ensureChartAndUpdate(), 100);
+      } else {
+        // Load data first time
+        this.updateDashboard();
+      }
+    } else {
+      this.resetDashboardData();
+    }
   }
 
   onSessionChange(sessions?: SessionOption[]): void {
@@ -397,11 +438,18 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedSessionValues = this.selectedSessions.map(s => s.value);
     }
     
-    // No need to dispose chart for session changes, just update data
-    this.cdr.detectChanges();
-    setTimeout(() => {
+    // Sessions only require recalculating metrics, no data reloading needed
+    if (this.hasValidSelections() && this.dataLoaded) {
+      this.calculateDashboardMetrics();
+      this.cdr.detectChanges();
+      this.ensureChartAndUpdate();
+    } else if (this.hasValidSelections()) {
+      // Load data if not already loaded
       this.updateDashboard();
-    }, 100);
+    } else {
+      // Clear chart if no valid selections
+      this.resetDashboardData();
+    }
   }
 
   private async updateDashboard(): Promise<void> {
@@ -413,50 +461,74 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadingAssessments = true;
     
     try {
-      await this.loadAssessmentData();
+      this.logger.log('Starting dashboard update...');
+      
+      // Load ALL assessment data once (with caching)
+      await this.loadAllAssessmentData();
+      
+      // Calculate metrics with the filtered data
       this.calculateDashboardMetrics();
       
       // Force change detection to ensure chart element is in DOM
       this.cdr.detectChanges();
       
-      // Wait for DOM update, then ensure chart is initialized
+      // Wait a bit for DOM to update, then update chart
       setTimeout(() => {
-        this.ensureChartAndUpdate();
-      }, 100);
+        if (this.assessmentData.length > 0 || this.hasValidSelections()) {
+          this.logger.log('Data loaded, updating chart...');
+          this.ensureChartAndUpdate();
+        } else {
+          this.logger.log('No data available, clearing chart...');
+          this.clearChart();
+        }
+      }, 200);
+      
     } catch (error) {
       this.logger.error('Error updating dashboard:', error);
       this.showMessage('Failed to update dashboard data.', 'error');
+      // Clear chart on error
+      this.clearChart();
     } finally {
       this.loadingAssessments = false;
+      // Trigger another change detection after loading is complete
+      this.cdr.detectChanges();
     }
   }
 
   private ensureChartAndUpdate(): void {
+    // If no selections, don't try to update chart
+    if (!this.hasSelections) {
+      return;
+    }
+
+    // Ensure chart element is available
     if (!this.chart?.nativeElement) {
+      this.logger.log('Chart element not available, retrying...');
       setTimeout(() => this.ensureChartAndUpdate(), 100);
       return;
     }
 
+    // Initialize chart if not exists
     if (!this.chartInstance) {
+      this.logger.log('Initializing chart...');
       this.initializeChart();
       
-      // Wait a bit more for chart initialization
+      // Wait for chart to be properly initialized
       setTimeout(() => {
-        if (this.chartInstance && this.hasValidSelections()) {
+        if (this.chartInstance) {
+          this.logger.log('Chart initialized, updating...');
           this.updateChart();
         } else {
-          // Retry once more
-          setTimeout(() => {
-            if (this.chartInstance && this.hasValidSelections()) {
-              this.updateChart();
-            }
-          }, 100);
+          this.logger.warn('Chart initialization failed, retrying...');
+          setTimeout(() => this.ensureChartAndUpdate(), 200);
         }
       }, 100);
       return;
     }
 
-    if (this.chartInstance && this.hasValidSelections()) {
+    // Update chart immediately if instance exists
+    if (this.chartInstance) {
+      this.logger.log('Updating existing chart...');
       this.updateChart();
     }
   }
@@ -467,8 +539,9 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
            this.currentUserAnganwadiId !== null;
   }
 
-  // Store assessment data by competency ID
-  private assessmentDataByCompetency: Map<number, AssessmentStudent[]> = new Map();
+
+
+  // Removed duplicate - now declared above with other data properties
   
   // Competency patterns for better differentiation
   private competencyPatterns = [
@@ -487,47 +560,140 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   hiddenLevels: Set<string> = new Set();
   hoveredItem: { type: string; index: number } | null = null;
 
-  private async loadAssessmentData(): Promise<void> {
-    if (!this.currentUserAnganwadiId || this.selectedCompetencies.length === 0) {
-      this.assessmentData = [];
-      this.assessmentDataByCompetency.clear();
+  // PRODUCTION METHOD: Load ALL assessment data once
+  private async loadAllAssessmentData(): Promise<void> {
+    if (!this.currentUserAnganwadiId) {
+      this.allAssessmentData = [];
+      this.dataLoaded = false;
       return;
     }
 
-    const assessmentPromises = this.selectedCompetencies.map(async competency => {
-      try {
-        const data = await this.assessmentService.getAssessmentsByAnganwadiAndCompetency(
-          this.currentUserAnganwadiId!,
-          competency.value
-        ).toPromise();
-        return { competencyId: competency.value, data: data || [] };
-      } catch (error) {
-        console.error(`Error loading data for competency ${competency.value}:`, error);
-        return { competencyId: competency.value, data: [] };
-      }
-    });
+    // Check if data is already loaded and still fresh
+    const now = Date.now();
+    if (this.dataLoaded && (now - this.lastDataLoadTime) < this.CACHE_DURATION) {
+      this.logger.log('Using cached assessment data');
+      this.filterAssessmentData();
+      return;
+    }
 
     try {
-      const results = await Promise.all(assessmentPromises);
+      // For now, use the existing API until bulk endpoint is available
+      this.logger.log('Loading assessment data for anganwadi:', this.currentUserAnganwadiId);
       
-      // Clear previous data
-      this.assessmentDataByCompetency.clear();
-      this.assessmentData = [];
+      // Use the existing working API approach
+      await this.loadAssessmentDataFallback();
       
-      // Store data by competency and create combined array
-      results.forEach(result => {
-        this.assessmentDataByCompetency.set(result.competencyId, result.data);
-        this.assessmentData.push(...result.data);
-      });
-      
-
-
     } catch (error) {
       this.logger.error('Error loading assessment data:', error);
-      this.assessmentData = [];
-      this.assessmentDataByCompetency.clear();
+      this.allAssessmentData = [];
+      this.dataLoaded = false;
+      this.filterAssessmentData();
     }
   }
+
+  // Load assessment data using existing API - Load ALL competencies at once for better performance
+  private async loadAssessmentDataFallback(): Promise<void> {
+    if (!this.currentUserAnganwadiId) {
+      this.allAssessmentData = [];
+      this.dataLoaded = true;
+      this.lastDataLoadTime = Date.now();
+      this.filterAssessmentData();
+      return;
+    }
+
+    try {
+      // Load data for ALL competencies at once (better performance)
+      const allCompetencyIds = this.competencyOptions.map(c => c.value);
+      
+      this.logger.log('Loading assessment data for ALL competencies:', allCompetencyIds);
+
+      // Load data for all competencies in parallel
+      const assessmentPromises = allCompetencyIds.map(async competencyId => {
+        try {
+          const data = await this.assessmentService.getAssessmentsByAnganwadiAndCompetency(
+            this.currentUserAnganwadiId!,
+            competencyId
+          ).toPromise();
+          this.logger.log(`Loaded ${(data || []).length} records for competency ${competencyId}`);
+          return { competencyId, data: data || [] };
+        } catch (error) {
+          this.logger.error(`Error loading data for competency ${competencyId}:`, error);
+          return { competencyId, data: [] };
+        }
+      });
+
+      const results = await Promise.all(assessmentPromises);
+      
+      // Clear existing data
+      this.assessmentDataByCompetency.clear();
+      this.allAssessmentData = [];
+      
+      // Store data by competency and combine all data
+      results.forEach(result => {
+        this.assessmentDataByCompetency.set(result.competencyId, result.data);
+        this.allAssessmentData.push(...result.data);
+      });
+
+      // Remove duplicate students from combined array
+      const uniqueStudents = new Map<string, AssessmentStudent>();
+      this.allAssessmentData.forEach(student => {
+        const studentKey = `${student.name}_${student.child_id || 'unknown'}`;
+        if (!uniqueStudents.has(studentKey)) {
+          uniqueStudents.set(studentKey, student);
+        }
+      });
+      this.allAssessmentData = Array.from(uniqueStudents.values());
+
+      this.dataLoaded = true;
+      this.lastDataLoadTime = Date.now();
+      
+      this.logger.log(`Loaded ${this.allAssessmentData.length} unique assessment records for all competencies`);
+      
+      // Now filter for selected competencies
+      this.filterAssessmentData();
+      
+    } catch (error) {
+      this.logger.error('Error loading assessment data:', error);
+      this.allAssessmentData = [];
+      this.assessmentData = [];
+      this.assessmentDataByCompetency.clear();
+      this.dataLoaded = false;
+    }
+  }
+
+  // Filter the loaded data based on current selections
+  private filterAssessmentData(): void {
+    if (!this.hasValidSelections()) {
+      this.assessmentData = [];
+      return;
+    }
+
+    // Filter data for selected competencies from the complete dataset
+    this.assessmentData = [];
+    const selectedCompetencyIds = this.selectedCompetencies.map(c => c.value);
+    
+    // Get data for each selected competency
+    selectedCompetencyIds.forEach(competencyId => {
+      const competencyData = this.assessmentDataByCompetency.get(competencyId) || [];
+      this.assessmentData.push(...competencyData);
+    });
+
+    // Remove duplicate students from combined array
+    const uniqueStudents = new Map<string, AssessmentStudent>();
+    this.assessmentData.forEach(student => {
+      const studentKey = `${student.name}_${student.child_id || 'unknown'}`;
+      if (!uniqueStudents.has(studentKey)) {
+        uniqueStudents.set(studentKey, student);
+      }
+    });
+    this.assessmentData = Array.from(uniqueStudents.values());
+    
+    this.logger.log(`Filtered to ${this.assessmentData.length} students for selected competencies`);
+  }
+
+
+
+
 
   private calculateDashboardMetrics(): void {
     const metrics = {
@@ -599,7 +765,52 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
     private updateChart(): void {
     if (!this.chartInstance) {
-      this.logger.warn('Chart instance not available yet');
+      this.logger.warn('Chart instance not available yet, retrying...');
+      // Retry after a short delay
+      setTimeout(() => {
+        if (this.chartInstance) {
+          this.updateChart();
+        } else {
+          // If still not available, try to initialize
+          this.initializeChart();
+          setTimeout(() => {
+            if (this.chartInstance) {
+              this.updateChart();
+            }
+          }, 100);
+        }
+      }, 100);
+      return;
+    }
+
+    // If we don't have valid selections or data, show empty chart
+    if (!this.hasValidSelections() || this.assessmentData.length === 0) {
+      try {
+        this.chartInstance.setOption({
+          xAxis: { 
+            type: 'category',
+            data: this.hasValidSelections() ? this.selectedSessions.map(s => s.label) : []
+          },
+          yAxis: {
+            type: 'value',
+            name: 'Number of Students',
+            nameLocation: 'middle',
+            nameGap: 50
+          },
+          series: [],
+          legend: {
+            data: this.assessmentLevels.map(level => level.label),
+            top: 10,
+            itemGap: 20,
+            type: 'scroll',
+            textStyle: {
+              fontSize: 12
+            }
+          }
+        }, true);
+      } catch (error) {
+        console.warn('Error setting empty chart:', error);
+      }
       return;
     }
 
@@ -745,6 +956,12 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
     try {
       this.chartInstance.setOption(option, true);
+      // Force chart to resize to ensure proper rendering
+      setTimeout(() => {
+        if (this.chartInstance) {
+          this.chartInstance.resize();
+        }
+      }, 50);
 
     } catch (error) {
       this.logger.error('Error setting chart option:', error);
@@ -778,11 +995,24 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     };
     
+    this.clearChart();
+  }
+
+  private clearChart(): void {
     // Clear chart data but don't dispose instance
     if (this.chartInstance) {
       try {
         this.chartInstance.setOption({
-          xAxis: { data: [] },
+          xAxis: { 
+            type: 'category',
+            data: [] 
+          },
+          yAxis: {
+            type: 'value',
+            name: 'Number of Students',
+            nameLocation: 'middle',
+            nameGap: 50
+          },
           series: []
         }, true);
       } catch (error) {
@@ -974,11 +1204,12 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async refreshData(): Promise<void> {
     try {
-  
-      
       // Only refresh assessment data and chart, not the entire dashboard
       if (this.hasValidSelections()) {
         this.loadingAssessments = true;
+        
+        // Invalidate cache to force fresh data load
+        this.invalidateDataCache();
         
         // Clear existing chart instance to force recreation
         if (this.chartInstance) {
@@ -986,7 +1217,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           this.chartInstance = null;
         }
         
-        await this.loadAssessmentData();
+        await this.loadAllAssessmentData();
         this.calculateDashboardMetrics();
         
         // Force change detection to ensure chart element is in DOM
@@ -1012,15 +1243,14 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async refreshFullDashboard(): Promise<void> {
     try {
-  
-      
       // Store current selections before refresh
       const currentSessions = [...this.selectedSessions];
       const currentDomain = this.selectedDomain;
       const currentCompetencies = [...this.selectedCompetencies];
       
-      // Clear any existing chart state
+      // Clear any existing chart state and cache
       this.resetDashboardData();
+      this.invalidateDataCache();
       
       // Force reload of all data without setting defaults
       await this.initializeDashboard(false);
@@ -1048,7 +1278,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       
       // Load assessment data with current selections if available
       if (this.hasValidSelections()) {
-        await this.loadAssessmentData();
+        await this.loadAllAssessmentData();
         this.calculateDashboardMetrics();
         
         // Ensure chart is updated
@@ -1080,6 +1310,15 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
+
+  // Force refresh assessment data cache
+  private invalidateDataCache(): void {
+    this.dataLoaded = false;
+    this.lastDataLoadTime = 0;
+    this.allAssessmentData = [];
+    this.assessmentData = [];
+    this.assessmentDataByCompetency.clear();
+  }
 
   resetFilters(): void {
     // Reset hidden states

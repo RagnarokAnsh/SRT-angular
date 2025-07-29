@@ -17,7 +17,7 @@
     
     @media (min-width: 768px) {
       margin-bottom: var(--spacing-xl);
-      font-size: 0.8rem;
+      font-size: 1rem;
     }
     @media (max-width: 480px) {
       font-size: 14px;
@@ -336,8 +336,6 @@
 }
 
 // Chart Section
-
-
 .chart-section {
   margin-bottom: 2rem;
   
@@ -556,7 +554,6 @@
             flex: 1;
             min-width: 240px;
             position: relative;
-            z-index: 20;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
@@ -769,34 +766,7 @@
       margin-top: 1rem;
     }
     
-    .no-data-state {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-      height: 450px;
-      
-      .no-data-content {
-        text-align: center;
-        color: #6b7280;
-        
-        .no-data-icon {
-          font-size: 3rem;
-          color: #d1d5db;
-          margin-bottom: 1rem;
-        }
-        
-        h3 {
-          margin: 0 0 0.5rem 0;
-          color: #374151;
-          font-size: 1.25rem;
-    }
-    
-    p {
-      margin: 0;
-          font-size: 0.95rem;
-        }
-      }
-    }
+
   }
 }
 
