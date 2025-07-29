@@ -139,7 +139,7 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
   }
 
   selectOption(option: DropdownOption) {
-    console.log('Dropdown option clicked:', option);
+    // Option clicked - removed console log for production
     
     if (this.multiple) {
       const index = this.selectedOptions.findIndex(o => o.value === option.value);

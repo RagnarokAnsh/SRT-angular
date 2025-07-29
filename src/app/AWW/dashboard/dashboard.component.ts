@@ -219,7 +219,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     } else {
       // If chart element is not ready, don't warn - it might be hidden
-      console.debug('Chart element not available for initialization');
+      this.logger.debug('Chart element not available for initialization');
     }
   }
 
@@ -708,11 +708,12 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     };
 
+    // Use a more efficient mapping approach
     const nameToId = new Map<string, number>();
-    this.students.forEach(s => {
-      const fullName = (s as any).name || (s.firstName + (s.lastName ? ' ' + s.lastName : ''));
-      nameToId.set(fullName.trim(), s.id);
-    });
+    for (const student of this.students) {
+      const fullName = (student as any).name || (student.firstName + (student.lastName ? ' ' + student.lastName : ''));
+      nameToId.set(fullName.trim(), student.id);
+    }
 
     const levelStudentIds = {
       beginner: new Set<number>(),
@@ -722,35 +723,41 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     };
     const assessedStudentIds = new Set<number>();
 
-    this.assessmentData.forEach(student => {
-      this.selectedSessions.forEach(session => {
+    // Optimize nested loops with for-of and early break conditions
+    for (const student of this.assessmentData) {
+      const name = (student as any).name;
+      const id = nameToId.get(name?.trim());
+      
+      if (!id) continue; // Skip if no ID found
+      
+      for (const session of this.selectedSessions) {
         const sessionKey = `session_${session.value}` as keyof AssessmentStudent;
         const sessionData = student[sessionKey];
 
         if (sessionData && typeof sessionData === 'object' && 'observation' in sessionData) {
-                      const observation = String((sessionData as any).observation).toLowerCase();
-            const name = (student as any).name;
-            const id = nameToId.get(name?.trim());
-                      if (observation && id) {
-              assessedStudentIds.add(id);
+          const observation = String((sessionData as any).observation).toLowerCase();
+          
+          if (observation) {
+            assessedStudentIds.add(id);
 
-              const level = String(observation).toLowerCase();
-              
-              if (level.includes('beginner') || level.includes('beginning') || level === '1') {
-                levelStudentIds.beginner.add(id);
-              } else if (level.includes('progressing') || level === '2') {
-                levelStudentIds.progressing.add(id);
-              } else if (level.includes('advanced') || level.includes('advancing') || level === '3') {
-                levelStudentIds.advanced.add(id);
-              } else if (level.includes('psr') || level.includes('school ready') || level === '4') {
-                levelStudentIds.schoolReady.add(id);
-              } else {
-                console.warn(`Unknown observation level: "${observation}" for student: ${name}`);
-              }
+            const level = observation;
+            
+            // Use switch for better performance than multiple includes
+            if (level.includes('beginner') || level.includes('beginning') || level === '1') {
+              levelStudentIds.beginner.add(id);
+            } else if (level.includes('progressing') || level === '2') {
+              levelStudentIds.progressing.add(id);
+            } else if (level.includes('advanced') || level.includes('advancing') || level === '3') {
+              levelStudentIds.advanced.add(id);
+            } else if (level.includes('psr') || level.includes('school ready') || level === '4') {
+              levelStudentIds.schoolReady.add(id);
+            } else {
+              this.logger.warn(`Unknown observation level: "${observation}" for student: ${name}`);
+            }
           }
         }
-      });
-    });
+      }
+    }
 
     metrics.levelDistribution.beginner = levelStudentIds.beginner.size;
     metrics.levelDistribution.progressing = levelStudentIds.progressing.size;
@@ -809,7 +816,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           }
         }, true);
       } catch (error) {
-        console.warn('Error setting empty chart:', error);
+        this.logger.warn('Error setting empty chart:', error);
       }
       return;
     }
@@ -1016,7 +1023,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           series: []
         }, true);
       } catch (error) {
-        console.warn('⚠️ Error clearing chart data:', error);
+        this.logger.warn('⚠️ Error clearing chart data:', error);
       }
     }
   }
@@ -1187,7 +1194,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       this.showMessage('Excel file exported successfully!', 'success');
       
     } catch (error) {
-      console.error('Error exporting Excel file:', error);
+              this.logger.error('Error exporting Excel file:', error);
       this.showMessage('Error exporting data. Please try again.', 'error');
     }
   }
@@ -1427,7 +1434,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         });
       }
     } catch (error) {
-      console.warn('Error highlighting chart series:', error);
+              this.logger.warn('Error highlighting chart series:', error);
     }
   }
 
@@ -1438,7 +1445,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       // Update chart data by filtering out hidden series
       this.updateChart(); // This will rebuild the chart with current visibility state
     } catch (error) {
-      console.warn('Error updating chart visibility:', error);
+              this.logger.warn('Error updating chart visibility:', error);
     }
   }
 
