@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
 import { map, distinctUntilChanged, shareReplay } from 'rxjs/operators';
+import { LoggerService } from '../logger.service';
 
 // Application State Interface
 export interface AppState {
@@ -54,6 +55,7 @@ const initialState: AppState = {
 })
 export class AppStateService {
   private state$ = new BehaviorSubject<AppState>(initialState);
+  private logger = inject(LoggerService);
   
   // Public observables for components
   readonly appState$ = this.state$.asObservable().pipe(shareReplay(1));
@@ -234,7 +236,7 @@ export class AppStateService {
       };
       localStorage.setItem('appState', JSON.stringify(persistData));
     } catch (error) {
-      console.error('Failed to persist state to storage:', error);
+              this.logger.error('Failed to persist state to storage:', error);
     }
   }
   
@@ -252,7 +254,7 @@ export class AppStateService {
         });
       }
     } catch (error) {
-      console.error('Failed to initialize state from storage:', error);
+              this.logger.error('Failed to initialize state from storage:', error);
     }
   }
   

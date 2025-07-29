@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
@@ -6,10 +6,12 @@ import { Router } from '@angular/router';
 import { UserService } from '../services/user.service';
 import { SecurityService } from '../core/security/security.service';
 import { ErrorHandlerService } from '../core/error/error-handler.service';
-import { inject } from '@angular/core';
+import { LoggerService } from '../core/logger.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
+  private logger = inject(LoggerService);
+  
   constructor(
     private userService: UserService,
     private router: Router,
@@ -44,15 +46,15 @@ export class AuthInterceptor implements HttpInterceptor {
         
         if (error.status === 401) {
           // Token expired or invalid, force logout
-          console.warn('Authentication failed - token expired or invalid');
+          this.logger.warn('Authentication failed - token expired or invalid');
           this.handleAuthenticationError();
         } else if (error.status === 403) {
           // User authenticated but doesn't have permission
-          console.warn('Access forbidden - insufficient permissions');
+          this.logger.warn('Access forbidden - insufficient permissions');
           this.handleAuthorizationError();
         } else if (error.status === 0) {
           // Network error or CORS issue
-          console.error('Network error - please check your connection');
+          this.logger.error('Network error - please check your connection');
         }
         
         return this.errorHandler.handleHttpError(error, 'auth_interceptor');
@@ -131,7 +133,7 @@ export function createAuthInterceptor(userService: UserService, router: Router) 
     return next(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
-          console.warn('Authentication failed - token expired or invalid');
+          this.logger.warn('Authentication failed - token expired or invalid');
           userService.logout();
           const currentUrl = router.url;
           router.navigate(['/login'], { 
@@ -139,7 +141,7 @@ export function createAuthInterceptor(userService: UserService, router: Router) 
             replaceUrl: true 
           });
         } else if (error.status === 403) {
-          console.warn('Access forbidden - insufficient permissions');
+          this.logger.warn('Access forbidden - insufficient permissions');
           if (userService.isAuthenticated()) {
             router.navigate(['/unauthorized'], { replaceUrl: true });
           } else {

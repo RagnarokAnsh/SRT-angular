@@ -73,7 +73,7 @@ export class SecurityService {
       this.resetActivityTimer();
       
     } catch (error) {
-      console.error('Failed to set token:', error);
+      this.logger.error('Failed to set token:', error);
       this.clearTokens();
     }
   }
@@ -83,7 +83,7 @@ export class SecurityService {
       const encrypted = localStorage.getItem(this.TOKEN_KEY);
       return encrypted ? this.decrypt(encrypted) : null;
     } catch (error) {
-      console.error('Failed to get token:', error);
+      this.logger.error('Failed to get token:', error);
       return null;
     }
   }
@@ -93,7 +93,7 @@ export class SecurityService {
       const encrypted = localStorage.getItem(this.REFRESH_KEY);
       return encrypted ? this.decrypt(encrypted) : null;
     } catch (error) {
-      console.error('Failed to get refresh token:', error);
+      this.logger.error('Failed to get refresh token:', error);
       return null;
     }
   }
@@ -118,7 +118,7 @@ export class SecurityService {
       const now = Math.floor(Date.now() / 1000);
       return decoded.exp > now;
     } catch (error) {
-      console.error('Token validation error:', error);
+      this.logger.error('Token validation error:', error);
       return false;
     }
   }
@@ -134,7 +134,7 @@ export class SecurityService {
       const now = Math.floor(Date.now() / 1000);
       return (decoded.exp - now) < this.config.tokenRefreshThreshold;
     } catch (error) {
-      console.error('Token expiry check error:', error);
+      this.logger.error('Token expiry check error:', error);
       return false;
     }
   }
@@ -170,7 +170,7 @@ export class SecurityService {
       const encrypted = this.encrypt(JSON.stringify(user));
       localStorage.setItem(this.USER_KEY, encrypted);
     } catch (error) {
-      console.error('Failed to set user data:', error);
+      this.logger.error('Failed to set user data:', error);
     }
   }
   
@@ -182,7 +182,7 @@ export class SecurityService {
       const decrypted = this.decrypt(encrypted);
       return JSON.parse(decrypted);
     } catch (error) {
-      console.error('Failed to get user data:', error);
+      this.logger.error('Failed to get user data:', error);
       return null;
     }
   }
@@ -200,7 +200,7 @@ export class SecurityService {
       }
       return btoa(encrypted);
     } catch (error) {
-      console.error('Encryption failed:', error);
+      this.logger.error('Encryption failed:', error);
       return data;
     }
   }
@@ -217,7 +217,7 @@ export class SecurityService {
       }
       return decrypted;
     } catch (error) {
-      console.error('Decryption failed:', error);
+      this.logger.error('Decryption failed:', error);
       return encryptedData;
     }
   }
@@ -228,7 +228,7 @@ export class SecurityService {
       const payload = token.split('.')[1];
       return JSON.parse(atob(payload));
     } catch (error) {
-      console.error('Token decode error:', error);
+      this.logger.error('Token decode error:', error);
       return null;
     }
   }
@@ -254,7 +254,7 @@ export class SecurityService {
   }
   
   private handleSessionTimeout(): void {
-    console.warn('Session timeout detected');
+    this.logger.warn('Session timeout detected');
     this.clearTokens();
     // Redirect to login
     window.location.href = '/login?timeout=true';

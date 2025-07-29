@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { LoggerService } from '../../core/logger.service';
 
 export interface Role {
   id: number;
@@ -112,6 +113,7 @@ export interface UpdateUserRequest {
 })
 export class UserService {
   private baseUrl = 'http://3.111.249.111/sribackend/api';
+  private logger = inject(LoggerService);
 
   constructor(private http: HttpClient) {}
 
@@ -125,7 +127,7 @@ export class UserService {
   }
 
   createUser(user: CreateUserRequest): Observable<User> {
-    console.log('Creating user with data:', user);
+    this.logger.debug('Creating user with data:', user);
     
     const userData = { ...user };
     
@@ -137,7 +139,7 @@ export class UserService {
   }
 
   updateUser(id: number, user: UpdateUserRequest): Observable<User> {
-    console.log('Updating user with data:', user);
+    this.logger.debug('Updating user with data:', user);
     
     const userData = { ...user };
     

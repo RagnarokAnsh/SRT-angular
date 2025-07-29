@@ -1,14 +1,6 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './login/login.component';
 import { HomeComponent } from './home/home.component';
-import { SelectCompetencyComponent } from './AWW/select-competency/select-competency.component';
-import { DetailsComponent } from './AWW/details/details.component';
-import { DashboardComponent } from './AWW/dashboard/dashboard.component';
-import { AdminDashboardComponent } from './admin/admin-dashboard/admin-dashboard.component';
-import { StateDashboardComponent } from './state/state-dashboard/state-dashboard.component';
-import { DpoDashboardComponent } from './dpo/dpo-dashboard/dpo-dashboard.component';
-import { CdpoDashboardComponent } from './cdpo/cdpo-dashboard/cdpo-dashboard.component';
-import { SupervisorDashboardComponent } from './supervisor/supervisor-dashboard/supervisor-dashboard.component';
 import { UnauthorizedComponent } from './components/unauthorized/unauthorized.component';
 import { 
   AuthGuard, 
@@ -59,7 +51,7 @@ export const routes: Routes = [
             },
             {
                 path: 'dashboard',
-                component: AdminDashboardComponent,
+                loadComponent: () => import('./admin/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent),
                 canActivate: [AdminGuard]
             },
             {
@@ -87,7 +79,7 @@ export const routes: Routes = [
             },
             {
                 path: 'dashboard',
-                component: StateDashboardComponent,
+                loadComponent: () => import('./state/state-dashboard/state-dashboard.component').then(m => m.StateDashboardComponent),
                 canActivate: [StateOfficialGuard]
             }
         ]
@@ -105,7 +97,7 @@ export const routes: Routes = [
             },
             {
                 path: 'dashboard',
-                component: DpoDashboardComponent,
+                loadComponent: () => import('./dpo/dpo-dashboard/dpo-dashboard.component').then(m => m.DpoDashboardComponent),
                 canActivate: [DPOGuard]
             }
         ]
@@ -123,7 +115,7 @@ export const routes: Routes = [
             },
             {
                 path: 'dashboard',
-                component: CdpoDashboardComponent,
+                loadComponent: () => import('./cdpo/cdpo-dashboard/cdpo-dashboard.component').then(m => m.CdpoDashboardComponent),
                 canActivate: [CDPOGuard]
             }
         ]
@@ -141,7 +133,7 @@ export const routes: Routes = [
             },
             {
                 path: 'dashboard',
-                component: SupervisorDashboardComponent,
+                loadComponent: () => import('./supervisor/supervisor-dashboard/supervisor-dashboard.component').then(m => m.SupervisorDashboardComponent),
                 canActivate: [SupervisorGuard]
             }
         ]
@@ -150,19 +142,19 @@ export const routes: Routes = [
     // AWW routes - accessible by AWW and admin
     {
         path: 'dashboard',
-        component: DashboardComponent,
+        loadComponent: () => import('./AWW/dashboard/dashboard.component').then(m => m.DashboardComponent),
         canActivate: [RoleGuard],
         data: { roles: ['aww', 'admin'] }
     },
     {
         path: 'select-competency',
-        component: SelectCompetencyComponent,
+        loadComponent: () => import('./AWW/select-competency/select-competency.component').then(m => m.SelectCompetencyComponent),
         canActivate: [RoleGuard],
         data: { roles: ['aww', 'admin'] }
     },
     {
         path: 'details/:id',
-        component: DetailsComponent,
+        loadComponent: () => import('./AWW/details/details.component').then(m => m.DetailsComponent),
         canActivate: [RoleGuard],
         data: { roles: ['aww', 'admin'] }
     },

@@ -1,9 +1,10 @@
 // src/app/competency.service.ts
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators'; // Added catchError
+import { LoggerService } from './core/logger.service';
 
 // Interface for the nested domain object in the API response
 export interface ApiDomain {
@@ -59,6 +60,7 @@ export interface AppCompetency {
 export class CompetencyService {
   private apiUrl = 'http://3.111.249.111/sribackend/api/competencies';
   private competenciesCache: ApiCompetency[] | null = null; // Cache for all competencies
+  private logger = inject(LoggerService);
 
   constructor(private http: HttpClient) {}
 
@@ -97,7 +99,7 @@ export class CompetencyService {
     return this.http.get<ApiResponse>(this.apiUrl).pipe(
       map(response => {
         if (!response.status || !response.data) {
-          console.error('API error or no data:', response);
+          this.logger.error('API error or no data:', response);
           this.competenciesCache = []; // Initialize cache as empty array on error
           return [];
         }
@@ -120,7 +122,7 @@ export class CompetencyService {
       }),
       tap(appDomains => {}), 
       catchError(error => {
-        console.error('Error fetching or processing competencies:', error);
+        this.logger.error('Error fetching or processing competencies:', error);
         this.competenciesCache = []; // Initialize cache as empty array on error
         return of([]); 
       })

@@ -5,8 +5,13 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:prod": "ng build --configuration=production --aot --build-optimizer",
+    "build:analyze": "ng build --configuration=production --source-map --named-chunks",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "lint": "ng lint",
+    "format": "prettier --write src/**/*.{ts,html,scss}",
+    "bundle-report": "npx webpack-bundle-analyzer dist/sri/stats.json"
   },
   "private": true,
   "dependencies": {
