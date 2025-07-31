@@ -40,6 +40,8 @@ interface AssessmentLevel {
 interface DashboardData {
   totalStudents: number;
   assessedStudents: number;
+  totalPossibleAssessments: number;
+  actualAssessmentsDone: number;
   genderDistribution: {
     boys: number;
     girls: number;
@@ -51,6 +53,23 @@ interface DashboardData {
     schoolReady: number;
   };
 }
+
+// VERSION 2 - Pending Assessment Interface
+/*
+interface PendingAssessment {
+  studentId: number;
+  studentName: string;
+  studentGender: string;
+  studentAge: number;
+  pendingCompetencies: number;
+  pendingSessions: number;
+  competencyDetails: {
+    competencyId: number;
+    competencyName: string;
+    missingSessions: number[];
+  }[];
+}
+*/
 
 @Component({
   selector: 'app-dashboard',
@@ -88,6 +107,10 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   allAssessmentData: AssessmentStudent[] = []; // Complete dataset
   assessmentData: AssessmentStudent[] = []; // Filtered data for current selections
   assessmentDataByCompetency: Map<number, AssessmentStudent[]> = new Map(); // Cached by competency
+  
+  // Pending assessments tracking - VERSION 2
+  // pendingAssessments: PendingAssessment[] = [];
+  // loadingPendingAssessments = false;
   
   currentUserAnganwadiId: number | null = null;
   
@@ -133,6 +156,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   dashboardData: DashboardData = {
     totalStudents: 0,
     assessedStudents: 0,
+    totalPossibleAssessments: 0,
+    actualAssessmentsDone: 0,
     genderDistribution: {
       boys: 0,
       girls: 0
@@ -699,6 +724,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     const metrics = {
       totalStudents: this.students.length,
       assessedStudents: 0,
+      totalPossibleAssessments: 0, // New field for total possible assessments
+      actualAssessmentsDone: 0, // New field for actual assessments done
       genderDistribution: this.dashboardData.genderDistribution, // Use existing gender data
       levelDistribution: {
         beginner: 0,
@@ -722,31 +749,39 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     };
     const assessedStudentIds = new Set<number>();
 
+    // Calculate total possible assessments
+    metrics.totalPossibleAssessments = this.students.length * this.selectedCompetencies.length * this.selectedSessions.length;
+
+    // Count actual assessments done
+    let actualAssessmentsCount = 0;
+
     this.assessmentData.forEach(student => {
       this.selectedSessions.forEach(session => {
         const sessionKey = `session_${session.value}` as keyof AssessmentStudent;
         const sessionData = student[sessionKey];
 
         if (sessionData && typeof sessionData === 'object' && 'observation' in sessionData) {
-                      const observation = String((sessionData as any).observation).toLowerCase();
-            const name = (student as any).name;
-            const id = nameToId.get(name?.trim());
-                      if (observation && id) {
-              assessedStudentIds.add(id);
+          const observation = String((sessionData as any).observation).toLowerCase();
+          const name = (student as any).name;
+          const id = nameToId.get(name?.trim());
+          
+          if (observation && id) {
+            assessedStudentIds.add(id);
+            actualAssessmentsCount++; // Count each individual assessment
 
-              const level = String(observation).toLowerCase();
-              
-              if (level.includes('beginner') || level.includes('beginning') || level === '1') {
-                levelStudentIds.beginner.add(id);
-              } else if (level.includes('progressing') || level === '2') {
-                levelStudentIds.progressing.add(id);
-              } else if (level.includes('advanced') || level.includes('advancing') || level === '3') {
-                levelStudentIds.advanced.add(id);
-              } else if (level.includes('psr') || level.includes('school ready') || level === '4') {
-                levelStudentIds.schoolReady.add(id);
-              } else {
-                console.warn(`Unknown observation level: "${observation}" for student: ${name}`);
-              }
+            const level = String(observation).toLowerCase();
+            
+            if (level.includes('beginner') || level.includes('beginning') || level === '1') {
+              levelStudentIds.beginner.add(id);
+            } else if (level.includes('progressing') || level === '2') {
+              levelStudentIds.progressing.add(id);
+            } else if (level.includes('advanced') || level.includes('advancing') || level === '3') {
+              levelStudentIds.advanced.add(id);
+            } else if (level.includes('psr') || level.includes('school ready') || level === '4') {
+              levelStudentIds.schoolReady.add(id);
+            } else {
+              console.warn(`Unknown observation level: "${observation}" for student: ${name}`);
+            }
           }
         }
       });
@@ -756,14 +791,116 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     metrics.levelDistribution.progressing = levelStudentIds.progressing.size;
     metrics.levelDistribution.advanced = levelStudentIds.advanced.size;
     metrics.levelDistribution.schoolReady = levelStudentIds.schoolReady.size;
-    metrics.assessedStudents = assessedStudentIds.size;
-    
-
+    metrics.assessedStudents = assessedStudentIds.size; // Keep for backward compatibility
+    metrics.actualAssessmentsDone = actualAssessmentsCount;
     
     this.dashboardData = metrics;
+    
+    // Calculate pending assessments - VERSION 2
+    // this.calculatePendingAssessments();
   }
 
-    private updateChart(): void {
+  // VERSION 2 - Pending Assessments Methods
+  /*
+  private calculatePendingAssessments(): void {
+    if (!this.students.length || !this.competencyOptions.length) {
+      // this.pendingAssessments = []; // VERSION 2
+      return;
+    }
+
+    // this.pendingAssessments = []; // VERSION 2
+
+    // For each student, check which competencies and sessions are missing
+    this.students.forEach(student => {
+      const fullName = `${student.firstName} ${student.lastName}`.trim();
+      const studentAge = this.calculateAge(student.dateOfBirth);
+      
+      // const pendingAssessment: PendingAssessment = { // VERSION 2
+      //   studentId: student.id,
+      //   studentName: fullName,
+      //   studentGender: (student as any).gender || 'Not specified',
+      //   studentAge: studentAge,
+      //   pendingCompetencies: 0,
+      //   pendingSessions: 0,
+      //   competencyDetails: []
+      // };
+
+      // Check each competency
+      this.competencyOptions.forEach(competency => {
+        const competencyAssessments = this.assessmentDataByCompetency.get(competency.value) || [];
+        const studentAssessment = competencyAssessments.find(assessment => 
+          assessment.name === fullName
+        );
+
+        const missingSessions: number[] = [];
+        
+        // Check each session (1-4)
+        for (let session = 1; session <= 4; session++) {
+          const sessionKey = `session_${session}` as keyof AssessmentStudent;
+          const sessionData = studentAssessment?.[sessionKey];
+          
+          // Session is missing if:
+          // 1. No assessment data for this student-competency combination, OR
+          // 2. Session data exists but has no observation
+          if (!studentAssessment || 
+              !sessionData || 
+              typeof sessionData === 'string' || 
+              !(sessionData && typeof sessionData === 'object' && 'observation' in sessionData) ||
+              !sessionData.observation) {
+            missingSessions.push(session);
+          }
+        }
+
+        if (missingSessions.length > 0) {
+          // pendingAssessment.competencyDetails.push({ // VERSION 2
+          //   competencyId: competency.value,
+          //   competencyName: competency.label,
+          //   missingSessions: missingSessions
+          // });
+          // pendingAssessment.pendingCompetencies++; // VERSION 2
+          // pendingAssessment.pendingSessions += missingSessions.length; // VERSION 2
+        }
+      });
+
+      // Only add students who have pending assessments
+      // if (pendingAssessment.pendingCompetencies > 0) { // VERSION 2
+      //   this.pendingAssessments.push(pendingAssessment); // VERSION 2
+      // }
+    });
+
+    // Sort by number of pending competencies (highest first)
+    // this.pendingAssessments.sort((a, b) => b.pendingCompetencies - a.pendingCompetencies); // VERSION 2
+  }
+
+  private calculateAge(dateOfBirth: Date): number {
+    const today = new Date();
+    let age = today.getFullYear() - dateOfBirth.getFullYear();
+    const monthDiff = today.getMonth() - dateOfBirth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dateOfBirth.getDate())) {
+      age--;
+    }
+    
+    return age;
+  }
+
+  getTotalPendingCompetencies(): number {
+    // return this.pendingAssessments.reduce((total, student) => total + student.pendingCompetencies, 0); // VERSION 2
+    return 0; // VERSION 2
+  }
+
+  getTotalPendingSessions(): number {
+    // return this.pendingAssessments.reduce((total, student) => total + student.pendingSessions, 0); // VERSION 2
+    return 0; // VERSION 2
+  }
+
+  viewAllPendingAssessments(event: Event): void {
+    event.preventDefault();
+    this.showMessage(`Showing all ${0} children with pending assessments`, 'info'); // VERSION 2
+  }
+  */
+
+  private updateChart(): void {
     if (!this.chartInstance) {
       this.logger.warn('Chart instance not available yet, retrying...');
       // Retry after a short delay
@@ -986,6 +1123,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.dashboardData = {
       totalStudents: this.students.length,
       assessedStudents: 0,
+      totalPossibleAssessments: 0,
+      actualAssessmentsDone: 0,
       genderDistribution: this.dashboardData.genderDistribution, // Preserve gender data
       levelDistribution: {
         beginner: 0,
@@ -1022,8 +1161,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getAssessmentProgress(): number {
-    if (this.dashboardData.totalStudents === 0) return 0;
-    return Math.round((this.dashboardData.assessedStudents / this.dashboardData.totalStudents) * 100);
+    if (this.dashboardData.totalPossibleAssessments === 0) return 0;
+    return Math.round((this.dashboardData.actualAssessmentsDone / this.dashboardData.totalPossibleAssessments) * 100);
   }
 
   private showMessage(message: string, severity: 'success' | 'error' | 'info' | 'warn' = 'info'): void {

@@ -274,20 +274,20 @@
         <ng-template pTemplate="header">
           <div class="card-header">
             <h3>Assessment Progress</h3>
-            <p class="header-subtitle">Track assessment completion based on selected filters</p>
+            <p class="header-subtitle">Track completion of individual assessments across all selected filters</p>
           </div>
         </ng-template>
 
         <div class="progress-content">
           <div class="progress-stats">
             <div class="progress-stat">
-              <h4>{{ dashboardData.assessedStudents }}</h4>
-              <p>Students Assessed</p>
+              <h4>{{ dashboardData.actualAssessmentsDone }}</h4>
+              <p>Assessments Done</p>
             </div>
             <div class="progress-divider">/</div>
             <div class="progress-stat">
-              <h4>{{ dashboardData.totalStudents }}</h4>
-              <p>Total Students</p>
+              <h4>{{ dashboardData.totalPossibleAssessments }}</h4>
+              <p>Total Possible</p>
             </div>
           </div>
           
@@ -304,11 +304,73 @@
 
           <div class="progress-note">
             <i class="pi pi-info-circle"></i>
-            <span>Progress is calculated based on the current filter selections</span>
+            <span>Progress shows assessments completed vs total possible assessments</span>
           </div>
         </div>
       </p-card>
     </div>
+
+    <!-- Pending Assessments Section - VERSION 2 -->
+    <!--
+    <div class="pending-assessments-section" *ngIf="hasSelections && pendingAssessments.length > 0">
+      <p-card class="pending-assessments-card">
+        <ng-template pTemplate="header">
+          <div class="card-header">
+            <h3>Pending Assessments</h3>
+            <p class="header-subtitle">Children with incomplete assessments</p>
+          </div>
+        </ng-template>
+
+        <div class="pending-assessments-content">
+          <div class="summary-stats">
+            <div class="summary-stat">
+              <h4>{{ pendingAssessments.length }}</h4>
+              <p>Children with pending assessments</p>
+            </div>
+            <div class="summary-stat">
+              <h4>{{ getTotalPendingCompetencies() }}</h4>
+              <p>Total pending competencies</p>
+            </div>
+            <div class="summary-stat">
+              <h4>{{ getTotalPendingSessions() }}</h4>
+              <p>Total pending sessions</p>
+            </div>
+          </div>
+
+          <div class="pending-students-list">
+            <div class="student-item" *ngFor="let student of pendingAssessments.slice(0, 5)">
+              <div class="student-header">
+                <div class="student-info">
+                  <h5>{{ student.studentName }}</h5>
+                  <p class="student-details">
+                    {{ student.studentGender }} • {{ student.studentAge }} years old
+                  </p>
+                </div>
+                <div class="pending-count">
+                  <span class="count-badge">{{ student.pendingCompetencies }}</span>
+                  <span class="count-label">competencies pending</span>
+                </div>
+              </div>
+              
+              <div class="competency-breakdown" *ngIf="student.competencyDetails.length > 0">
+                <div class="competency-item" *ngFor="let competency of student.competencyDetails.slice(0, 3)">
+                  <span class="competency-name">{{ competency.competencyName }}</span>
+                  <span class="sessions-missing">Missing sessions: {{ competency.missingSessions.join(', ') }}</span>
+                </div>
+                <div class="more-competencies" *ngIf="student.competencyDetails.length > 3">
+                  <span>+{{ student.competencyDetails.length - 3 }} more competencies</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="view-all-link" *ngIf="pendingAssessments.length > 5">
+              <a href="#" (click)="viewAllPendingAssessments($event)">View all {{ pendingAssessments.length }} children</a>
+            </div>
+          </div>
+        </div>
+      </p-card>
+    </div>
+    -->
 
     <!-- No Selection State -->
     <div class="no-selection-state" *ngIf="!hasSelections && !loading">

@@ -82,12 +82,12 @@ export class StudentService {
         language: '',
         anganwadiId: 1,
         awwId: this.currentUser?.id || undefined,
-        gender: '' // Default gender
+        gender: ''
       };
     }
 
     try {
-      // Safely get name parts
+      
       let firstName = '';
       let lastName = '';
 
@@ -127,11 +127,10 @@ export class StudentService {
         anganwadiId: apiStudent.anganwadi_id || 1,
         awwId: apiStudent.aww_id || this.currentUser?.id || undefined,
         anganwadi: apiStudent.anganwadi,
-        gender: apiStudent.gender || '' // Map gender
+        gender: apiStudent.gender || ''
       };
     } catch (error) {
       this.logger.error('Error mapping API student:', error);
-      // Return a default student object if mapping fails
       return {
         id: 0,
         firstName: '',
@@ -142,7 +141,7 @@ export class StudentService {
         weight: 0,
         language: '',
         anganwadiId: 1,
-        gender: '' // Default gender on error
+        gender: ''
       };
     }
   }
@@ -212,12 +211,10 @@ export class StudentService {
       age: age
     };
 
-    // Only add the ID if it's provided (for updates)
     if (id) {
       apiStudent.id = id;
     }
 
-    // Only add the AWW ID if we have a current user
     if (this.currentUser?.id) {
       apiStudent.aww_id = this.currentUser.id;
     }
