@@ -31,7 +31,7 @@
         <ng-container *ngIf="!shouldShowPlaceholder && selectedOptions && selectedOptions.length > 0">
           <span *ngFor="let option of selectedOptions.slice(0, maxSelectedLabels)" 
                 class="chip">
-            {{ option.label }}
+            <span class="chip-text">{{ option.label }}</span>
             <i class="pi pi-times chip-remove" 
                (click)="removeOption(option, $event)"></i>
           </span>

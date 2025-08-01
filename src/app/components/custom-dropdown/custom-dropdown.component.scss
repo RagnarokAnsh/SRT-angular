@@ -48,6 +48,7 @@
   flex: 1;
   gap: 0.5rem;
   min-width: 0;
+  overflow: hidden; /* Prevent content from overflowing */
 }
 
 .dropdown-icon {
@@ -81,7 +82,8 @@
   gap: 0.25rem;
   flex: 1;
   min-width: 0;
-  overflow: visible;
+  overflow: hidden; /* Prevent chips from overflowing */
+  margin-right: 0.5rem; /* Add space between chips and action buttons */
 }
 
 .chip {
@@ -92,13 +94,25 @@
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 6px;
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   font-weight: 500;
-  max-width: 120px;
+  max-width: 120px; /* Increased for better text display */
+  min-width: 50px; /* Ensure minimum width for readability */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   flex-shrink: 0;
+  position: relative; /* For better positioning */
+  
+  /* Ensure text doesn't overlap with remove button */
+  .chip-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block; /* Ensure proper text truncation */
+  }
   
   .chip-remove {
     cursor: pointer;
@@ -106,6 +120,7 @@
     opacity: 0.8;
     transition: opacity 0.2s ease;
     flex-shrink: 0;
+    margin-left: auto; /* Push to the right */
     
     &:hover {
       opacity: 1;
@@ -114,7 +129,9 @@
   
   &.more-chip {
     background: #6b7280;
-    max-width: 40px;
+    max-width: 45px;
+    min-width: 45px;
+    justify-content: center; /* Center the +N text */
     
     .chip-remove {
       display: none;
@@ -314,6 +331,123 @@
   
   .pi-info-circle {
     font-size: 1rem;
+  }
+}
+
+// Laptop screens (1024px and below)
+@media (max-width: 1024px) and (min-width: 769px) {
+  .dropdown-trigger {
+    height: 42px;
+    padding: 0 0.875rem;
+  }
+  
+  .dropdown-label {
+    font-size: 0.9rem;
+    max-width: 200px; /* Adjusted for laptop screens */
+  }
+  
+  .chips-container {
+    gap: 0.2rem; /* Tighter spacing on laptop */
+  }
+  
+  .chip {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+    max-width: 90px; /* Slightly larger than mobile but smaller than desktop */
+    min-width: 40px; /* Ensure minimum width for readability */
+    
+    .chip-remove {
+      font-size: 0.7rem;
+    }
+    
+    &.more-chip {
+      max-width: 35px;
+      min-width: 35px;
+    }
+  }
+  
+  .trigger-actions {
+    gap: 0.4rem; /* Slightly tighter spacing */
+  }
+  
+  .clear-icon,
+  .dropdown-arrow {
+    font-size: 0.8rem;
+  }
+  
+  .dropdown-panel {
+    max-height: 280px;
+    margin-top: 3px;
+  }
+  
+  .options-container {
+    max-height: 220px;
+  }
+  
+  .dropdown-option {
+    padding: 0.6rem 0.875rem;
+    min-height: 44px;
+  }
+  
+  .option-label {
+    font-size: 0.9rem;
+  }
+  
+  .search-container {
+    padding: 0.6rem;
+  }
+  
+  .search-input {
+    padding: 0.45rem 0.7rem 0.45rem 1.875rem;
+    font-size: 0.85rem;
+  }
+  
+  .search-icon {
+    left: 0.875rem;
+    font-size: 0.85rem;
+  }
+}
+
+// Desktop screens (above 1024px)
+@media (min-width: 1025px) {
+  .dropdown-trigger {
+    height: 44px;
+    padding: 0 1rem;
+  }
+  
+  .dropdown-label {
+    font-size: 0.95rem;
+    max-width: 300px;
+  }
+  
+  .chips-container {
+    gap: 0.25rem;
+    margin-right: 0.75rem; /* More space on desktop */
+  }
+  
+  .chip {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    max-width: 120px;
+    min-width: 50px;
+    
+    .chip-remove {
+      font-size: 0.75rem;
+    }
+    
+    &.more-chip {
+      max-width: 45px;
+      min-width: 45px;
+    }
+  }
+  
+  .trigger-actions {
+    gap: 0.5rem;
+  }
+  
+  .clear-icon,
+  .dropdown-arrow {
+    font-size: 0.875rem;
   }
 }
 

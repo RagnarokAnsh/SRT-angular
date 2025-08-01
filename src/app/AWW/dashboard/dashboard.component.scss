@@ -69,7 +69,7 @@
       background-color: var(--primary-color) !important;
       border-color: var(--primary-color) !important;
       color: white !important;
-      font-weight: 600 !important;
+      font-weight: 10 !important;
       transition: all 0.2s ease !important;
 
       &:hover {
@@ -208,6 +208,10 @@
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
       }
 
+      .p-card-body {
+        padding: 0;
+      }
+
       .p-card-content {
         padding: 1.5rem;
       }
@@ -227,8 +231,8 @@
       }
 
       .stat-icon {
-        width: 90px;
-        height: 90px;
+        width: 65px;
+        height: 65px;
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -244,7 +248,7 @@
       }
 
       ::ng-deep .pi {
-        font-size: 3.5rem;
+        font-size: 2.2rem;
 
         @media (max-width: 480px) {
           font-size: 2.5rem;
@@ -349,258 +353,262 @@
 .chart-section {
   margin-bottom: 2rem;
 
-  .chart-card {
-    &::ng-deep .p-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-      position: relative;
-      z-index: 1;
+        .chart-card {
+        &::ng-deep .p-card {
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 16px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+          position: relative;
+          z-index: 1;
 
-      .p-card-header {
-        background: transparent;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        padding: 1.5rem 1.5rem 1rem;
+          .p-card-content {
+            padding: 1.5rem;
+
+            @media (max-width: 600px) {
+              padding: 1rem;
+            }
+          }
+        }
+
+        // Dashboard Heading
+        .dashboard-heading-container {
+          width: 100%;
+          margin-bottom: var(--spacing-md);
+          color: #000;
+          text-align: left;
+          
+          @media (min-width: 768px) {
+            width: 100%;
+            margin-bottom: var(--spacing-lg);
+          }
+          @media (max-width: 600px) {
+            text-align: center;
+          }
+        }
+
+        .dashboard-heading {
+          margin: 0;
+          display: inline-block;
+          position: relative;
+          font-weight: var(--font-weight-bold);
+          font-size: 1.25rem;
+          padding-bottom: var(--spacing-sm);
+          
+          @media (min-width: 768px) {
+            font-size: 1.5rem;
+          }
+          @media (max-width: 600px) {
+            font-size: 1.3rem;
+          }
+          
+          &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary-color);
+            border-radius: var(--border-radius-sm);
+          }
+        }
+
+    // Top Progress Section
+    .progress-section-top {
+      // background: rgba(59, 130, 246, 0.05);
+      // border: 1px solid rgba(59, 130, 246, 0.1);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      @media (max-width: 600px) {
+        margin-bottom: 0;
       }
 
-      .p-card-content {
-        padding: 1.5rem;
-        padding-top: 1rem;
+      .progress-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
 
-        @media (max-width: 600px) {
-          padding: 0rem;
+        h4 {
+          font-size: 1.3rem;
+          font-weight: 600;
+          color: #2c3e50;
+          margin: 0 0 0.5rem;
+
+          @media (max-width: 600px) {
+            font-size: 18px;
+          }
+        }
+
+        p {
+          color: #6b7280;
+          margin: 0;
+          font-size: 0.9rem;
+
+          @media (max-width: 600px) {
+            font-size: 14px;
+          }
+        }
+      }
+
+      .progress-content {
+        .progress-stats {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 1rem;
+          margin-bottom: 1.5rem;
+          @media (max-width: 600px) {
+            margin-bottom: 0;
+          }
+
+          .progress-stat {
+            text-align: center;
+
+            h5 {
+              font-size: 2rem;
+              font-weight: 700;
+              color: #2c3e50;
+              margin: 0 0 0.25rem;
+              @media (max-width: 600px) {
+                font-size: 18px;
+              }
+            }
+
+            p {
+              font-size: 0.9rem;
+              color: #6b7280;
+              margin: 0;
+              font-weight: 500;
+              @media (max-width: 600px) {
+                font-size: 14px;
+              }
+            }
+          }
+
+          .progress-divider {
+            font-size: 2rem;
+            font-weight: 300;
+            color: #cbd5e1;
+          }
+        }
+
+        .progress-bar-container {
+          position: relative;
+          margin-bottom: 0.5rem;
+
+          &::ng-deep .p-progressbar {
+            background: #e2e8f0;
+            border-radius: 6px;
+
+            .p-progressbar-value {
+              background: #6366f1;
+              border-radius: 6px;
+            }
+          }
+
+          .progress-percentage {
+            position: absolute;
+            top: -30px;
+            right: 0;
+            font-weight: 700;
+            color: #6366f1;
+            font-size: 1.1rem;
+          }
+          @media (max-width: 600px) {
+            display: none;
+            
+          }
         }
       }
     }
 
-    .integrated-header {
-      .header-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
+    .chart-layout {
+      display: grid;
+      grid-template-columns: 30% 70%;
+      gap: 2rem;
+      min-height: 500px;
+
+      @media (max-width: 1024px) {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      @media (max-width: 768px) {
         gap: 1rem;
-        margin-bottom: 1rem;
+      }
 
-        @media (max-width: 768px) {
-          flex-direction: column;
-          align-items: center;
-          gap: 0.75rem;
+      // Left Column: Filters and Controls (40%)
+      .filters-column {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+
+        @media (max-width: 1024px) {
+          order: 2;
         }
 
-        .header-main {
-          flex: 1;
-
-          h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin: 0 0 0.25rem 0;
-
-            @media (max-width: 480px) {
-              font-size: 1.3rem;
-              text-align: center;
-            }
-          }
-
-          .header-subtitle {
-            color: #7f8c8d;
-            margin: 0;
-            font-size: 1rem;
-
-            @media (max-width: 480px) {
-              font-size: 14px;
-              text-align: center;
-            }
-          }
-        }
-
-        .header-actions {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          gap: 0.5rem;
-
+        // Action Buttons Row
+        .action-buttons-row {
           .chart-loading {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             color: #3b82f6;
             font-weight: 500;
+            padding: 0.5rem;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
 
             i {
               font-size: 1.2rem;
             }
           }
 
-          .buttons-grid {
-            display: grid;
-            grid-template-rows: auto auto;
-            gap: 0.5rem;
-            width: 100%;
-
-            @media (max-width: 480px) {
-              display: flex;
-              flex-direction: row;
-              flex-wrap: wrap;
-              gap: 0.5rem;
-              justify-content: center;
-            }
-
-            .action-buttons {
-              display: grid;
-              grid-template-columns: repeat(3, 1fr);
-              gap: 0.5rem;
-
-              @media (max-width: 768px) {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 0.25rem;
-              }
-
-              @media (max-width: 480px) {
-                display: contents;
-
-                ::ng-deep .p-button {
-                  flex: 0 0 auto;
-                  min-width: auto;
-                  width: auto;
-                  max-width: none;
-                }
-              }
-
-              ::ng-deep .p-button {
-                background-color: var(--primary-color) !important;
-                border-color: var(--primary-color) !important;
-                color: white !important;
-
-                &:hover {
-                  background-color: var(--primary-hover) !important;
-                  border-color: var(--primary-hover) !important;
-                }
-
-                &.p-button-secondary {
-                  background-color: #6b7280 !important;
-                  border-color: #6b7280 !important;
-
-                  &:hover {
-                    background-color: #4b5563 !important;
-                    border-color: #4b5563 !important;
-                  }
-                }
-              }
-            }
-
-            .reset-button-container {
-              display: flex;
-              justify-content: center;
-              width: 100%;
-
-              @media (max-width: 480px) {
-                display: inline-flex;
-                width: auto;
-              }
-
-              ::ng-deep .p-button {
-                width: 100%;
-                max-width: 200px;
-
-                @media (max-width: 768px) {
-                  max-width: 150px;
-                }
-
-                @media (max-width: 480px) {
-                  width: auto;
-                  max-width: none;
-                  max-height: 32px;
-                }
-              }
-            }
-          }
-        }
-      }
-
-      .filters-row {
-        display: flex;
-        align-items: flex-start;
-        gap: 1rem;
-        padding: 1rem;
-        background: rgba(59, 130, 246, 0.05);
-        border-radius: 8px;
-        border: 1px solid rgba(59, 130, 246, 0.1);
-        position: relative;
-        z-index: 10;
-
-        @media (max-width: 1200px) {
-          flex-direction: column;
-          gap: 0.75rem;
-        }
-
-        @media (max-width: 480px) {
-          padding: 0.75rem;
-          gap: 0.5rem;
-        }
-
-        @media (max-width: 360px) {
-          padding: 0.5rem;
-          gap: 0.4rem;
-        }
-
-        @media (max-width: 320px) {
-          padding: 0.4rem;
-          gap: 0.3rem;
-        }
-
-        .inline-filters {
-          display: flex;
-          flex: 1;
-          gap: 1rem;
-          align-items: flex-end;
-
-          @media (max-width: 768px) {
-            flex-direction: column;
-            gap: 0.75rem;
-            align-items: stretch;
-          }
-
-          .filter-item {
-            flex: 1;
-            min-width: 240px;
-            position: relative;
+          .buttons-container {
             display: flex;
-            flex-direction: column;
+            gap: 0.5rem;
             justify-content: flex-end;
 
-            @media (max-width: 768px) {
-              min-width: auto;
-            }
-
             @media (max-width: 480px) {
-              min-width: 285px;
-
-              label {
-                font-size: 0.8rem;
-                margin-bottom: 0.4rem;
-              }
+              flex-wrap: wrap;
+              gap: 0.25rem;
             }
 
-            @media (max-width: 360px) {
-              min-width: auto;
+            ::ng-deep .p-button {
+              background-color: var(--primary-color) !important;
+              border-color: var(--primary-color) !important;
+              color: white !important;
 
-              label {
-                font-size: 0.75rem;
-                margin-bottom: 0.3rem;
+              &:hover {
+                background-color: var(--primary-hover) !important;
+                border-color: var(--primary-hover) !important;
+              }
+
+              &.p-button-secondary {
+                background-color: #6b7280 !important;
+                border-color: #6b7280 !important;
+
+                &:hover {
+                  background-color: #4b5563 !important;
+                  border-color: #4b5563 !important;
+                }
               }
             }
+          }
+        }
 
-            @media (max-width: 320px) {
-              min-width: 240px;
+        // Filters Stack
+        .filters-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
 
-              label {
-                font-size: 0.7rem;
-                margin-bottom: 0.25rem;
-              }
-            }
+          .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
 
             label {
               display: flex;
@@ -609,297 +617,323 @@
               font-size: 0.9rem;
               font-weight: 600;
               color: #374151;
-              margin-bottom: 0.5rem;
 
               i {
                 color: #6366f1;
               }
             }
-
-            .compact-filter {
-              width: 100%;
-            }
           }
         }
 
-
-      }
-    }
-
-    .chart-container {
-      height: auto;
-      position: relative;
-      margin-top: 1rem;
-
-      .chart-legend-helper {
-        margin-bottom: 1rem;
-        padding: 1rem;
-        background: rgba(59, 130, 246, 0.05);
-        border-radius: 12px;
-        border: 1px solid rgba(59, 130, 246, 0.2);
-
-        .legend-info {
+        // Reset Button Container
+        .reset-button-container {
           display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          color: #1e40af;
-          font-size: 0.9rem;
-          font-weight: 500;
-          margin-bottom: 1rem;
+          justify-content: right;
 
-          i {
-            color: #3b82f6;
-          }
-        }
-
-        .competency-legend,
-        .level-legend {
-          margin-bottom: 1rem;
-
-          h4 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #374151;
-            margin: 0 0 0.5rem 0;
-          }
-
-          &:last-child {
-            margin-bottom: 0;
-          }
-        }
-
-        // Hide competency legend on mobile
-        .competency-legend {
-          @media (max-width: 768px) {
-            display: none;
-          }
-        }
-
-        .competency-items,
-        .level-items {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.75rem;
-
-          @media (max-width: 768px) {
-            gap: 0.5rem;
-          }
-        }
-
-        .competency-item,
-        .level-item {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.25rem 0.5rem;
-          background: rgba(255, 255, 255, 0.8);
-          border-radius: 6px;
-          font-size: 0.85rem;
-          font-weight: 500;
-          color: #374151;
-          transition: all 0.2s ease;
-
-          .competency-indicator {
-            width: 16px;
-            height: 16px;
-            border-radius: 3px;
-            border: 2px solid;
-            flex-shrink: 0;
-            opacity: 0.8;
-            transition: all 0.2s ease;
-          }
-
-          .level-indicator {
-            width: 16px;
-            height: 16px;
-            border-radius: 3px;
-            flex-shrink: 0;
-            transition: all 0.2s ease;
-          }
-
-          .legend-visibility-icon {
-            color: #ef4444;
-            font-size: 0.75rem;
-            margin-left: auto;
-          }
-
-          &.interactive-legend {
-            cursor: pointer;
-            user-select: none;
+          ::ng-deep .p-button {
+            background-color: #6b7280 !important;
+            border-color: #6b7280 !important;
+            color: white !important;
+            font-size: 14px;
+            max-height: 32px;
+            font-weight: 0 !important;
+            font-family: var(--font-family-base);
 
             &:hover {
-              background: rgba(59, 130, 246, 0.1);
-              transform: translateY(-1px);
-              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-              .competency-indicator,
-              .level-indicator {
-                transform: scale(1.1);
-                opacity: 1;
-              }
-            }
-
-            &.legend-hidden {
-              opacity: 0.5;
-              background: rgba(239, 68, 68, 0.1);
-
-              .competency-indicator,
-              .level-indicator {
-                opacity: 0.3;
-                filter: grayscale(100%);
-              }
-
-              &:hover {
-                background: rgba(239, 68, 68, 0.2);
-                opacity: 0.7;
-              }
+              background-color: #4b5563 !important;
+              border-color: #4b5563 !important;
             }
           }
         }
+      }
 
-        .competency-legend,
-        .level-legend {
-          h4 {
-            small {
-              font-weight: 400;
+      // Right Column: Chart (60%)
+      .chart-column {
+        display: flex;
+        flex-direction: column;
+        min-height: 500px;
+
+        @media (max-width: 1024px) {
+          order: 1;
+        }
+
+        // Mobile Portrait Warning
+        .mobile-portrait-warning {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 400px;
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(99, 102, 241, 0.05));
+          border-radius: 12px;
+          border: 2px dashed rgba(59, 130, 246, 0.3);
+
+          .warning-content {
+            text-align: center;
+            padding: 2rem;
+            max-width: 300px;
+
+            .warning-icon {
+              font-size: 3rem;
+              color: #6366f1;
+              margin-bottom: 1rem;
+              animation: rotate 2s ease-in-out infinite;
+            }
+
+            h3 {
+              font-size: 1.3rem;
+              font-weight: 600;
+              color: #2c3e50;
+              margin: 0 0 0.5rem;
+            }
+
+            p {
               color: #6b7280;
-              font-size: 0.75rem;
+              margin: 0 0 1rem;
+              font-size: 0.9rem;
+              line-height: 1.5;
+            }
+
+            .rotation-hint {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 0.5rem;
+              color: #6366f1;
+              font-weight: 500;
+              font-size: 0.9rem;
+
+              i {
+                animation: slideRight 1.5s ease-in-out infinite;
+              }
             }
           }
         }
-      }
 
-      .echarts-container {
-        width: 100%;
-        height: 450px;
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        // Chart Container
+        .chart-container {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+
+          .chart-and-legend-wrapper {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+
+            @media (max-width: 1024px) {
+              flex-direction: column;
+              gap: 0.75rem;
+            }
+
+            .echarts-container {
+              flex: 1;
+              height: 500px;
+              border-radius: 8px;
+              background: rgba(255, 255, 255, 0.05);
+              backdrop-filter: blur(10px);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              
+              // Responsive adjustments for chart grid
+              @media (max-width: 1024px) {
+                height: 450px;
+              }
+              
+              @media (max-width: 768px) {
+                height: 400px;
+              }
+              
+              @media (max-width: 480px) {
+                height: 350px;
+              }
+                        }
+
+            // Chart Legend
+            .chart-legend {
+              flex-shrink: 0;
+              width: 200px;
+              padding: 1rem;
+              background: rgba(255, 255, 255, 0.95);
+              border-radius: 8px;
+              border: 1px solid rgba(0, 0, 0, 0.1);
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+              @media (max-width: 1024px) {
+                width: 100%;
+                padding: 0.75rem;
+              }
+
+              .legend-section {
+                h5 {
+                  font-size: 0.9rem;
+                  font-weight: 600;
+                  color: #374151;
+                  margin: 0 0 0.75rem;
+                }
+
+                .level-items {
+                  display: flex;
+                  flex-direction: column;
+                  gap: 0.5rem;
+
+                  @media (max-width: 1024px) {
+                    flex-direction: row;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                  }
+
+                  .level-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    padding: 0.5rem 0.75rem;
+                    background: rgba(255, 255, 255, 0.9);
+                    border-radius: 6px;
+                    font-size: 0.8rem;
+                    font-weight: 500;
+                    color: #374151;
+                    transition: all 0.2s ease;
+                    cursor: pointer;
+                    user-select: none;
+                    border: 1px solid rgba(0, 0, 0, 0.05);
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+                    @media (max-width: 1024px) {
+                      padding: 0.4rem 0.6rem;
+                      font-size: 0.75rem;
+                    }
+
+                    .level-indicator {
+                      width: 14px;
+                      height: 14px;
+                      border-radius: 3px;
+                      flex-shrink: 0;
+                      transition: all 0.2s ease;
+                      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+
+                      @media (max-width: 1024px) {
+                        width: 12px;
+                        height: 12px;
+                      }
+                    }
+
+                    .legend-visibility-icon {
+                      color: #ef4444;
+                      font-size: 0.7rem;
+                      margin-left: auto;
+                      opacity: 0.7;
+
+                      @media (max-width: 1024px) {
+                        font-size: 0.65rem;
+                      }
+                    }
+
+                    &:hover {
+                      background: rgba(59, 130, 246, 0.1);
+                      transform: translateY(-1px);
+                      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                      border-color: rgba(59, 130, 246, 0.2);
+
+                      .level-indicator {
+                        transform: scale(1.1);
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+                      }
+
+                      .legend-visibility-icon {
+                        opacity: 1;
+                      }
+                    }
+
+                    &.legend-hidden {
+                      opacity: 0.5;
+                      background: rgba(239, 68, 68, 0.1);
+                      border-color: rgba(239, 68, 68, 0.2);
+
+                      .level-indicator {
+                        opacity: 0.3;
+                        filter: grayscale(100%);
+                      }
+
+                      .legend-visibility-icon {
+                        opacity: 1;
+                        color: #ef4444;
+                      }
+
+                      &:hover {
+                        background: rgba(239, 68, 68, 0.2);
+                        opacity: 0.7;
+                        border-color: rgba(239, 68, 68, 0.3);
+                      }
+                    }
+
+                    &:active {
+                      transform: translateY(0);
+                      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // No Selection State
+        .no-selection-state {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 500px;
+
+          .empty-state-content {
+            text-align: center;
+            padding: 2rem;
+
+            .empty-state-icon {
+              font-size: 3rem;
+              color: #cbd5e1;
+              margin-bottom: 1rem;
+            }
+
+            h3 {
+              font-size: 1.3rem;
+              font-weight: 600;
+              color: #2c3e50;
+              margin: 0 0 0.5rem;
+
+              @media (max-width: 480px) {
+                font-size: 1.1rem;
+              }
+            }
+
+            p {
+              color: #6b7280;
+              margin: 0;
+              font-size: 0.9rem;
+              line-height: 1.5;
+
+              @media (max-width: 480px) {
+                font-size: 0.85rem;
+              }
+            }
+          }
+        }
+
+        // Loading State
+        .chart-loading-container {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 500px;
+        }
       }
     }
-
-    .chart-loading-container {
-      margin-top: 1rem;
-    }
-
-
   }
 }
 
-// Progress Section
-.progress-section {
-  margin-bottom: 2rem;
-
-  .progress-card {
-    &::ng-deep .p-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-
-      .p-card-header {
-        background: transparent;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        padding: 1.5rem 1.5rem 1rem;
-      }
-
-      .p-card-content {
-        padding: 1.5rem;
-        padding-top: 1rem;
-      }
-    }
-
-    .card-header {
-      text-align: center;
-
-      h3 {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #2c3e50;
-        margin: 0 0 0.5rem;
-      }
-
-      .header-subtitle {
-        color: #7f8c8d;
-        margin: 0;
-        font-size: 1rem;
-      }
-    }
-  }
-
-  .progress-content {
-    .progress-stats {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-
-      .progress-stat {
-        text-align: center;
-
-        h4 {
-          font-size: 2rem;
-          font-weight: 700;
-          color: #2c3e50;
-          margin: 0 0 0.25rem;
-        }
-
-        p {
-          font-size: 0.9rem;
-          color: #6b7280;
-          margin: 0;
-          font-weight: 500;
-        }
-      }
-
-      .progress-divider {
-        font-size: 2rem;
-        font-weight: 300;
-        color: #cbd5e1;
-      }
-    }
-
-    .progress-bar-container {
-      position: relative;
-      margin-bottom: 1rem;
-
-      &::ng-deep .p-progressbar {
-        background: #e2e8f0;
-        border-radius: 6px;
-
-        .p-progressbar-value {
-          background: #6366f1;
-          border-radius: 6px;
-        }
-      }
-
-      .progress-percentage {
-        position: absolute;
-        top: -30px;
-        right: 0;
-        font-weight: 700;
-        color: #6366f1;
-        font-size: 1.1rem;
-      }
-    }
-
-    .progress-note {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      color: #6b7280;
-      font-size: 0.9rem;
-
-      i {
-        color: #6366f1;
-      }
-    }
-  }
-}
+// Progress Section - REMOVED (merged into chart section)
 
 // VERSION 2 - Pending Assessments Section
 /*
@@ -1104,54 +1138,7 @@
 }
 */
 
-// No Selection State
-.no-selection-state {
-  .empty-state-card {
-    &::ng-deep .p-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-
-      .p-card-content {
-        padding: 3rem 1.5rem;
-      }
-    }
-
-    .empty-state-content {
-      text-align: center;
-
-      .empty-state-icon {
-        font-size: 4rem;
-        color: #cbd5e1;
-        margin-bottom: 1rem;
-      }
-
-      h3 {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #2c3e50;
-        margin: 0 0 0.5rem;
-
-        @media (max-width: 480px) {
-          font-size: 1.3rem;
-        }
-      }
-
-      p {
-        color: #6b7280;
-        margin: 0 0 1.5rem;
-        font-size: 1rem;
-        line-height: 1.5;
-
-        @media (max-width: 480px) {
-          font-size: 14px;
-        }
-      }
-    }
-  }
-}
+// No Selection State - REMOVED (moved to chart column)
 
 // Animations
 @keyframes fadeInUp {
@@ -1163,6 +1150,28 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+
+}
+
+@keyframes rotate {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-10deg);
+  }
+  75% {
+    transform: rotate(10deg);
+  }
+}
+
+@keyframes slideRight {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(5px);
   }
 }
 

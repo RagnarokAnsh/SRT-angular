@@ -190,6 +190,19 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     
     // Add keyboard shortcuts
     this.setupKeyboardShortcuts();
+    
+    // Initialize mobile orientation detection
+    this.checkMobileOrientation();
+    
+    // Listen for orientation changes
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => this.checkMobileOrientation(), 100);
+    });
+    
+    // Listen for window resize (for responsive design)
+    window.addEventListener('resize', () => {
+      this.checkMobileOrientation();
+    });
   }
 
   ngAfterViewInit() {
@@ -217,6 +230,15 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.chartInstance) {
       this.chartInstance.dispose();
     }
+  }
+
+  private checkMobileOrientation(): void {
+    const isMobile = window.innerWidth <= 768;
+    const isPortrait = window.innerHeight > window.innerWidth;
+    this.isMobilePortrait = isMobile && isPortrait;
+    
+    // Force change detection
+    this.cdr.detectChanges();
   }
 
   private initializeChart(): void {
@@ -257,6 +279,13 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         this.loadStudents(),
         this.loadDomainsAndCompetencies()
       ]);
+      
+      // Load all assessment data immediately for overall progress calculation
+      await this.loadAllAssessmentData();
+      
+      // Calculate overall assessment progress (independent of filters)
+      this.calculateOverallAssessmentProgress();
+      
       if (setDefaults) {
         this.setDefaultSelections();
       } else {
@@ -334,6 +363,70 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Update only the gender distribution in dashboard data
     this.dashboardData.genderDistribution = genderDistribution;
+  }
+
+  // New method to calculate overall assessment progress (independent of filters)
+  private calculateOverallAssessmentProgress(): void {
+    if (!this.students.length || !this.competencyOptions.length) {
+      this.dashboardData.totalPossibleAssessments = 0;
+      this.dashboardData.actualAssessmentsDone = 0;
+      return;
+    }
+
+    // Calculate total possible assessments: all students * all competencies * all sessions
+    const totalStudents = this.students.length;
+    const totalCompetencies = this.competencyOptions.length;
+    const totalSessions = this.sessionOptions.length;
+    
+    this.dashboardData.totalPossibleAssessments = totalStudents * totalCompetencies * totalSessions;
+
+    // Count actual assessments done from all assessment data
+    let actualAssessmentsCount = 0;
+
+    // Use allAssessmentData instead of filtered assessmentData
+    this.allAssessmentData.forEach(student => {
+      this.sessionOptions.forEach(session => {
+        const sessionKey = `session_${session.value}` as keyof AssessmentStudent;
+        const sessionData = student[sessionKey];
+
+        if (sessionData && typeof sessionData === 'object' && 'observation' in sessionData) {
+          const observation = String((sessionData as any).observation).toLowerCase();
+          
+          if (observation && observation.trim() !== '') {
+            actualAssessmentsCount++;
+          }
+        }
+      });
+    });
+
+    this.dashboardData.actualAssessmentsDone = actualAssessmentsCount;
+  }
+
+  // Method to trim long competency names for chart display
+  private trimCompetencyName(name: string): string {
+    const maxLength = 25; // Maximum characters for y-axis labels
+    if (name.length <= maxLength) {
+      return name;
+    }
+    
+    // Try to find a good break point (space, hyphen, etc.)
+    const breakPoints = [' - ', ' ', '-', '_'];
+    let trimmedName = name;
+    
+    for (const breakPoint of breakPoints) {
+      const index = name.lastIndexOf(breakPoint, maxLength);
+      if (index > maxLength * 0.6) { // Only break if we can keep at least 60% of the name
+        trimmedName = name.substring(0, index) + '...';
+        break;
+      }
+    }
+    
+    // If no good break point found, just truncate
+    if (trimmedName === name) {
+      trimmedName = name.substring(0, maxLength - 3) + '...';
+    }
+    
+    return trimmedName;
   }
 
   private async loadDomainsAndCompetencies(): Promise<void> {
@@ -568,22 +661,12 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Removed duplicate - now declared above with other data properties
   
-  // Competency patterns for better differentiation
-  private competencyPatterns = [
-    { color: '#3b82f6', pattern: 'solid', name: 'Pattern A' },
-    { color: '#10b981', pattern: 'diagonal', name: 'Pattern B' },
-    { color: '#f59e0b', pattern: 'dots', name: 'Pattern C' },
-    { color: '#ef4444', pattern: 'vertical', name: 'Pattern D' },
-    { color: '#8b5cf6', pattern: 'horizontal', name: 'Pattern E' },
-    { color: '#06b6d4', pattern: 'grid', name: 'Pattern F' },
-    { color: '#84cc16', pattern: 'cross', name: 'Pattern G' },
-    { color: '#f97316', pattern: 'zigzag', name: 'Pattern H' }
-  ];
-
   // Interactive legend state
-  hiddenCompetencies: Set<number> = new Set();
   hiddenLevels: Set<string> = new Set();
   hoveredItem: { type: string; index: number } | null = null;
+
+  // Mobile orientation detection
+  isMobilePortrait = false;
 
   // PRODUCTION METHOD: Load ALL assessment data once
   private async loadAllAssessmentData(): Promise<void> {
@@ -724,8 +807,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     const metrics = {
       totalStudents: this.students.length,
       assessedStudents: 0,
-      totalPossibleAssessments: 0, // New field for total possible assessments
-      actualAssessmentsDone: 0, // New field for actual assessments done
+      totalPossibleAssessments: this.dashboardData.totalPossibleAssessments, // Preserve overall progress
+      actualAssessmentsDone: this.dashboardData.actualAssessmentsDone, // Preserve overall progress
       genderDistribution: this.dashboardData.genderDistribution, // Use existing gender data
       levelDistribution: {
         beginner: 0,
@@ -749,12 +832,10 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     };
     const assessedStudentIds = new Set<number>();
 
-    // Calculate total possible assessments
-    metrics.totalPossibleAssessments = this.students.length * this.selectedCompetencies.length * this.selectedSessions.length;
+    // Note: We don't recalculate totalPossibleAssessments and actualAssessmentsDone here
+    // as they are now calculated independently in calculateOverallAssessmentProgress()
 
-    // Count actual assessments done
-    let actualAssessmentsCount = 0;
-
+    // Count level distribution for filtered data only (for chart display)
     this.assessmentData.forEach(student => {
       this.selectedSessions.forEach(session => {
         const sessionKey = `session_${session.value}` as keyof AssessmentStudent;
@@ -767,7 +848,6 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           
           if (observation && id) {
             assessedStudentIds.add(id);
-            actualAssessmentsCount++; // Count each individual assessment
 
             const level = String(observation).toLowerCase();
             
@@ -792,7 +872,6 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     metrics.levelDistribution.advanced = levelStudentIds.advanced.size;
     metrics.levelDistribution.schoolReady = levelStudentIds.schoolReady.size;
     metrics.assessedStudents = assessedStudentIds.size; // Keep for backward compatibility
-    metrics.actualAssessmentsDone = actualAssessmentsCount;
     
     this.dashboardData = metrics;
     
@@ -925,24 +1004,18 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       try {
         this.chartInstance.setOption({
           xAxis: { 
-            type: 'category',
-            data: this.hasValidSelections() ? this.selectedSessions.map(s => s.label) : []
-          },
-          yAxis: {
             type: 'value',
             name: 'Number of Students',
             nameLocation: 'middle',
             nameGap: 50
           },
+          yAxis: {
+            type: 'category',
+            data: this.hasValidSelections() ? this.selectedSessions.map(s => s.label) : []
+          },
           series: [],
           legend: {
-            data: this.assessmentLevels.map(level => level.label),
-            top: 10,
-            itemGap: 20,
-            type: 'scroll',
-            textStyle: {
-              fontSize: 12
-            }
+            show: false
           }
         }, true);
       } catch (error) {
@@ -951,18 +1024,18 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    // Build chart data with sessions on X-axis and grouped bars per competency
-    const sessionNames = this.selectedSessions.map(s => s.label);
+    // Build chart data with competencies on Y-axis and horizontal bars per session
+    const competencyNames = this.selectedCompetencies.map(c => this.trimCompetencyName(c.label));
     
-    // Create series for each competency and level combination
+    // Create series for each session and level combination
     const series: any[] = [];
     
-    // For each competency, create series for each level
-    this.selectedCompetencies.forEach((competency, competencyIndex) => {
-      // Skip hidden competencies
-      if (this.hiddenCompetencies.has(competency.value)) {
-        return;
-      }
+    // For each session, create series for each level
+    this.selectedSessions.forEach((session, sessionIndex) => {
+      // Skip hidden sessions (if we implement session hiding)
+      // if (this.hiddenSessions.has(session.value)) {
+      //   return;
+      // }
 
       this.assessmentLevels.forEach((level, levelIndex) => {
         // Skip hidden levels
@@ -972,58 +1045,64 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
         const seriesData: number[] = [];
         
-                 // For each session, count students at this level for this competency
-         this.selectedSessions.forEach(session => {
-           let count = 0;
-           
-           // Get assessment data for this specific competency
-           const competencyAssessments = this.assessmentDataByCompetency.get(competency.value) || [];
-           
-           competencyAssessments.forEach(student => {
-             const sessionKey = `session_${session.value}` as keyof AssessmentStudent;
-             const sessionData = student[sessionKey];
-             
-                            if (sessionData && typeof sessionData === 'object' && 'observation' in sessionData) {
-               const observation = String((sessionData as any).observation).toLowerCase();
-               const levelMatches = 
-                 (level.value === 'Beginner' && (observation.includes('beginner') || observation.includes('beginning') || observation === '1')) ||
-                 (level.value === 'Progressing' && (observation.includes('progressing') || observation === '2')) ||
-                 (level.value === 'Advanced' && (observation.includes('advanced') || observation.includes('advancing') || observation === '3')) ||
-                 (level.value === 'PSR' && (observation.includes('psr') || observation.includes('school ready') || observation === '4'));
-               
-               if (levelMatches) {
-                 count++;
-               }
-             }
-           });
-           
-           seriesData.push(count);
-         });
+        // For each competency, count students at this level for this session
+        this.selectedCompetencies.forEach(competency => {
+          let count = 0;
+          
+          // Get assessment data for this specific competency
+          const competencyAssessments = this.assessmentDataByCompetency.get(competency.value) || [];
+          
+          competencyAssessments.forEach(student => {
+            const sessionKey = `session_${session.value}` as keyof AssessmentStudent;
+            const sessionData = student[sessionKey];
+            
+            if (sessionData && typeof sessionData === 'object' && 'observation' in sessionData) {
+              const observation = String((sessionData as any).observation).toLowerCase();
+              const levelMatches = 
+                (level.value === 'Beginner' && (observation.includes('beginner') || observation.includes('beginning') || observation === '1')) ||
+                (level.value === 'Progressing' && (observation.includes('progressing') || observation === '2')) ||
+                (level.value === 'Advanced' && (observation.includes('advanced') || observation.includes('advancing') || observation === '3')) ||
+                (level.value === 'PSR' && (observation.includes('psr') || observation.includes('school ready') || observation === '4'));
+              
+              if (levelMatches) {
+                count++;
+              }
+            }
+          });
+          
+          seriesData.push(count);
+        });
         
-        // Create series name to group bars by competency
-        const stackName = `competency_${competencyIndex}`;
+        // Create series name to group bars by session
+        const stackName = `session_${sessionIndex}`;
         
-        // Use the standard level color with hover effects
+        // Use the standard level color
         const levelColor = this.assessmentLevels[levelIndex].color;
         const isHovered = this.hoveredItem && 
-          ((this.hoveredItem.type === 'competency' && this.hoveredItem.index === competencyIndex) ||
-           (this.hoveredItem.type === 'level' && this.hoveredItem.index === levelIndex));
+          this.hoveredItem.type === 'level' && this.hoveredItem.index === levelIndex;
         
         series.push({
-          name: `${competency.label} - ${level.label}`,
+          name: `${session.label} - ${level.label}`,
           type: 'bar',
           stack: stackName,
           emphasis: {
-            focus: 'series'
+            focus: 'series',
+            itemStyle: {
+              shadowBlur: 10,
+              shadowColor: 'rgba(0, 0, 0, 0.3)',
+              shadowOffsetX: 2,
+              shadowOffsetY: 2
+            }
           },
           data: seriesData,
           itemStyle: {
             color: levelColor,
-            // Add border to differentiate competencies
-            borderColor: this.competencyPatterns[competencyIndex % this.competencyPatterns.length].color,
-            borderWidth: 2,
-            opacity: isHovered ? 1 : 0.85
-          }
+            opacity: isHovered ? 1 : 0.85,
+            borderRadius: [0, 4, 4, 0]
+          },
+          animation: true,
+          animationDuration: 300,
+          animationEasing: 'cubicOut'
         });
       });
     });
@@ -1031,62 +1110,92 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     const option: EChartsOption = {
       tooltip: {
         trigger: 'item',
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backgroundColor: 'rgba(255, 255, 255, 0.98)',
         borderColor: 'rgba(0, 0, 0, 0.1)',
         borderWidth: 1,
+        borderRadius: 8,
         textStyle: {
-          color: '#374151'
+          color: '#374151',
+          fontSize: 12
         },
+        padding: [12, 16],
+        extraCssText: 'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);',
         formatter: (params: any) => {
-          const competencyName = params.seriesName.split(' - ')[0];
+          const sessionName = params.seriesName.split(' - ')[0];
           const levelName = params.seriesName.split(' - ')[1];
-          const sessionName = params.name;
+          const fullCompetencyName = this.selectedCompetencies[params.dataIndex]?.label || competencyNames[params.dataIndex];
           const studentCount = params.value;
           
           return `
-            <div style="font-weight: 600; margin-bottom: 8px; color: #1f2937;">
-              ${sessionName}
+            <div style="font-weight: 600; margin-bottom: 8px; color: #1f2937; font-size: 14px;">
+              ${fullCompetencyName}
             </div>
-            <div style="margin-bottom: 4px;">
-              <strong>${competencyName}</strong>
+            <div style="margin-bottom: 6px; color: #6b7280; font-size: 12px;">
+              <strong>${sessionName}</strong>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
-              ${params.marker} 
-              <span style="color: #6b7280;">${levelName}:</span>
-              <strong style="color: #1f2937;">${studentCount} student${studentCount !== 1 ? 's' : ''}</strong>
+              <span style="display: inline-block; width: 12px; height: 12px; background-color: ${params.color}; border-radius: 2px;"></span>
+              <span style="color: #6b7280; font-size: 12px;">${levelName}:</span>
+              <strong style="color: #1f2937; font-size: 13px;">${studentCount} student${studentCount !== 1 ? 's' : ''}</strong>
             </div>
           `;
         }
       },
       legend: {
-        data: this.assessmentLevels.map(level => level.label),
-        top: 10,
-        itemGap: 20,
-        type: 'scroll',
-        textStyle: {
-          fontSize: 12
-        }
+        show: false
       },
       grid: {
-        left: '5%',
+        left: '2%', // Increased left margin for longer competency names
         right: '4%',
-        bottom: '12%',
-        top: '18%',
+        bottom: '5%',
+        top: '0%',
         containLabel: true
       },
       xAxis: {
-        type: 'category',
-        data: sessionNames,
-        axisLabel: {
-          interval: 0,
-          fontSize: 12
-        }
-      },
-      yAxis: {
         type: 'value',
         name: 'Number of Students',
         nameLocation: 'middle',
-        nameGap: 50
+        nameGap: 50,
+        nameTextStyle: {
+          color: '#6b7280',
+          fontSize: 12,
+          fontWeight: 500
+        },
+        axisLabel: {
+          color: '#6b7280',
+          fontSize: 11
+        },
+        axisLine: {
+          lineStyle: {
+            color: '#e5e7eb'
+          }
+        },
+        splitLine: {
+          lineStyle: {
+            color: '#f3f4f6',
+            type: 'dashed'
+          }
+        }
+      },
+      yAxis: {
+        type: 'category',
+        data: competencyNames,
+        axisLabel: {
+          interval: 0,
+          fontSize: 11,
+          color: '#000',
+          fontWeight: 500,
+          width: 120,
+          overflow: 'truncate'
+        },
+        axisLine: {
+          lineStyle: {
+            color: '#e5e7eb'
+          }
+        },
+        axisTick: {
+          show: false
+        }
       },
       series
     };
@@ -1123,8 +1232,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.dashboardData = {
       totalStudents: this.students.length,
       assessedStudents: 0,
-      totalPossibleAssessments: 0,
-      actualAssessmentsDone: 0,
+      totalPossibleAssessments: this.dashboardData.totalPossibleAssessments, // Preserve overall progress
+      actualAssessmentsDone: this.dashboardData.actualAssessmentsDone, // Preserve overall progress
       genderDistribution: this.dashboardData.genderDistribution, // Preserve gender data
       levelDistribution: {
         beginner: 0,
@@ -1143,14 +1252,14 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       try {
         this.chartInstance.setOption({
           xAxis: { 
-            type: 'category',
-            data: [] 
-          },
-          yAxis: {
             type: 'value',
             name: 'Number of Students',
             nameLocation: 'middle',
             nameGap: 50
+          },
+          yAxis: {
+            type: 'category',
+            data: [] 
           },
           series: []
         }, true);
@@ -1191,9 +1300,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
-  getCompetencyColor(index: number): string {
-    return this.competencyPatterns[index % this.competencyPatterns.length].color;
-  }
+  // Removed getCompetencyColor method - no longer needed with horizontal bars
 
   exportChartData(): void {
     try {
@@ -1394,8 +1501,9 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       // Force reload of all data without setting defaults
       await this.initializeDashboard(false);
       
-      // Recalculate gender distribution after loading students
+      // Recalculate gender distribution and overall progress after loading students
       this.calculateGenderDistribution();
+      this.calculateOverallAssessmentProgress();
       
       // Restore the previous selections instead of using defaults
       if (currentSessions.length > 0) {
@@ -1457,11 +1565,12 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.allAssessmentData = [];
     this.assessmentData = [];
     this.assessmentDataByCompetency.clear();
+    // Note: We don't reset totalPossibleAssessments and actualAssessmentsDone here
+    // as they are calculated independently and should persist across cache invalidation
   }
 
   resetFilters(): void {
     // Reset hidden states
-    this.hiddenCompetencies.clear();
     this.hiddenLevels.clear();
     
     // Clear all selections to show placeholders
@@ -1508,6 +1617,21 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showMessage('All filters cleared successfully!', 'info');
   }
 
+  onLegendClick(type: string, value: number | string): void {
+    if (type === 'level') {
+      const levelValue = value as string;
+      if (this.hiddenLevels.has(levelValue)) {
+        this.hiddenLevels.delete(levelValue);
+      } else {
+        this.hiddenLevels.add(levelValue);
+      }
+      
+      // Update chart with hidden series
+      this.updateChart();
+      this.showMessage(`Level ${this.hiddenLevels.has(value as string) ? 'hidden' : 'shown'}`, 'info');
+    }
+  }
+
   onLegendHover(type: string, index: number, isEntering: boolean): void {
     if (isEntering) {
       this.hoveredItem = { type, index };
@@ -1518,46 +1642,14 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  onLegendClick(type: string, value: number | string): void {
-    if (type === 'competency') {
-      const competencyId = value as number;
-      if (this.hiddenCompetencies.has(competencyId)) {
-        this.hiddenCompetencies.delete(competencyId);
-      } else {
-        this.hiddenCompetencies.add(competencyId);
-      }
-    } else if (type === 'level') {
-      const levelValue = value as string;
-      if (this.hiddenLevels.has(levelValue)) {
-        this.hiddenLevels.delete(levelValue);
-      } else {
-        this.hiddenLevels.add(levelValue);
-      }
-    }
-    
-    // Update chart with hidden series
-    this.updateChartVisibility();
-    this.showMessage(`${type} ${this.hiddenCompetencies.has(value as number) || this.hiddenLevels.has(value as string) ? 'hidden' : 'shown'}`, 'info');
-  }
-
   private highlightChartSeries(type: string, index: number, highlight: boolean): void {
     if (!this.chartInstance) return;
 
     try {
-      if (type === 'competency') {
-        // Highlight all series for this competency (all levels for this competency)
-        const competencySeriesNames = this.assessmentLevels.map(level => 
-          `${this.selectedCompetencies[index].label} - ${level.label}`
-        );
-        
-        this.chartInstance.dispatchAction({
-          type: highlight ? 'highlight' : 'downplay',
-          seriesName: competencySeriesNames
-        });
-      } else if (type === 'level') {
-        // Highlight all series for this level (this level across all competencies)
-        const levelSeriesNames = this.selectedCompetencies.map(comp => 
-          `${comp.label} - ${this.assessmentLevels[index].label}`
+      if (type === 'level') {
+        // Highlight all series for this level (this level across all sessions)
+        const levelSeriesNames = this.selectedSessions.map(session => 
+          `${session.label} - ${this.assessmentLevels[index].label}`
         );
         
         this.chartInstance.dispatchAction({
@@ -1567,17 +1659,6 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     } catch (error) {
       console.warn('Error highlighting chart series:', error);
-    }
-  }
-
-  private updateChartVisibility(): void {
-    if (!this.chartInstance) return;
-
-    try {
-      // Update chart data by filtering out hidden series
-      this.updateChart(); // This will rebuild the chart with current visibility state
-    } catch (error) {
-      console.warn('Error updating chart visibility:', error);
     }
   }
 
