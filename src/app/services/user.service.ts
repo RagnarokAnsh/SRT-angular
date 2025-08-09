@@ -275,7 +275,8 @@ export class UserService {
     } else if (roles.includes('supervisor')) {
       this.router.navigate(['/supervisor/dashboard']);
     } else if (roles.includes('aww')) {
-      this.router.navigate(['/dashboard']);
+      // AWW users should be redirected to select-competency page instead of dashboard
+      this.router.navigate(['/select-competency']);
     } else {
       this.router.navigate(['/home']);
     }

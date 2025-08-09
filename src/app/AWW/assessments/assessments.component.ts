@@ -973,7 +973,13 @@ export class AssessmentsComponent implements OnInit {
    */
   backToVideos() {
     this.resetComponentState();
-    this.router.navigate(['/AWW/select-competency']);
+    // Navigate back to the details page (where videos are) with the current competency ID
+    if (this.assessment.competency_id) {
+      this.router.navigate(['/details', this.assessment.competency_id]);
+    } else {
+      // Fallback to select-competency if no competency ID is available
+      this.router.navigate(['/select-competency']);
+    }
   }
 
   /**

@@ -213,16 +213,12 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     
     // Ensure chart is properly initialized after view is stable
     setTimeout(() => {
-      if (!this.chartInstance && this.chart?.nativeElement && this.hasSelections) {
-        this.initializeChart();
-      }
+      this.ensureChartVisibility();
     }, 100);
     
     // Also try to initialize on any future changes when chart element becomes available
     setTimeout(() => {
-      if (!this.chartInstance && this.hasSelections) {
-        this.initializeChart();
-      }
+      this.ensureChartVisibility();
     }, 500);
   }
 
@@ -235,10 +231,41 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   private checkMobileOrientation(): void {
     const isMobile = window.innerWidth <= 768;
     const isPortrait = window.innerHeight > window.innerWidth;
+    const wasMobilePortrait = this.isMobilePortrait;
     this.isMobilePortrait = isMobile && isPortrait;
+    
+    // If we switched from portrait to landscape and have selections, initialize chart
+    if (wasMobilePortrait && !this.isMobilePortrait && this.hasSelections) {
+      setTimeout(() => {
+        this.initializeChart();
+        this.ensureChartAndUpdate();
+      }, 200); // Small delay to ensure DOM is updated
+    }
+    
+    // Always ensure chart visibility after orientation change
+    setTimeout(() => {
+      this.ensureChartVisibility();
+    }, 300);
     
     // Force change detection
     this.cdr.detectChanges();
+  }
+
+  private ensureChartVisibility(): void {
+    // If chart should be visible but not initialized, initialize it
+    if (!this.isMobilePortrait && this.hasSelections && !this.chartInstance && this.chart?.nativeElement) {
+      setTimeout(() => {
+        this.initializeChart();
+        this.ensureChartAndUpdate();
+      }, 100);
+    }
+    
+    // If chart is initialized but should be resized, resize it
+    if (this.chartInstance && this.chart?.nativeElement) {
+      setTimeout(() => {
+        this.chartInstance?.resize();
+      }, 50);
+    }
   }
 
   private initializeChart(): void {

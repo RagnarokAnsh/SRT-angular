@@ -100,32 +100,34 @@
 
         <!-- Assessment Progress Section (Independent of filters) -->
         <div class="progress-section-top" *ngIf="!loading">
-          <div class="progress-header">
-            <h4>Overall Assessment Progress</h4>
-            <p>Track completion across all competencies, students, and sessions</p>
-          </div>
-          
-          <div class="progress-content">
-            <div class="progress-stats">
-              <div class="progress-stat">
-                <h5>{{ dashboardData.actualAssessmentsDone }}</h5>
-                <p>Assessments Done</p>
-              </div>
-              <div class="progress-divider">/</div>
-              <div class="progress-stat">
-                <h5>{{ dashboardData.totalPossibleAssessments }}</h5>
-                <p>Total Possible</p>
-              </div>
+          <div class="progress-layout">
+            <div class="progress-header">
+              <h4>Overall Assessment Progress</h4>
+              <p>Track completion across all competencies, students, and sessions</p>
             </div>
             
-            <div class="progress-bar-container">
-              <p-progressBar 
-                [value]="getAssessmentProgress()" 
-                [style]="{'height': '10px'}"
-                [showValue]="false">
-              </p-progressBar>
-              <div class="progress-percentage">
-                {{ getAssessmentProgress() }}%
+            <div class="progress-content">
+              <div class="progress-stats">
+                <div class="progress-stat">
+                  <h5>{{ dashboardData.actualAssessmentsDone }}</h5>
+                  <p>Assessments Done</p>
+                </div>
+                <div class="progress-divider">/</div>
+                <div class="progress-stat">
+                  <h5>{{ dashboardData.totalPossibleAssessments }}</h5>
+                  <p>Total Possible</p>
+                </div>
+              </div>
+              
+              <div class="progress-bar-container">
+                <p-progressBar 
+                  [value]="getAssessmentProgress()" 
+                  [style]="{'height': '10px'}"
+                  [showValue]="false">
+                </p-progressBar>
+                <div class="progress-percentage">
+                  {{ getAssessmentProgress() }}%
+                </div>
               </div>
             </div>
           </div>
