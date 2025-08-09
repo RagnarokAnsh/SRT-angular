@@ -97,6 +97,9 @@ interface Student {
   age2?: string;
   age3?: string;
   age4?: string;
+  // Temporary input fields for current entry (do not overwrite session history)
+  tempHeight: number | null;
+  tempWeight: number | null;
 }
 
 /**
@@ -282,7 +285,9 @@ export class AssessmentsComponent implements OnInit {
             assessed4: false, assessmentLevel4: '', assessmentDate4: '',
             remarks: '',
             sessionCount: 0,
-            name: `${serviceStudent.firstName} ${serviceStudent.lastName}`.trim()
+            name: `${serviceStudent.firstName} ${serviceStudent.lastName}`.trim(),
+            tempHeight: null,
+            tempWeight: null
           };
         });
         this.allStudents = [...this.students];
@@ -764,11 +769,11 @@ export class AssessmentsComponent implements OnInit {
         }
         // Calculate age at assessment
         ageString = this.calculateAgeString(student.birth_date, this.assessment.assessment_date);
-        // Use height/weight for the current session if available (for gross/fine motor)
-        // For submission, we use the session number that matches the input fields
-        const currentSessionNumber = this.getCurrentSessionForInput();
-        height = (student as any)[`height${currentSessionNumber}`] || '';
-        weight = (student as any)[`weight${currentSessionNumber}`] || '';
+        // For gross/fine motor, read temporary input fields so historical values are not mutated
+        if (this.isGrossOrFineMotor) {
+          height = (student.tempHeight === null || student.tempHeight === undefined) ? '' : student.tempHeight.toString();
+          weight = (student.tempWeight === null || student.tempWeight === undefined) ? '' : student.tempWeight.toString();
+        }
       }
       const currentObservationForSubmission = this.assessment.observation;
       return {
@@ -1147,10 +1152,8 @@ export class AssessmentsComponent implements OnInit {
    */
   clearAllHeightWeightInputs(): void {
     this.students.forEach(student => {
-      for (let i = 1; i <= 4; i++) {
-        (student as any)[`height${i}`] = '';
-        (student as any)[`weight${i}`] = '';
-      }
+      student.tempHeight = null;
+      student.tempWeight = null;
     });
   }
 
@@ -1248,13 +1251,10 @@ export class AssessmentsComponent implements OnInit {
     const selectedStudents = this.selection.selected;
     if (selectedStudents.length === 0) return false;
     
-    // For input validation, we check session 1 since that's what we're entering
-    const sessionNumber = this.getCurrentSessionForInput();
-    
     return selectedStudents.every(student => {
-      const height = (student as any)[`height${sessionNumber}`];
-      const weight = (student as any)[`weight${sessionNumber}`];
-      return height && weight && height.toString().trim() !== '' && weight.toString().trim() !== '';
+      const height = student.tempHeight;
+      const weight = student.tempWeight;
+      return height !== undefined && weight !== undefined && height !== null && weight !== null;
     });
   }
 
@@ -1262,10 +1262,9 @@ export class AssessmentsComponent implements OnInit {
    * Reset height and weight inputs for all students
    */
   resetHeightWeightInputs(): void {
-    const sessionNumber = this.getCurrentSessionForInput();
     this.students.forEach(student => {
-      (student as any)[`height${sessionNumber}`] = '';
-      (student as any)[`weight${sessionNumber}`] = '';
+      student.tempHeight = null;
+      student.tempWeight = null;
     });
   }
 
@@ -1298,11 +1297,10 @@ export class AssessmentsComponent implements OnInit {
    * Clear height/weight inputs for unselected students
    */
   clearHeightWeightInputsForUnselectedStudents(): void {
-    const sessionNumber = this.getCurrentSessionForInput();
     this.students.forEach(student => {
       if (!this.selection.isSelected(student)) {
-        (student as any)[`height${sessionNumber}`] = '';
-        (student as any)[`weight${sessionNumber}`] = '';
+        student.tempHeight = null;
+        student.tempWeight = null;
       }
     });
   }
@@ -1430,15 +1428,13 @@ export class AssessmentsComponent implements OnInit {
     if (selectedStudents.length === 0) {
       return { isValid: false, message: 'Please select at least one student.' };
     }
-    
-    const sessionNumber = this.getCurrentSessionForInput();
     const invalidStudents: string[] = [];
     
     selectedStudents.forEach(student => {
-      const height = (student as any)[`height${sessionNumber}`];
-      const weight = (student as any)[`weight${sessionNumber}`];
+      const height = student.tempHeight;
+      const weight = student.tempWeight;
       
-      if (!height || !weight || height.toString().trim() === '' || weight.toString().trim() === '') {
+      if (height === null || weight === null || height.toString().trim() === '' || weight.toString().trim() === '') {
         invalidStudents.push(student.first_name);
       } else {
         // Validate numeric values

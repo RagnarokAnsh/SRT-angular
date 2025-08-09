@@ -489,6 +489,82 @@ table.mat-mdc-table {
   }
 }
 
+/* PrimeNG Toast color and contrast overrides to match site theme */
+@layer primeng {
+  /* Remove glass/blur and enforce solid backgrounds */
+  .p-toast {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .p-toast .p-toast-message {
+    border: none !important;
+    border-radius: var(--border-radius-md) !important;
+    box-shadow: var(--box-shadow-lg) !important;
+    background-color: #111827; /* fallback for unspecified severity */
+    color: #ffffff;
+  }
+
+  .p-toast .p-toast-summary,
+  .p-toast .p-toast-detail,
+  .p-toast .p-toast-message-icon,
+  .p-toast .p-toast-close-button {
+    color: inherit !important;
+  }
+
+  .p-toast .p-toast-close-button {
+    background: transparent !important;
+    border: none !important;
+  }
+  .p-toast .p-toast-close-button:hover {
+    background-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  /* Severity variants aligned with site palette */
+  .p-toast-message-success {
+    background-color: #16a34a !important; /* green-600 */
+    color: #ffffff !important;
+  }
+  .p-toast-message-info {
+    background-color: #0284c7 !important; /* sky-600 */
+    color: #ffffff !important;
+  }
+  .p-toast-message-warn {
+    background-color: #d97706 !important; /* amber-600 */
+    color: #ffffff !important;
+  }
+  .p-toast-message-error {
+    background-color: #dc2626 !important; /* red-600 */
+    color: #ffffff !important;
+  }
+
+  /* Ensure child elements inherit the correct contrasting color */
+  .p-toast-message-success .p-toast-summary,
+  .p-toast-message-success .p-toast-detail,
+  .p-toast-message-success .p-toast-message-icon,
+  .p-toast-message-success .p-toast-close-button,
+  .p-toast-message-info .p-toast-summary,
+  .p-toast-message-info .p-toast-detail,
+  .p-toast-message-info .p-toast-message-icon,
+  .p-toast-message-info .p-toast-close-button,
+  .p-toast-message-warn .p-toast-summary,
+  .p-toast-message-warn .p-toast-detail,
+  .p-toast-message-warn .p-toast-message-icon,
+  .p-toast-message-warn .p-toast-close-button,
+  .p-toast-message-error .p-toast-summary,
+  .p-toast-message-error .p-toast-detail,
+  .p-toast-message-error .p-toast-message-icon,
+  .p-toast-message-error .p-toast-close-button {
+    color: #ffffff !important;
+  }
+
+  /* Use site primary for generic (no-severity) toasts */
+  .p-toast .p-toast-message:not(.p-toast-message-success):not(.p-toast-message-info):not(.p-toast-message-warn):not(.p-toast-message-error) {
+    background-color: var(--primary-color) !important;
+    color: #ffffff !important;
+  }
+}
+
 /* Global Custom Scrollbar Styles */
 /* Webkit browsers (Chrome, Safari, Edge) */
 ::-webkit-scrollbar {

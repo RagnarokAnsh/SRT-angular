@@ -147,6 +147,24 @@ export const routes: Routes = [
         ]
     },
 
+    // AWW scoped routes
+    {
+        path: 'aww',
+        canActivate: [AuthGuard],
+        children: [
+            {
+                path: '',
+                redirectTo: 'dashboard',
+                pathMatch: 'full'
+            },
+            {
+                path: 'dashboard',
+                component: DashboardComponent,
+                canActivate: [AWWGuard]
+            }
+        ]
+    },
+
     // AWW routes - accessible by AWW and admin
     {
         path: 'dashboard',

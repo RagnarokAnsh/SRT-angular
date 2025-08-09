@@ -66,7 +66,7 @@
               <th mat-header-cell *matHeaderCellDef> Height (cm) </th>
               <td mat-cell *matCellDef="let student">
                 <p-inputnumber 
-                  [(ngModel)]="student['height' + getCurrentSessionForInput()]" 
+                  [(ngModel)]="student.tempHeight" 
                   [showButtons]="true" 
                   buttonLayout="horizontal" 
                   spinnerMode="horizontal" 
@@ -90,7 +90,7 @@
               <th mat-header-cell *matHeaderCellDef> Weight (kg) </th>
               <td mat-cell *matCellDef="let student">
                 <p-inputnumber 
-                  [(ngModel)]="student['weight' + getCurrentSessionForInput()]" 
+                  [(ngModel)]="student.tempWeight" 
                   [showButtons]="true" 
                   buttonLayout="horizontal" 
                   spinnerMode="horizontal" 

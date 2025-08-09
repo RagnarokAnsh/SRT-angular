@@ -49,7 +49,7 @@ export class LogoutConfirmDialog {
             <mat-icon class="nav-icon">home</mat-icon>
             Home
           </a>
-          <a *ngIf="isAuthenticated" routerLink="/dashboard" class="nav-link" routerLinkActive="active" (click)="closeMenu()">
+          <a *ngIf="isAuthenticated" [routerLink]="getDashboardLink()" class="nav-link" routerLinkActive="active" (click)="closeMenu()">
             <mat-icon class="nav-icon">dashboard</mat-icon>
             Dashboard
           </a>
@@ -412,6 +412,17 @@ export class NavbarComponent implements OnInit {
   isAdminUser(): boolean {
     if (!this.currentUser?.roles) return false;
     return this.currentUser.roles.some(role => role.name === 'admin');
+  }
+
+  getDashboardLink(): string {
+    const roles = this.currentUser?.roles?.map(r => r.name) || [];
+    if (roles.includes('admin')) return '/admin/dashboard';
+    if (roles.includes('stateofficial')) return '/state/dashboard';
+    if (roles.includes('dpo')) return '/dpo/dashboard';
+    if (roles.includes('cdpo')) return '/cdpo/dashboard';
+    if (roles.includes('supervisor')) return '/supervisor/dashboard';
+    if (roles.includes('aww')) return '/aww/dashboard';
+    return '/home';
   }
 
   toggleMenu() {
