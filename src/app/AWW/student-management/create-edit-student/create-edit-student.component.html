@@ -18,94 +18,94 @@
     <div class="form-container">
       <div class="row g-3">
         <div class="col-12 col-md-6">
-          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field" 
+                         [class.mat-form-field-invalid]="hasFieldError('firstName')"
+                         [class.mat-form-field-valid]="isFieldValid('firstName')">
           <mat-label>First Name</mat-label>
-          <input matInput formControlName="firstName" placeholder="Enter first name">
-          <mat-error *ngIf="studentForm.get('firstName')?.hasError('required')">
-            First name is required
-          </mat-error>
+          <input matInput formControlName="firstName" placeholder="Enter first name" 
+                 (input)="onTextInput($event)" maxlength="50">
+          <mat-error *ngIf="hasFieldError('firstName')">{{ getFieldError('firstName') }}</mat-error>
         </mat-form-field>
       </div>
 
         <div class="col-12 col-md-6">
-          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field"
+                         [class.mat-form-field-invalid]="hasFieldError('lastName')"
+                         [class.mat-form-field-valid]="isFieldValid('lastName')">
           <mat-label>Last Name</mat-label>
-          <input matInput formControlName="lastName" placeholder="Enter last name">
-          <mat-error *ngIf="studentForm.get('lastName')?.hasError('required')">
-            Last name is required
-          </mat-error>
+          <input matInput formControlName="lastName" placeholder="Enter last name" 
+                 (input)="onTextInput($event)" maxlength="50">
+          <mat-error *ngIf="hasFieldError('lastName')">{{ getFieldError('lastName') }}</mat-error>
         </mat-form-field>
       </div>
 
         <div class="col-12 col-md-6">
-          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field"
+                         [class.mat-form-field-invalid]="hasFieldError('dateOfBirth')"
+                         [class.mat-form-field-valid]="isFieldValid('dateOfBirth')">
           <mat-label>Date of Birth</mat-label>
-          <input matInput [matDatepicker]="picker" formControlName="dateOfBirth">
+          <input matInput [matDatepicker]="picker" formControlName="dateOfBirth" 
+                 [min]="minDate" [max]="maxDate" readonly>
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-          <mat-datepicker #picker></mat-datepicker>
-          <mat-error *ngIf="studentForm.get('dateOfBirth')?.hasError('required')">
-            Date of birth is required
-          </mat-error>
+          <mat-datepicker #picker [startAt]="defaultDate"></mat-datepicker>
+          <mat-error *ngIf="hasFieldError('dateOfBirth')">{{ getFieldError('dateOfBirth') }}</mat-error>
         </mat-form-field>
       </div>
 
         <div class="col-12 col-md-6">
-          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field"
+                         [class.mat-form-field-invalid]="hasFieldError('symbol')"
+                         [class.mat-form-field-valid]="isFieldValid('symbol')">
           <mat-label>Symbol</mat-label>
           <input matInput formControlName="symbol" placeholder="Enter symbol">
-          <mat-error *ngIf="studentForm.get('symbol')?.hasError('required')">
-            Symbol is required
-          </mat-error>
+          <mat-error *ngIf="hasFieldError('symbol')">{{ getFieldError('symbol') }}</mat-error>
         </mat-form-field>
       </div>
 
         <div class="col-12 col-md-6">
-          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field"
+                         [class.mat-form-field-invalid]="hasFieldError('height')"
+                         [class.mat-form-field-valid]="isFieldValid('height')">
           <mat-label>Height (cm)</mat-label>
-          <input matInput type="number" formControlName="height" placeholder="Enter height">
-          <mat-error *ngIf="studentForm.get('height')?.hasError('required')">
-            Height is required
-          </mat-error>
-          <mat-error *ngIf="studentForm.get('height')?.hasError('min')">
-            Height must be greater than 0
-          </mat-error>
+          <input matInput type="number" formControlName="height" placeholder="Enter height" 
+                 min="30" max="200" step="0.1" (input)="onNumberInput($event)">
+          <mat-error *ngIf="hasFieldError('height')">{{ getFieldError('height') }}</mat-error>
         </mat-form-field>
       </div>
 
         <div class="col-12 col-md-6">
-          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field"
+                         [class.mat-form-field-invalid]="hasFieldError('weight')"
+                         [class.mat-form-field-valid]="isFieldValid('weight')">
           <mat-label>Weight (kg)</mat-label>
-          <input matInput type="number" formControlName="weight" placeholder="Enter weight">
-          <mat-error *ngIf="studentForm.get('weight')?.hasError('required')">
-            Weight is required
-          </mat-error>
-          <mat-error *ngIf="studentForm.get('weight')?.hasError('min')">
-            Weight must be greater than 0
-          </mat-error>
+          <input matInput type="number" formControlName="weight" placeholder="Enter weight" 
+                 min="5" max="50" step="0.1" (input)="onNumberInput($event)">
+          <mat-error *ngIf="hasFieldError('weight')">{{ getFieldError('weight') }}</mat-error>
         </mat-form-field>
       </div>
 
         <div class="col-12 col-md-6">
-          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field"
+                         [class.mat-form-field-invalid]="hasFieldError('language')"
+                         [class.mat-form-field-valid]="isFieldValid('language')">
           <mat-label>Home Language</mat-label>
-          <input matInput formControlName="language" placeholder="Enter home language">
-          <mat-error *ngIf="studentForm.get('language')?.hasError('required')">
-            Home language is required
-          </mat-error>
+          <input matInput formControlName="language" placeholder="Enter home language" 
+                 (input)="onTextInput($event)" maxlength="30">
+          <mat-error *ngIf="hasFieldError('language')">{{ getFieldError('language') }}</mat-error>
         </mat-form-field>
       </div>
 
         <div class="col-12 col-md-6">
-          <mat-form-field appearance="outline" class="w-100 mobile-form-field">
+          <mat-form-field appearance="outline" class="w-100 mobile-form-field"
+                         [class.mat-form-field-invalid]="hasFieldError('gender')"
+                         [class.mat-form-field-valid]="isFieldValid('gender')">
           <mat-label>Gender</mat-label>
           <mat-select formControlName="gender" placeholder="Select gender">
             <mat-option value="Boy">Boy</mat-option>
             <mat-option value="Girl">Girl</mat-option>
             <mat-option value="N/A">N/A</mat-option>
           </mat-select>
-          <mat-error *ngIf="studentForm.get('gender')?.hasError('required')">
-            Gender is required
-          </mat-error>
+          <mat-error *ngIf="hasFieldError('gender')">{{ getFieldError('gender') }}</mat-error>
         </mat-form-field>
       </div>
 
@@ -133,8 +133,15 @@
 
     <div class="form-actions">
       <button class="btn btn-outline-secondary" type="button" (click)="goBack()">Cancel</button>
-      <button style="margin: 1rem;" type="submit" [disabled]="studentForm.invalid" [ngClass]="{'btn-secondary': studentForm.invalid, 'btn-primary': !studentForm.invalid}" class="btn submit-btn">
-        {{isEditMode ? 'Update' : 'Create'}} Student
+      <button style="margin: 1rem;" type="submit" 
+              [disabled]="studentForm.invalid || studentForm.pending" 
+              [ngClass]="{
+                'btn-secondary': studentForm.invalid || studentForm.pending, 
+                'btn-primary': studentForm.valid && !studentForm.pending
+              }" 
+              class="btn submit-btn">
+        <span *ngIf="studentForm.pending">Validating...</span>
+        <span *ngIf="!studentForm.pending">{{isEditMode ? 'Update' : 'Create'}} Student</span>
       </button>
     </div>
   </form>
