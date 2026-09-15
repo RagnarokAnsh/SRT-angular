@@ -4,6 +4,7 @@ import { Observable, catchError, throwError, of, forkJoin } from 'rxjs';
 import { UserService } from '../../services/user.service';
 import { LoggerService } from '../../core/logger.service';
 import { inject } from '@angular/core';
+import { environment } from '../../../environments/environment';
 
 export interface AssessmentStudent {
   name: string;
@@ -44,7 +45,7 @@ export interface AssessmentSubmission {
   providedIn: 'root'
 })
 export class AssessmentService {
-  private apiUrl = 'http://3.111.249.111/sribackend/api';
+  private apiUrl = environment.apiUrl;
   private logger = inject(LoggerService);
 
   constructor(

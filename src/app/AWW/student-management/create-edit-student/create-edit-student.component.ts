@@ -17,6 +17,7 @@ import { MessageService } from 'primeng/api';
 import { ErrorHandlerService } from '../../../core/error/error-handler.service';
 import { SkeletonLoaderComponent } from '../../../components/skeleton-loader';
 import { LoggerService } from '../../../core/logger.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-create-edit-student',
@@ -168,7 +169,7 @@ export class CreateEditStudentComponent implements OnInit {
   }
   
   loadAnganwadiCenters() {
-    this.http.get<Anganwadi[]>('http://3.111.249.111/sribackend/api/anganwadi-centers')
+    this.http.get<Anganwadi[]>(`${environment.apiUrl}/anganwadi-centers`)
       .subscribe({
         next: (centers) => {
           this.anganwadiCenters = centers;

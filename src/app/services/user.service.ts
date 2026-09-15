@@ -6,6 +6,7 @@ import { tap, catchError } from 'rxjs/operators';
 import { AppStateService } from '../core/state/app.state';
 import { SecurityService } from '../core/security/security.service';
 import { ErrorHandlerService } from '../core/error/error-handler.service';
+import { environment } from '../../environments/environment';
 
 export interface Role {
   id: number;
@@ -51,7 +52,7 @@ export interface LoginResponse {
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'http://3.111.249.111/sribackend/api';
+  private apiUrl = environment.apiUrl;
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   

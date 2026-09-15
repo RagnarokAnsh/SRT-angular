@@ -4,6 +4,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators'; // Added catchError
+import { environment } from '../environments/environment';
 
 // Interface for the nested domain object in the API response
 export interface ApiDomain {
@@ -57,7 +58,7 @@ export interface AppCompetency {
   providedIn: 'root'
 })
 export class CompetencyService {
-  private apiUrl = 'http://3.111.249.111/sribackend/api/competencies';
+  private apiUrl = `${environment.apiUrl}/competencies`;
   private competenciesCache: ApiCompetency[] | null = null; // Cache for all competencies
 
   constructor(private http: HttpClient) {}

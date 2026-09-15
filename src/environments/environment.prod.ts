@@ -4,7 +4,8 @@ export const environment = {
   staging: false,
   
   // API Configuration
-  apiUrl: 'https://api.schoolreadinesstool.com/api',
+  apiUrl: 'http://ready.unilearn.org.in/sribackend/api',
+  baseUrl: 'http://ready.unilearn.org.in/sribackend/api',
   apiTimeout: 30000,
   apiRetryAttempts: 3,
   

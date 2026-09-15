@@ -1,5 +1,5 @@
 import { Component, HostListener, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { UserService, User } from '../../services/user.service';
@@ -31,7 +31,7 @@ export class LogoutConfirmDialog {
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLink, CommonModule, MatIconModule],
+  imports: [RouterLink, RouterLinkActive, CommonModule, MatIconModule],
   template: `
     <nav class="navbar">
       <div class="navbar-container">
@@ -49,7 +49,7 @@ export class LogoutConfirmDialog {
             <mat-icon class="nav-icon">home</mat-icon>
             Home
           </a>
-          <a *ngIf="isAuthenticated" [routerLink]="getDashboardLink()" class="nav-link" routerLinkActive="active" (click)="closeMenu()">
+          <a *ngIf="isAuthenticated" [routerLink]="getDashboardLink()" class="nav-link" routerLinkActive="active" [class.active]="isDashboardActive()" (click)="closeMenu()">
             <mat-icon class="nav-icon">dashboard</mat-icon>
             Dashboard
           </a>
@@ -57,21 +57,21 @@ export class LogoutConfirmDialog {
           <!-- Show these links only when authenticated -->
           <ng-container *ngIf="isAuthenticated">
             <div class="nav-dropdown" *ngIf="isAdminUser()">
-              <a class="nav-link" (click)="toggleDropdown()">
+              <a class="nav-link" [class.active]="isManageActive() || isDropdownOpen" (click)="toggleDropdown()">
                 <mat-icon class="nav-icon">admin_panel_settings</mat-icon>
                 Manage
                 <mat-icon class="dropdown-arrow">arrow_drop_down</mat-icon>
               </a>
               <div class="dropdown-menu" [class.show]="isDropdownOpen">
-                <a class="dropdown-item" routerLink="/admin/users" (click)="closeMenu()">
+                <a class="dropdown-item" routerLink="/admin/users" routerLinkActive="active" (click)="closeMenu()">
                   <mat-icon class="nav-icon">people</mat-icon>
                   Users 
                 </a>
-                <a class="dropdown-item" routerLink="/admin/anganwadi" (click)="closeMenu()">
+                <a class="dropdown-item" routerLink="/admin/anganwadi" routerLinkActive="active" (click)="closeMenu()">
                   <mat-icon class="nav-icon">business</mat-icon>
                   Anganwadi 
                 </a>
-                <a class="dropdown-item" routerLink="/students" (click)="closeMenu()">
+                <a class="dropdown-item" routerLink="/students" routerLinkActive="active" (click)="closeMenu()">
                   <mat-icon class="nav-icon">school</mat-icon>
                   Students
                 </a>
@@ -83,7 +83,7 @@ export class LogoutConfirmDialog {
               Students
             </a>
             
-            <a routerLink="/select-competency" class="nav-link" routerLinkActive="active" (click)="closeMenu()">
+            <a routerLink="/select-competency" class="nav-link" routerLinkActive="active" [class.active]="isDomainsActive()" (click)="closeMenu()">
               <mat-icon class="nav-icon">school</mat-icon>
               Domains of Development
             </a>
@@ -195,6 +195,7 @@ export class LogoutConfirmDialog {
       display: flex;
       align-items: center;
       gap: 0.25rem;
+      cursor: pointer;
       @media (min-width: 480px) {
         font-size: 1rem;
         padding: 0.5rem 1rem;
@@ -289,7 +290,8 @@ export class LogoutConfirmDialog {
         line-height: 20px;
       }
     }
-    .nav-link:hover .nav-icon {
+    .nav-link:hover .nav-icon,
+    .nav-link.active .nav-icon {
       color: #fff;
     }
 
@@ -305,6 +307,12 @@ export class LogoutConfirmDialog {
       height: 20px;
       font-size: 20px;
       line-height: 1;
+      transition: color 0.2s;
+    }
+
+    .nav-link:hover .dropdown-arrow,
+    .nav-link.active .dropdown-arrow {
+      color: #fff;
     }
 
     .dropdown-menu {
@@ -338,16 +346,18 @@ export class LogoutConfirmDialog {
       transition: all 0.2s ease;
       border-radius: 0.5rem;
       margin: 0 0.5rem;
+      cursor: pointer;
     }
 
-    .dropdown-item:hover, .dropdown-item:focus, .dropdown-item:active {
+    .dropdown-item:hover, .dropdown-item:focus, .dropdown-item:active, .dropdown-item.active {
       background: #6366f1;
       color: #fff;
     }
 
     .dropdown-item:hover .nav-icon,
     .dropdown-item:focus .nav-icon,
-    .dropdown-item:active .nav-icon {
+    .dropdown-item:active .nav-icon,
+    .dropdown-item.active .nav-icon {
       color: #fff !important;
     }
 
@@ -379,14 +389,16 @@ export class LogoutConfirmDialog {
 
       .dropdown-item:hover,
       .dropdown-item:focus,
-      .dropdown-item:active {
+      .dropdown-item:active,
+      .dropdown-item.active {
         background: #6366f1;
         color: #fff;
       }
       
       .dropdown-item:hover .nav-icon,
       .dropdown-item:focus .nav-icon,
-      .dropdown-item:active .nav-icon {
+      .dropdown-item:active .nav-icon,
+      .dropdown-item.active .nav-icon {
         color: #fff !important;
       }
     }
@@ -398,7 +410,11 @@ export class NavbarComponent implements OnInit {
   isAuthenticated = false;
   currentUser: User | null = null;
 
-  constructor(private userService: UserService, private dialog: MatDialog) {}
+  constructor(
+    private userService: UserService,
+    private dialog: MatDialog,
+    public router: Router
+  ) {}
 
   ngOnInit() {
     this.userService.isAuthenticated$.subscribe(
@@ -423,6 +439,25 @@ export class NavbarComponent implements OnInit {
     if (roles.includes('supervisor')) return '/supervisor/dashboard';
     if (roles.includes('aww')) return '/aww/dashboard';
     return '/home';
+  }
+
+  isDashboardActive(): boolean {
+    const url = this.router.url;
+    return url.endsWith('/dashboard') || url.includes('/dashboard');
+  }
+
+  isManageActive(): boolean {
+    const url = this.router.url;
+    return url.startsWith('/admin/users') ||
+           url.startsWith('/admin/anganwadi') ||
+           (this.isAdminUser() && url.startsWith('/students'));
+  }
+
+  isDomainsActive(): boolean {
+    const url = this.router.url;
+    return url.startsWith('/select-competency') ||
+           url.startsWith('/details') ||
+           url.includes('/assessments');
   }
 
   toggleMenu() {

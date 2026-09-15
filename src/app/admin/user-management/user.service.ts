@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface Role {
   id: number;
@@ -111,7 +112,7 @@ export interface UpdateUserRequest {
   providedIn: 'root'
 })
 export class UserService {
-  private baseUrl = 'http://3.111.249.111/sribackend/api';
+  private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 

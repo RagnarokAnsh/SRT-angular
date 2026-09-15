@@ -24,7 +24,7 @@ export interface DropdownOption {
 })
 export class CustomDropdownComponent implements ControlValueAccessor, OnInit, OnDestroy, OnChanges {
   @ViewChild('dropdownContainer', { static: false }) dropdownContainer!: ElementRef;
-  
+
   @Input() options: DropdownOption[] = [];
   @Input() set placeholder(value: string) {
     this._placeholder = value || 'Select options';
@@ -39,7 +39,7 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
   @Input() icon: string = '';
 
   private _placeholder: string = 'Select options';
-  
+
   @Output() selectionChange = new EventEmitter<any>();
 
   isOpen = false;
@@ -47,28 +47,29 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
   searchTerm = '';
   filteredOptions: DropdownOption[] = [];
 
-  private onChange = (value: any) => {};
-  private onTouched = () => {};
+  private onChange = (value: any) => { };
+  private onTouched = () => { };
+  private boundDocumentClick = this.onDocumentClick.bind(this);
 
   constructor(private cdr: ChangeDetectorRef) {
     // Ensure selectedOptions is always initialized
     this.selectedOptions = [];
   }
 
-    ngOnInit() {
+  ngOnInit() {
     this.filteredOptions = [...this.options];
-    
+
 
     if (!this.selectedOptions) {
       this.selectedOptions = [];
     }
 
 
-    document.addEventListener('click', this.onDocumentClick.bind(this));
+    document.addEventListener('click', this.boundDocumentClick);
 
 
 
-   
+
     setTimeout(() => {
       if (this.selectedOptions.length === 0) {
         this.cdr.detectChanges();
@@ -90,7 +91,7 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
     if (this.selectedOptions.length === 0) {
       this.cdr.detectChanges();
     }
-    
+
     // Force initialization if no value has been set
     setTimeout(() => {
       if (this.selectedOptions.length === 0) {
@@ -105,7 +106,7 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
     this.searchTerm = '';
     this.filterOptions();
     this.cdr.detectChanges();
-    
+
     // Force another change detection after a short delay
     setTimeout(() => {
       this.cdr.detectChanges();
@@ -113,7 +114,7 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
   }
 
   ngOnDestroy() {
-    document.removeEventListener('click', this.onDocumentClick.bind(this));
+    document.removeEventListener('click', this.boundDocumentClick);
   }
 
   onDocumentClick(event: Event) {
@@ -124,7 +125,7 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
 
   toggleDropdown() {
     if (this.disabled) return;
-    
+
     this.isOpen = !this.isOpen;
     if (this.isOpen) {
       this.filterOptions();
@@ -140,7 +141,7 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
 
   selectOption(option: DropdownOption) {
     console.log('Dropdown option clicked:', option);
-    
+
     if (this.multiple) {
       const index = this.selectedOptions.findIndex(o => o.value === option.value);
       if (index > -1) {
@@ -152,7 +153,7 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
       this.selectedOptions = [option];
       this.closeDropdown();
     }
-    
+
     this.emitChange();
   }
 
@@ -162,7 +163,7 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
     if (event) {
       event.stopPropagation();
     }
-    
+
     const index = this.selectedOptions.findIndex(o => o.value === option.value);
     if (index > -1) {
       this.selectedOptions.splice(index, 1);
@@ -174,16 +175,16 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
     if (event) {
       event.stopPropagation();
     }
-    
+
     this.selectedOptions = [];
     this.emitChange();
   }
 
   private emitChange() {
-    const value = this.multiple 
+    const value = this.multiple
       ? this.selectedOptions.map(o => o.value)
       : this.selectedOptions[0]?.value || null;
-    
+
     this.onChange(value);
     this.selectionChange.emit(this.multiple ? this.selectedOptions : this.selectedOptions[0]);
   }
@@ -212,18 +213,18 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
     if (shouldShow && !this.selectedOptions) {
       this.selectedOptions = [];
     }
-    
+
     return shouldShow;
   }
 
   // ControlValueAccessor implementation
   writeValue(value: any): void {
     // Handle empty/null/undefined values explicitly
-    if (value === null || value === undefined || 
-        (Array.isArray(value) && value.length === 0) ||
-        value === '' || 
-        (this.multiple && (!Array.isArray(value) || value.length === 0)) ||
-        (!this.multiple && (value === null || value === undefined || value === ''))) {
+    if (value === null || value === undefined ||
+      (Array.isArray(value) && value.length === 0) ||
+      value === '' ||
+      (this.multiple && (!Array.isArray(value) || value.length === 0)) ||
+      (!this.multiple && (value === null || value === undefined || value === ''))) {
       this.selectedOptions = [];
     } else if (this.multiple && Array.isArray(value) && value.length > 0) {
       this.selectedOptions = this.options.filter(option => value.includes(option.value));
@@ -233,7 +234,7 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
     } else {
       this.selectedOptions = [];
     }
-    
+
     this.filterOptions(); // Refresh filtered options
   }
 
@@ -248,4 +249,4 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
   }
-} 
+}

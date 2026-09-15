@@ -18,20 +18,21 @@ import { ErrorHandlerService } from './core/error/error-handler.service';
 import { HttpService } from './core/http/http.service';
 import { PerformanceService } from './core/performance/performance.service';
 import { Router } from '@angular/router';
+import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 
 // Enhanced functional interceptor for Angular 19
 export function authInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn) {
   const userService = inject(UserService);
   const router = inject(Router);
-  
+
   return createAuthInterceptor(userService, router)(req, next);
 }
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }), 
+    provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, loadingInterceptor])),
     // Alternative: Use class-based interceptor (comment above and uncomment below)
     // provideHttpClient(),
     // { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },

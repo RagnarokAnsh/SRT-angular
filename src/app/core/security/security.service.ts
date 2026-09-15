@@ -5,6 +5,7 @@ import { catchError, tap, map } from 'rxjs/operators';
 import { AppStateService } from '../state/app.state';
 import { LoggerService } from '../logger.service';
 import { inject } from '@angular/core';
+import { environment } from '../../../environments/environment';
 
 export interface SecurityConfig {
   tokenRefreshThreshold: number; // seconds before expiry to refresh
@@ -148,7 +149,7 @@ export class SecurityService {
     
     this.tokenRefreshSubject.next(true);
     
-    return this.http.post<{ token: string; refresh_token?: string }>('/api/auth/refresh', {
+    return this.http.post<{ token: string; refresh_token?: string }>(`${environment.apiUrl}/auth/refresh`, {
       refresh_token: refreshToken
     }).pipe(
       tap(response => {

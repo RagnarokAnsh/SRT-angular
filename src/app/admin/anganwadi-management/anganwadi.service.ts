@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, of } from 'rxjs';
 import { map, switchMap, catchError } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 export interface AnganwadiCenter {
   id: number;
@@ -40,7 +41,7 @@ export interface District {
   providedIn: 'root'
 })
 export class AnganwadiService {
-  private baseUrl = 'http://3.111.249.111/sribackend/api';
+  private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 

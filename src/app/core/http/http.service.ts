@@ -7,6 +7,7 @@ import { ErrorHandlerService } from '../error/error-handler.service';
 import { AppStateService } from '../state/app.state';
 import { LoggerService } from '../logger.service';
 import { inject } from '@angular/core';
+import { environment } from '../../../environments/environment';
 
 export interface HttpConfig {
   baseUrl: string;
@@ -29,13 +30,13 @@ export interface CacheEntry<T> {
 })
 export class HttpService {
   private readonly config: HttpConfig = {
-    baseUrl: 'http://3.111.249.111/sribackend/api',
-    timeout: 30000, // 30 seconds
-    retryAttempts: 3,
+    baseUrl: environment.apiUrl,
+    timeout: environment.apiTimeout || 30000,
+    retryAttempts: environment.apiRetryAttempts || 3,
     retryDelay: 1000,
-    enableCaching: true,
-    cacheTimeout: 5 * 60 * 1000, // 5 minutes
-    enableLogging: true
+    enableCaching: environment.enableCaching ?? true,
+    cacheTimeout: environment.cacheTimeout || 5 * 60 * 1000,
+    enableLogging: environment.enableConsoleLogging ?? true
   };
   
   private cache = new Map<string, CacheEntry<any>>();

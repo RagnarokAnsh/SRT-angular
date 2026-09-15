@@ -4,7 +4,8 @@ export const environment = {
   staging: false,
   
   // API Configuration
-  apiUrl: 'http://3.111.249.111/sribackend/api',
+  apiUrl: 'http://ready.unilearn.org.in/sribackend/api',
+  baseUrl: 'http://ready.unilearn.org.in/sribackend/api',
   apiTimeout: 30000,
   apiRetryAttempts: 3,
   

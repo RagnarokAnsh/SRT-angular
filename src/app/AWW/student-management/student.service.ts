@@ -5,6 +5,7 @@ import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { UserService, User } from '../../services/user.service';
 import { LoggerService } from '../../core/logger.service';
 import { inject } from '@angular/core';
+import { environment } from '../../../environments/environment';
 
 export interface Anganwadi {
   id: number;
@@ -54,7 +55,7 @@ export interface Student {
   providedIn: 'root'
 })
 export class StudentService {
-  private apiUrl = 'http://3.111.249.111/sribackend/api';
+  private apiUrl = environment.apiUrl;
   private currentUser: User | null = null;
   private currentUserSubscription: Subscription;
   private logger = inject(LoggerService);
