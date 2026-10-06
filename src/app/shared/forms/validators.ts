@@ -25,6 +25,21 @@ function isEmpty(control: AbstractControl): boolean {
 export const requiredText: ValidatorFn = (control) =>
   isEmpty(control) ? { required: true } : null;
 
+/** At least `min` characters once surrounding spaces are removed. */
+export function minTextLength(min: number): ValidatorFn {
+  return (control) => {
+    if (isEmpty(control)) return null;
+    return Array.from(text(control)).length < min
+      ? { minlength: { requiredLength: min, actualLength: Array.from(text(control)).length } }
+      : null;
+  };
+}
+
+/** A positive whole number, e.g. an id taken from the address bar. */
+export function isPositiveId(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0;
+}
+
 /** An email address with a domain such as `name@example.org`. */
 export const emailAddress: ValidatorFn = (control) => {
   if (isEmpty(control)) return null;

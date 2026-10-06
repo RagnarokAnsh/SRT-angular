@@ -2,8 +2,12 @@ import { FormControl } from '@angular/forms';
 
 import {
   ageInRange,
+  centerCode,
   decimalInRange,
   emailAddress,
+  isPositiveId,
+  languageName,
+  minTextLength,
   pastIsoDate,
   personName,
   plainText,
@@ -73,5 +77,34 @@ describe('validators', () => {
     expect(check(validator, '-5')).toHaveProperty('decimal');
     expect(check(validator, '12')).toHaveProperty('range');
     expect(check(validator, 'abc')).toHaveProperty('decimal');
+  });
+
+  it('minTextLength counts characters (not bytes) after trimming', () => {
+    expect(check(minTextLength(2), ' A ')).toHaveProperty('minlength');
+    expect(check(minTextLength(2), 'Al')).toBeNull();
+    expect(check(minTextLength(2), 'रा')).toBeNull();
+    expect(check(minTextLength(2), '')).toBeNull();
+  });
+
+  it('languageName accepts letters in any script only', () => {
+    expect(check(languageName, 'Hindi')).toBeNull();
+    expect(check(languageName, 'हिंदी')).toBeNull();
+    expect(check(languageName, 'Hindi2')).not.toBeNull();
+    expect(check(languageName, 'Hindi, English')).not.toBeNull();
+  });
+
+  it('centerCode allows letters, digits and - _ /', () => {
+    expect(check(centerCode, 'AWC-JP-001')).toBeNull();
+    expect(check(centerCode, 'awc/12_b')).toBeNull();
+    expect(check(centerCode, '-AWC')).not.toBeNull();
+    expect(check(centerCode, 'AWC<1>')).not.toBeNull();
+  });
+
+  it('isPositiveId only accepts positive whole numbers', () => {
+    expect(isPositiveId(7)).toBe(true);
+    expect(isPositiveId(0)).toBe(false);
+    expect(isPositiveId(Number.NaN)).toBe(false);
+    expect(isPositiveId(2.5)).toBe(false);
+    expect(isPositiveId('7')).toBe(false);
   });
 });

@@ -8,7 +8,7 @@ const angular = require('angular-eslint');
 const legacyPaths = require('./legacy-paths.json');
 
 module.exports = defineConfig([
-  globalIgnores(['dist/', '.angular/', 'coverage/', 'public/', 'e2e/test-results/', 'e2e/report/', ...legacyPaths]),
+  globalIgnores(['dist/', '.angular/', 'src/index*.html', 'coverage/', 'public/', 'e2e/test-results/', 'e2e/report/', ...legacyPaths]),
   {
     files: ['**/*.ts'],
     extends: [

@@ -554,7 +554,10 @@
     "added": "{{name}} was added.",
     "saved": "Changes to {{name}} were saved.",
     "forbiddenTitle": "You can't edit this child",
-    "forbiddenMessage": "This child belongs to another centre."
+    "forbiddenMessage": "This child belongs to another centre.",
+    "duplicateTitle": "This child may already be registered",
+    "duplicateMessage": "{{name}}, with the same date of birth, is already registered at this centre. Add another record anyway?",
+    "addAnyway": "Add anyway"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -677,7 +680,8 @@
       "chooseSectorFirst": "Choose a sector first.",
       "noCentersInSector": "There are no centres in this sector yet.",
       "added": "{{name}} was added.",
-      "saved": "Changes to {{name}} were saved."
+      "saved": "Changes to {{name}} were saved.",
+      "ownRole": "You can't change your own role."
     },
     "centers": {
       "title": "Anganwadi centres",

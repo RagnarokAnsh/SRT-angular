@@ -44,7 +44,11 @@
               "includePaths": [
                 "src/styles"
               ]
-            }
+            },
+            "allowedCommonJsDependencies": [
+              "jszip",
+              "file-saver"
+            ]
           },
           "configurations": {
             "production": {
@@ -57,8 +61,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "750kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "720kB",
+                  "maximumError": "900kB"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -66,7 +70,19 @@
                   "maximumError": "16kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "index": {
+                "input": "src/index.prod.html",
+                "output": "index.html"
+              },
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              }
             },
             "development": {
               "optimization": false,
@@ -87,6 +103,44 @@
                   "with": "src/app/core/demo/demo-providers.mock.ts"
                 }
               ]
+            },
+            "demo": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "850kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "8kB",
+                  "maximumError": "16kB"
+                }
+              ],
+              "outputHashing": "all",
+              "index": {
+                "input": "src/index.prod.html",
+                "output": "index.html"
+              },
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              },
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.mock.ts"
+                },
+                {
+                  "replace": "src/app/core/demo/demo-providers.ts",
+                  "with": "src/app/core/demo/demo-providers.mock.ts"
+                }
+              ],
+              "outputPath": "dist/demo"
             }
           },
           "defaultConfiguration": "production"
@@ -102,6 +156,9 @@
             },
             "mock": {
               "buildTarget": "SRI:build:mock"
+            },
+            "demo": {
+              "buildTarget": "SRI:build:demo"
             }
           },
           "defaultConfiguration": "development"

@@ -30,12 +30,13 @@ import { applyServerErrors, validateAndFocus } from '@shared/forms/form-utils';
 import { LocationCascade } from '@shared/forms/location-cascade';
 import { LocationFields } from '@shared/forms/location-fields';
 import { ValidationMessagePipe } from '@shared/forms/validation-message-pipe';
-import { centerCode, plainText, requiredText } from '@shared/forms/validators';
+import { centerCode, isPositiveId, minTextLength, plainText, requiredText } from '@shared/forms/validators';
 import { createLoader } from '@shared/loader';
 import type { HasUnsavedChanges } from '@shared/unsaved-changes-guard';
 import { ErrorState } from '@shared/ui/error-state';
 import { PageHeader } from '@shared/ui/page-header';
 import { Skeleton } from '@shared/ui/skeleton';
+import { StateMessage } from '@shared/ui/state-message';
 
 export const CENTER_LIMITS = { nameMax: 100, codeMax: 30 } as const;
 
@@ -54,6 +55,7 @@ export const CENTER_LIMITS = { nameMax: 100, codeMax: 30 } as const;
     ErrorState,
     PageHeader,
     Skeleton,
+    StateMessage,
   ],
   templateUrl: './center-form-page.html',
   styleUrl: '../admin-form.scss',
@@ -79,7 +81,7 @@ export class CenterFormPage implements HasUnsavedChanges {
   private saved = false;
 
   protected readonly form = inject(NonNullableFormBuilder).group({
-    name: ['', [requiredText, Validators.maxLength(CENTER_LIMITS.nameMax), plainText]],
+    name: ['', [requiredText, minTextLength(2), Validators.maxLength(CENTER_LIMITS.nameMax), plainText]],
     code: ['', [requiredText, Validators.maxLength(CENTER_LIMITS.codeMax), centerCode]],
     country_id: [null as number | null, Validators.required],
     state_id: [null as number | null, Validators.required],
@@ -94,9 +96,11 @@ export class CenterFormPage implements HasUnsavedChanges {
     this.destroyRef,
   );
 
+  protected readonly invalidId = computed(() => this.id() !== undefined && !isPositiveId(this.id()));
+
   protected readonly existing = createLoader(() => {
     const id = this.id();
-    return id === undefined ? of(null) : this.api.get(id);
+    return id === undefined || !isPositiveId(id) ? of(null) : this.api.get(id);
   }, { lazy: true });
 
   constructor() {

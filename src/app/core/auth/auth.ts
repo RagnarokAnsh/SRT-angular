@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { Observable, map } from 'rxjs';
 
 import { AuthApi } from '../api/auth-api';
+import { CompetencyApi } from '../api/competency-api';
+import { LocationCache } from '../api/location-cache';
 import type { ApiUser, LoginResponse } from '../models/user';
 import { isTokenUsable } from './jwt';
 import { safeReturnUrl } from './return-url';
@@ -32,6 +34,8 @@ export class AuthService {
   private readonly api = inject(AuthApi);
   private readonly session = inject(SessionStore);
   private readonly router = inject(Router);
+  private readonly competencies = inject(CompetencyApi);
+  private readonly locations = inject(LocationCache);
 
   login(email: string, password: string, remember = true): Observable<ApiUser> {
     return this.api.login(email.trim(), password).pipe(
@@ -51,6 +55,9 @@ export class AuthService {
     const wasSignedIn = this.session.isAuthenticated();
     const currentUrl = this.router.url;
     this.session.clear();
+    // Nothing fetched for the previous user stays in memory for the next one.
+    this.competencies.clearCache();
+    this.locations.clear();
     if (!wasSignedIn && reason !== 'manual') return;
     const queryParams: Record<string, string> = {};
     if (reason !== 'manual') {

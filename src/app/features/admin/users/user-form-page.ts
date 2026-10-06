@@ -26,12 +26,13 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { of, startWith } from 'rxjs';
+import { map, of, startWith } from 'rxjs';
 
 import { CenterApi } from '@core/api/center-api';
 import { LocationCache } from '@core/api/location-cache';
 import { UserApi } from '@core/api/user-api';
 import { ROLE_LOCATION_DEPTH, ROLE_PRIORITY } from '@core/auth/roles';
+import { SessionStore } from '@core/auth/session';
 import type { RoleName } from '@core/models/role';
 import { type ApiUser, USER_GENDERS, type UserInput } from '@core/models/user';
 import { toAppError } from '@core/network/app-error';
@@ -45,6 +46,8 @@ import {
   NAME_MAX,
   PASSWORD_MAX,
   emailAddress,
+  isPositiveId,
+  minTextLength,
   personName,
   requiredText,
   strongPassword,
@@ -54,6 +57,7 @@ import type { HasUnsavedChanges } from '@shared/unsaved-changes-guard';
 import { ErrorState } from '@shared/ui/error-state';
 import { PageHeader } from '@shared/ui/page-header';
 import { Skeleton } from '@shared/ui/skeleton';
+import { StateMessage } from '@shared/ui/state-message';
 
 import { primaryRole } from './user-list-page';
 
@@ -76,6 +80,7 @@ const LOCATION_KEYS = ['country_id', 'state_id', 'district_id', 'project', 'sect
     ErrorState,
     PageHeader,
     Skeleton,
+    StateMessage,
   ],
   templateUrl: './user-form-page.html',
   styleUrl: '../admin-form.scss',
@@ -84,6 +89,7 @@ const LOCATION_KEYS = ['country_id', 'state_id', 'district_id', 'project', 'sect
 })
 export class UserFormPage implements HasUnsavedChanges {
   private readonly userApi = inject(UserApi);
+  private readonly session = inject(SessionStore);
   private readonly centerApi = inject(CenterApi);
   private readonly notify = inject(NotifyService);
   private readonly router = inject(Router);
@@ -98,6 +104,8 @@ export class UserFormPage implements HasUnsavedChanges {
   protected readonly roles = ROLE_PRIORITY;
   protected readonly genders = USER_GENDERS;
   protected readonly nameMax = NAME_MAX;
+  protected readonly emailMax = EMAIL_MAX;
+  protected readonly passwordMax = PASSWORD_MAX;
   protected readonly isEdit = computed(() => this.id() !== undefined);
   protected readonly showPassword = signal(false);
   protected readonly saving = signal(false);
@@ -105,7 +113,7 @@ export class UserFormPage implements HasUnsavedChanges {
   private saved = false;
 
   protected readonly form = inject(NonNullableFormBuilder).group({
-    name: ['', [requiredText, Validators.maxLength(NAME_MAX), personName]],
+    name: ['', [requiredText, minTextLength(2), Validators.maxLength(NAME_MAX), personName]],
     email: ['', [Validators.required, emailAddress, Validators.maxLength(EMAIL_MAX)]],
     password: ['', [Validators.maxLength(PASSWORD_MAX), strongPassword]],
     role: ['' as RoleName | '', Validators.required],
@@ -124,9 +132,14 @@ export class UserFormPage implements HasUnsavedChanges {
     this.destroyRef,
   );
 
-  private readonly value = toSignal(this.form.valueChanges.pipe(startWith(this.form.getRawValue())), {
-    initialValue: this.form.getRawValue(),
-  });
+  /** All values, including disabled fields (e.g. your own role). */
+  private readonly value = toSignal(
+    this.form.valueChanges.pipe(
+      map(() => this.form.getRawValue()),
+      startWith(this.form.getRawValue()),
+    ),
+    { initialValue: this.form.getRawValue() },
+  );
   protected readonly role = computed(() => (this.value().role || null) as RoleName | null);
   protected readonly depth = computed(() => {
     const role = this.role();
@@ -134,9 +147,13 @@ export class UserFormPage implements HasUnsavedChanges {
   });
   protected readonly needsCenter = computed(() => this.role() === 'aww');
 
+  protected readonly invalidId = computed(() => this.id() !== undefined && !isPositiveId(this.id()));
+  /** Admins can't change their own role (they could lock themselves out). */
+  protected readonly editingSelf = computed(() => this.id() !== undefined && this.id() === this.session.user()?.id);
+
   protected readonly existing = createLoader(() => {
     const id = this.id();
-    return id === undefined ? of(null) : this.userApi.get(id);
+    return id === undefined || !isPositiveId(id) ? of(null) : this.userApi.get(id);
   }, { lazy: true });
   protected readonly centers = createLoader(() => this.centerApi.list(), { lazy: true });
 
@@ -175,6 +192,13 @@ export class UserFormPage implements HasUnsavedChanges {
     effect(() => {
       const user = this.existing.data();
       if (user) untracked(() => this.fill(user));
+    });
+    effect(() => {
+      const self = this.editingSelf();
+      untracked(() => {
+        if (self) this.form.controls.role.disable({ emitEvent: false });
+        else this.form.controls.role.enable({ emitEvent: false });
+      });
     });
   }
 

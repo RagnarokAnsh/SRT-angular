@@ -4,7 +4,9 @@
     <span pageSubtitle>{{ 'admin.users.formSubtitle' | transloco }}</span>
   </app-page-header>
 
-  @if (existing.error(); as error) {
+  @if (invalidId()) {
+    <app-state-message icon="not-found" [title]="'notFound.heading' | transloco" [message]="'notFound.message' | transloco" />
+  } @else if (existing.error(); as error) {
     <app-error-state [error]="error" (retry)="existing.reload()" />
   } @else if (isEdit() && existing.loading()) {
     <app-skeleton variant="lines" [count]="8" />
@@ -32,6 +34,7 @@
               matInput
               type="email"
               formControlName="email"
+              [maxlength]="emailMax"
               autocomplete="off"
               inputmode="email"
               autocapitalize="none"
@@ -46,6 +49,7 @@
               matInput
               [type]="showPassword() ? 'text' : 'password'"
               formControlName="password"
+              [maxlength]="passwordMax"
               autocomplete="new-password"
               autocapitalize="none"
               spellcheck="false"
@@ -71,6 +75,9 @@
                 <mat-option [value]="role">{{ 'roles.' + role | transloco }}</mat-option>
               }
             </mat-select>
+            @if (editingSelf()) {
+              <mat-hint>{{ 'admin.users.ownRole' | transloco }}</mat-hint>
+            }
             <mat-error>{{ form.controls.role.errors | validationMessage }}</mat-error>
           </mat-form-field>
 

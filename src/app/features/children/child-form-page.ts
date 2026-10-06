@@ -25,9 +25,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { of, startWith } from 'rxjs';
+import { catchError, filter, map, of, startWith, switchMap, tap } from 'rxjs';
 
 import { CenterApi } from '@core/api/center-api';
 import { ChildApi } from '@core/api/child-api';
@@ -41,7 +42,9 @@ import { ValidationMessagePipe } from '@shared/forms/validation-message-pipe';
 import {
   ageInRange,
   decimalInRange,
+  isPositiveId,
   languageName,
+  minTextLength,
   pastIsoDate,
   personName,
   plainText,
@@ -50,12 +53,22 @@ import {
 import { createLoader } from '@shared/loader';
 import { AgePipe } from '@shared/pipes/age-pipe';
 import type { HasUnsavedChanges } from '@shared/unsaved-changes-guard';
+import { openConfirm } from '@shared/ui/confirm-dialog';
 import { ErrorState } from '@shared/ui/error-state';
 import { PageHeader } from '@shared/ui/page-header';
 import { Skeleton } from '@shared/ui/skeleton';
 import { StateMessage } from '@shared/ui/state-message';
 
 import { LANGUAGE_SUGGESTIONS, genderKey } from './child-labels';
+
+function normalized(name: string): string {
+  return name.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+}
+
+/** Same name (ignoring case and spacing) and same date of birth. */
+export function isSameChild(child: Child, input: ChildInput): boolean {
+  return child.dateOfBirth === input.dateOfBirth && normalized(child.name) === normalized(input.name);
+}
 
 /** API field names (422 errors) → form controls. */
 const SERVER_FIELDS: Record<string, string> = {
@@ -95,6 +108,7 @@ export class ChildFormPage implements HasUnsavedChanges {
   private readonly session = inject(SessionStore);
   private readonly notify = inject(NotifyService);
   private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -115,9 +129,12 @@ export class ChildFormPage implements HasUnsavedChanges {
   protected readonly ownCenterId = this.session.anganwadiId;
   protected readonly ownCenterName = computed(() => this.session.user()?.anganwadi?.name ?? null);
 
+  /** An address like /children/abc/edit points at nothing; don't ask the server. */
+  protected readonly invalidId = computed(() => this.id() !== undefined && !isPositiveId(this.id()));
+
   protected readonly existing = createLoader(() => {
     const id = this.id();
-    return id === undefined ? of(null) : this.childApi.get(id);
+    return id === undefined || !isPositiveId(id) ? of(null) : this.childApi.get(id);
   }, { lazy: true });
   protected readonly centers = createLoader(() => this.centerApi.list(), { lazy: true });
 
@@ -139,7 +156,7 @@ export class ChildFormPage implements HasUnsavedChanges {
       : ageInRange(CHILD_LIMITS.ageMin, CHILD_LIMITS.ageMax)(control);
 
   protected readonly form = inject(NonNullableFormBuilder).group({
-    name: ['', [requiredText, Validators.maxLength(CHILD_LIMITS.nameMax), personName]],
+    name: ['', [requiredText, minTextLength(2), Validators.maxLength(CHILD_LIMITS.nameMax), personName]],
     dateOfBirth: ['', [Validators.required, pastIsoDate(), this.ageRule]],
     gender: ['' as ChildGender | '', Validators.required],
     symbol: ['', [requiredText, Validators.maxLength(CHILD_LIMITS.symbolMax), plainText]],
@@ -210,8 +227,36 @@ export class ChildFormPage implements HasUnsavedChanges {
     const id = this.id();
     const awwId = this.isWorker() ? (this.session.user()?.id ?? null) : (this.existing.data()?.awwId ?? null);
     this.saving.set(true);
-    (id === undefined ? this.childApi.create(input, awwId) : this.childApi.update(id, input, awwId))
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    // A new child with the same name and date of birth at the same centre is probably a
+    // duplicate: ask before adding (if the check itself fails, just continue).
+    const duplicate$ =
+      id === undefined
+        ? this.childApi.listForCenter(input.anganwadiId).pipe(
+            map((children) => children.find((c) => isSameChild(c, input)) ?? null),
+            catchError(() => of(null)),
+          )
+        : of(null);
+    duplicate$
+      .pipe(
+        switchMap((duplicate) =>
+          duplicate
+            ? openConfirm(this.dialog, {
+                titleKey: 'childForm.duplicateTitle',
+                messageKey: 'childForm.duplicateMessage',
+                params: { name: duplicate.name },
+                confirmKey: 'childForm.addAnyway',
+              })
+            : of(true),
+        ),
+        tap((proceed) => {
+          if (!proceed) this.saving.set(false);
+        }),
+        filter(Boolean),
+        switchMap(() =>
+          id === undefined ? this.childApi.create(input, awwId) : this.childApi.update(id, input, awwId),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: () => {
           this.saving.set(false);

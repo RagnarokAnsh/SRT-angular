@@ -4,7 +4,9 @@
     <span pageSubtitle>{{ 'childForm.subtitle' | transloco }}</span>
   </app-page-header>
 
-  @if (existing.error(); as error) {
+  @if (invalidId()) {
+    <app-state-message icon="not-found" [title]="'notFound.heading' | transloco" [message]="'notFound.message' | transloco" />
+  } @else if (existing.error(); as error) {
     <app-error-state [error]="error" (retry)="existing.reload()" />
   } @else if (isEdit() && existing.loading()) {
     <app-skeleton variant="lines" [count]="6" />
