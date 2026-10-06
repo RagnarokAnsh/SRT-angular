@@ -1,0 +1,191 @@
+{
+  "app": {
+    "name": "School Ready Children"
+  },
+  "nav": {
+    "skipToContent": "Skip to main content",
+    "main": "Main",
+    "home": "Home",
+    "competencies": "Competencies",
+    "children": "Children",
+    "dashboard": "Dashboard",
+    "overview": "Overview",
+    "users": "Users",
+    "centers": "Centres",
+    "login": "Sign in",
+    "logout": "Sign out",
+    "accountMenu": "Account menu",
+    "signedInAs": "Signed in as"
+  },
+  "language": {
+    "change": "Change language",
+    "loadFailed": "Couldn't load that language. Check your connection and try again."
+  },
+  "roles": {
+    "admin": "Administrator",
+    "stateofficial": "State official",
+    "dpo": "District Programme Officer",
+    "cdpo": "Child Development Project Officer",
+    "supervisor": "Supervisor",
+    "aww": "Anganwadi worker"
+  },
+  "common": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "dismiss": "Dismiss",
+    "loading": "Loading…",
+    "retry": "Try again",
+    "next": "Next",
+    "previous": "Previous"
+  },
+  "logout": {
+    "title": "Sign out?",
+    "message": "You'll need your email and password to sign in again."
+  },
+  "unsaved": {
+    "title": "Leave without saving?",
+    "message": "Your changes on this page haven't been saved and will be lost.",
+    "leave": "Leave page"
+  },
+  "network": {
+    "offlineBanner": "You're offline. You can keep reading, but changes can't be saved until you're back online."
+  },
+  "errors": {
+    "loadFailedTitle": "Couldn't load this page",
+    "offline": "You're offline. Check your internet connection and try again.",
+    "network": "Couldn't reach the server. It may be down, or your connection may be weak.",
+    "timeout": "The server is taking too long to respond. Please try again.",
+    "sessionExpired": "Your session has ended. Please sign in again.",
+    "forbidden": "You don't have permission to do this.",
+    "notFound": "We couldn't find what you were looking for. It may have been removed.",
+    "conflict": "This was changed by someone else. Reload and try again.",
+    "validation": "Some details need fixing. Check the highlighted fields.",
+    "tooManyRequests": "Too many attempts. Wait a minute and try again.",
+    "server": "Something went wrong on the server. Please try again later.",
+    "unknown": "Something went wrong. Please try again."
+  },
+  "validation": {
+    "required": "This field is required.",
+    "email": "Enter a valid email address, like name@example.com.",
+    "minLength": "Use at least {{min}} characters.",
+    "maxLength": "Use {{max}} characters or fewer.",
+    "min": "Enter {{min}} or more.",
+    "max": "Enter {{max}} or less.",
+    "pattern": "This doesn't look right. Check the format.",
+    "invalid": "This value isn't valid.",
+    "personName": "Use letters, spaces and . ' - only.",
+    "plainText": "Remove the hidden or special characters.",
+    "strongPassword": "Use at least {{min}} characters, with letters and numbers.",
+    "date": "Enter a valid date.",
+    "dateInFuture": "The date can't be in the future.",
+    "ageRange": "The child must be between {{min}} and {{max}} years old.",
+    "decimal": "Enter a number with up to {{decimals}} decimal place(s).",
+    "range": "Enter a value from {{min}} to {{max}}."
+  },
+  "age": {
+    "yearsMonths": "{{years}} y {{months}} m"
+  },
+  "demo": {
+    "title": "Demo mode",
+    "message": "Sample data, stored only in this browser. Nothing is sent to the server.",
+    "simulateOffline": "Simulate server down",
+    "reset": "Reset demo data",
+    "resetTitle": "Reset the demo data?",
+    "resetMessage": "All changes made in demo mode will be replaced with the original sample data.",
+    "accountsTitle": "Demo accounts",
+    "accountsHint": "Choose an account to fill in the form, then sign in."
+  },
+  "home": {
+    "pageTitle": "Home",
+    "titleBefore": "School",
+    "titleHighlight": "Ready",
+    "titleAfter": "Children",
+    "lead": "School readiness is a crucial phase in a child's development: the skills and competencies that prepare them for a smooth and successful move into grade 1.",
+    "signIn": "Sign in to get started",
+    "continue": "Go to my workspace",
+    "explore": "Explore the framework",
+    "aboutTitle": "What school readiness means",
+    "aboutSkills": "The skills and abilities a child needs include cognitive skills such as basic literacy and numeracy, and emotional and social competencies like self-regulation, cooperation and communication.",
+    "aboutChild": "A child who is school ready can follow instructions, interact positively with peers and teachers, and adapt to the structured environment of a classroom. Getting there is a shared effort by parents, educators and the community, who provide the enriching experiences and support that build these skills.",
+    "frameworkTitle": "The school readiness framework",
+    "frameworkIntro": "Children's development is observed across six domains, each made up of a few competencies.",
+    "closingFoundation": "School readiness lays the foundation for a child's lifelong learning and success. A good early childhood education programme offers an age-appropriate and developmentally suitable learning environment for all children, so that every 6-year-old is school ready when they enter primary school.",
+    "closingTool": "This tool helps ECE educators provide the early learning experiences each child needs, based on their individual developmental journey.",
+    "wheel": {
+      "hub": "School\nReadiness",
+      "summary": "School readiness framework: {{domains}} domains of development made up of {{competencies}} competencies.",
+      "panelLabel": "Domains and competencies",
+      "listTitle": "Six domains of development",
+      "listHint": "Select a domain, on the wheel or below, to see its competencies.",
+      "allDomains": "All domains",
+      "domainOf": "Domain {{current}} of {{total}}",
+      "competencyCount": {
+        "one": "{{count}} competency",
+        "other": "{{count}} competencies"
+      }
+    }
+  },
+  "login": {
+    "pageTitle": "Sign in",
+    "artTitle": "Every child, ready for school",
+    "artSubtitle": "Observe, record and follow each child's progress across the domains of development.",
+    "heading": "Sign in",
+    "subheading": "Use the email and password given to you by your administrator.",
+    "email": "Email",
+    "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "capsLock": "Caps Lock is on.",
+    "remember": "Keep me signed in on this device",
+    "submit": "Sign in",
+    "signingIn": "Signing in…",
+    "help": "Forgot your password? Ask your supervisor or administrator to reset it.",
+    "welcome": "Welcome, {{name}}!",
+    "invalidCredentials": "The email or password is incorrect.",
+    "invalidResponse": "The server's reply was incomplete, so you couldn't be signed in. Please try again.",
+    "reasonExpired": "Your session expired. Please sign in again.",
+    "reasonIdle": "You were signed out after a period of inactivity, to keep children's data safe."
+  },
+  "unauthorized": {
+    "pageTitle": "No access",
+    "heading": "You don't have access to this page",
+    "message": "Your account's role doesn't include this page. If you think it should, ask your administrator.",
+    "home": "Go to my home page"
+  },
+  "notFound": {
+    "pageTitle": "Page not found",
+    "heading": "Page not found",
+    "message": "The page you're looking for doesn't exist or has moved.",
+    "home": "Go to the home page"
+  },
+  "catalog": {
+    "domains": {
+      "cognitive-development": { "name": "Cognitive Development", "wheel": "Cognitive" },
+      "language--literacy-development": { "name": "Language & Literacy Development", "wheel": "Language &\nLiteracy" },
+      "physical--motor-development": { "name": "Physical & Motor Development", "wheel": "Physical &\nMotor" },
+      "socio-emotional-development": { "name": "Socio-Emotional Development", "wheel": "Socio-\nEmotional" },
+      "approaches-towards-learning": { "name": "Approaches towards Learning", "wheel": "Approaches\nto Learning" },
+      "creativity-development": { "name": "Creativity Development", "wheel": "Creativity" }
+    },
+    "competencies": {
+      "classification": { "name": "Classification", "wheel": "Classification", "description": "Sorting and grouping objects by shared features such as colour, shape and size." },
+      "patterns": { "name": "Patterns", "wheel": "Patterns", "description": "Noticing, copying and continuing repeating patterns in objects, sounds and movements." },
+      "number-concept": { "name": "Number Concept", "wheel": "Number\nConcept", "description": "Understanding quantity, counting with meaning and recognising numerals." },
+      "seriation": { "name": "Seriation", "wheel": "Seriation", "description": "Comparing and arranging objects in order of size, length or quantity." },
+      "vocabulary-and-expression": { "name": "Vocabulary and Expression", "wheel": "Vocabulary &\nExpression", "description": "Using a growing range of words and sentences to share ideas and describe events." },
+      "listening-comprehension": { "name": "Listening Comprehension", "wheel": "Listening\nComprehension", "description": "Listening with attention and understanding stories and conversations." },
+      "emergent-reading--book-handling": { "name": "Emergent Reading & Book Handling", "wheel": "Emergent\nReading", "description": "Exploring books, telling pictures from text and following print in the right direction." },
+      "emergent-writing": { "name": "Emergent Writing", "wheel": "Emergent\nWriting", "description": "Moving from scribbles and drawings towards writing letters and words to express ideas." },
+      "gross-motor-development": { "name": "Gross Motor Development", "wheel": "Gross Motor", "description": "Balance, coordination and control of the large muscles while running, jumping and throwing." },
+      "fine-motor-development": { "name": "Fine Motor Development", "wheel": "Fine Motor", "description": "Control and coordination of the small muscles of the hands and fingers." },
+      "interaction": { "name": "Interaction", "wheel": "Interaction", "description": "Playing and working together with other children and adults." },
+      "sharing-with-others": { "name": "Sharing with Others", "wheel": "Sharing", "description": "Willingly sharing materials, space and attention with peers." },
+      "emotional-expression-and-regulation": { "name": "Emotional Expression and Regulation", "wheel": "Emotional\nExpression", "description": "Recognising feelings and responding to them in appropriate ways." },
+      "initiative": { "name": "Initiative", "wheel": "Initiative", "description": "Starting activities and trying new things without being asked." },
+      "task-persistence": { "name": "Task Persistence", "wheel": "Task\nPersistence", "description": "Staying focused on an activity until it is finished, even with distractions." },
+      "creative-expression": { "name": "Creative Expression", "wheel": "Creative\nExpression", "description": "Expressing ideas through art, craft, music, dance and play." },
+      "imagination": { "name": "Imagination", "wheel": "Imagination", "description": "Pretend play, storytelling and thinking about what could happen next." }
+    }
+  }
+}
