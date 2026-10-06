@@ -38,11 +38,19 @@
     }
   } @else {
     <ol class="stepper" [attr.aria-label]="'assessment.steps' | transloco">
-      <li class="stepper__item" [class.is-current]="step() === 'select'" [attr.aria-current]="step() === 'select' ? 'step' : null">
+      <li
+        class="stepper__item"
+        [class.is-current]="step() === 'select'"
+        [attr.aria-current]="step() === 'select' ? 'step' : null"
+      >
         <span class="stepper__number" aria-hidden="true">1</span>
         {{ 'assessment.stepChoose' | transloco }}
       </li>
-      <li class="stepper__item" [class.is-current]="step() === 'record'" [attr.aria-current]="step() === 'record' ? 'step' : null">
+      <li
+        class="stepper__item"
+        [class.is-current]="step() === 'record'"
+        [attr.aria-current]="step() === 'record' ? 'step' : null"
+      >
         <span class="stepper__number" aria-hidden="true">2</span>
         {{ 'assessment.stepRecord' | transloco }}
       </li>
@@ -65,7 +73,12 @@
           <mat-form-field class="toolbar__search">
             <mat-label>{{ 'assessment.search' | transloco }}</mat-label>
             <mat-icon matPrefix svgIcon="search" aria-hidden="true" />
-            <input matInput type="search" [value]="query()" (input)="query.set($any($event.target).value)" />
+            <input
+              matInput
+              type="search"
+              [value]="query()"
+              (input)="query.set($any($event.target).value)"
+            />
           </mat-form-field>
           <mat-button-toggle-group
             class="toolbar__filter"
@@ -74,9 +87,15 @@
             [attr.aria-label]="'assessment.filterLabel' | transloco"
             hideSingleSelectionIndicator
           >
-            <mat-button-toggle value="all">{{ 'assessment.filterAll' | transloco: { count: counts().all } }}</mat-button-toggle>
-            <mat-button-toggle value="todo">{{ 'assessment.filterTodo' | transloco: { count: counts().todo } }}</mat-button-toggle>
-            <mat-button-toggle value="done">{{ 'assessment.filterDone' | transloco: { count: counts().done } }}</mat-button-toggle>
+            <mat-button-toggle value="all">{{
+              'assessment.filterAll' | transloco: { count: counts().all }
+            }}</mat-button-toggle>
+            <mat-button-toggle value="todo">{{
+              'assessment.filterTodo' | transloco: { count: counts().todo }
+            }}</mat-button-toggle>
+            <mat-button-toggle value="done">{{
+              'assessment.filterDone' | transloco: { count: counts().done }
+            }}</mat-button-toggle>
           </mat-button-toggle-group>
         </div>
 
@@ -93,7 +112,11 @@
 
         <ul class="children">
           @for (p of visible(); track p.child.id) {
-            <li class="child" [class.is-selected]="selected().has(p.child.id)" [class.is-done]="p.nextSession === null">
+            <li
+              class="child"
+              [class.is-selected]="selected().has(p.child.id)"
+              [class.is-done]="p.nextSession === null"
+            >
               <mat-checkbox
                 class="child__check"
                 [checked]="selected().has(p.child.id)"
@@ -112,7 +135,13 @@
                 </span>
               </mat-checkbox>
               <div class="child__side">
-                <ol class="slots" [attr.aria-label]="'assessment.sessionsDone' | transloco: { done: p.sessions.length, total: maxSessions }">
+                <ol
+                  class="slots"
+                  [attr.aria-label]="
+                    'assessment.sessionsDone'
+                      | transloco: { done: p.sessions.length, total: maxSessions }
+                  "
+                >
                   @for (n of [1, 2, 3, 4]; track n) {
                     @let s = p.sessions.find((x) => x.session === n);
                     <li
@@ -120,7 +149,17 @@
                       [class.slot--next]="p.nextSession === n"
                       [class.slot--filled]="!!s"
                       [style.background]="s?.level ? 'var(--level-' + s?.level + '-soft)' : null"
-                      [attr.aria-label]="s ? ('assessment.sessionN' | transloco: { n }) + ': ' + (s.level ? ('levels.' + s.level + '.label' | transloco) : s.rawObservation) : ('assessment.sessionN' | transloco: { n }) + ': ' + ('assessment.notYet' | transloco)"
+                      [attr.aria-label]="
+                        s
+                          ? ('assessment.sessionN' | transloco: { n }) +
+                            ': ' +
+                            (s.level
+                              ? ('levels.' + s.level + '.label' | transloco)
+                              : s.rawObservation)
+                          : ('assessment.sessionN' | transloco: { n }) +
+                            ': ' +
+                            ('assessment.notYet' | transloco)
+                      "
                     >
                       {{ n }}
                     </li>
@@ -136,7 +175,10 @@
                     [attr.aria-label]="'assessment.history' | transloco: { name: p.child.name }"
                     (click)="toggleHistory(p.child.id)"
                   >
-                    <mat-icon [svgIcon]="expanded() === p.child.id ? 'chevron-up' : 'chevron-down'" aria-hidden="true" />
+                    <mat-icon
+                      [svgIcon]="expanded() === p.child.id ? 'chevron-up' : 'chevron-down'"
+                      aria-hidden="true"
+                    />
                   </button>
                 }
               </div>
@@ -144,7 +186,9 @@
                 <ul class="history" [id]="'history-' + p.child.id">
                   @for (s of p.sessions; track s.session) {
                     <li class="history__item">
-                      <span class="history__session">{{ 'assessment.sessionN' | transloco: { n: s.session } }}</span>
+                      <span class="history__session">{{
+                        'assessment.sessionN' | transloco: { n: s.session }
+                      }}</span>
                       <app-level-badge [level]="s.level" [fallback]="s.rawObservation" />
                       <span class="history__detail">
                         {{ s.date | appDate }}
@@ -152,7 +196,11 @@
                           · {{ s.age | age }}
                         }
                         @if (s.heightCm !== null && s.weightKg !== null) {
-                          · {{ 'assessment.measurementsShort' | transloco: { height: s.heightCm, weight: s.weightKg } }}
+                          ·
+                          {{
+                            'assessment.measurementsShort'
+                              | transloco: { height: s.heightCm, weight: s.weightKg }
+                          }}
                         }
                       </span>
                       @if (s.remarks) {
@@ -181,12 +229,16 @@
     } @else {
       <!-- Step 2 -->
       <section class="block" aria-labelledby="who-title">
-        <h2 id="who-title" class="block__title">{{ 'assessment.recordingFor' | plural: chosen().length }}</h2>
+        <h2 id="who-title" class="block__title">
+          {{ 'assessment.recordingFor' | plural: chosen().length }}
+        </h2>
         <ul class="chips">
           @for (p of chosen(); track p.child.id) {
             <li class="chip">
               <span>{{ p.child.name }}</span>
-              <span class="chip__session">{{ 'assessment.sessionShort' | transloco: { n: p.nextSession } }}</span>
+              <span class="chip__session">{{
+                'assessment.sessionShort' | transloco: { n: p.nextSession }
+              }}</span>
               <button
                 mat-icon-button
                 type="button"
@@ -205,12 +257,29 @@
         </p>
       </section>
 
-      <fieldset class="block levels" [class.levels--error]="levelError()" aria-describedby="level-error">
-        <legend id="level-legend" class="block__title">{{ 'assessment.chooseLevel' | transloco }}</legend>
+      <fieldset
+        class="block levels"
+        [class.levels--error]="levelError()"
+        aria-describedby="level-error"
+      >
+        <legend id="level-legend" class="block__title">
+          {{ 'assessment.chooseLevel' | transloco }}
+        </legend>
         <div class="level-options">
           @for (lvl of levels; track lvl) {
-            <label class="level-option" [class.is-checked]="level() === lvl" [style.--level-color]="'var(--level-' + lvl + ')'" [style.--level-soft]="'var(--level-' + lvl + '-soft)'">
-              <input type="radio" name="level" [value]="lvl" [checked]="level() === lvl" (change)="chooseLevel(lvl)" />
+            <label
+              class="level-option"
+              [class.is-checked]="level() === lvl"
+              [style.--level-color]="'var(--level-' + lvl + ')'"
+              [style.--level-soft]="'var(--level-' + lvl + '-soft)'"
+            >
+              <input
+                type="radio"
+                name="level"
+                [value]="lvl"
+                [checked]="level() === lvl"
+                (change)="chooseLevel(lvl)"
+              />
               <span class="level-option__head">
                 <span class="level-option__dot" aria-hidden="true"></span>
                 {{ 'levels.' + lvl + '.label' | transloco }}
@@ -228,7 +297,9 @@
 
       @if (measured()) {
         <section class="block" aria-labelledby="measure-title">
-          <h2 id="measure-title" class="block__title">{{ 'assessment.measurementsTitle' | transloco }}</h2>
+          <h2 id="measure-title" class="block__title">
+            {{ 'assessment.measurementsTitle' | transloco }}
+          </h2>
           <p class="block__intro">{{ 'assessment.measurementsIntro' | transloco }}</p>
           <ul class="measurements">
             @for (p of chosen(); track p.child.id) {
@@ -237,19 +308,33 @@
                   <span class="measurement__name">{{ p.child.name }}</span>
                   <mat-form-field>
                     <mat-label>{{ 'assessment.height' | transloco }}</mat-label>
-                    <input matInput formControlName="height" inputmode="decimal" autocomplete="off" />
+                    <input
+                      matInput
+                      formControlName="height"
+                      inputmode="decimal"
+                      autocomplete="off"
+                    />
                     <span matTextSuffix>{{ 'units.cm' | transloco }}</span>
                     @if (p.child.heightCm !== null) {
-                      <mat-hint>{{ 'assessment.lastValue' | transloco: { value: p.child.heightCm } }}</mat-hint>
+                      <mat-hint>{{
+                        'assessment.lastValue' | transloco: { value: p.child.heightCm }
+                      }}</mat-hint>
                     }
                     <mat-error>{{ group.controls.height.errors | validationMessage }}</mat-error>
                   </mat-form-field>
                   <mat-form-field>
                     <mat-label>{{ 'assessment.weight' | transloco }}</mat-label>
-                    <input matInput formControlName="weight" inputmode="decimal" autocomplete="off" />
+                    <input
+                      matInput
+                      formControlName="weight"
+                      inputmode="decimal"
+                      autocomplete="off"
+                    />
                     <span matTextSuffix>{{ 'units.kg' | transloco }}</span>
                     @if (p.child.weightKg !== null) {
-                      <mat-hint>{{ 'assessment.lastValue' | transloco: { value: p.child.weightKg } }}</mat-hint>
+                      <mat-hint>{{
+                        'assessment.lastValue' | transloco: { value: p.child.weightKg }
+                      }}</mat-hint>
                     }
                     <mat-error>{{ group.controls.weight.errors | validationMessage }}</mat-error>
                   </mat-form-field>
@@ -280,7 +365,10 @@
             </h2>
             <ul>
               @for (f of failures(); track f.childId) {
-                <li><strong>{{ f.name }}</strong>: {{ f.message }}</li>
+                <li>
+                  <strong>{{ f.name }}</strong
+                  >: {{ f.message }}
+                </li>
               }
             </ul>
             <p>{{ 'assessment.failedHint' | transloco }}</p>
@@ -299,7 +387,14 @@
           } @else {
             <mat-icon svgIcon="check" aria-hidden="true" />
           }
-          {{ (submitting() ? 'assessment.saving' : failures().length ? 'assessment.retry' : 'assessment.save') | transloco }}
+          {{
+            (submitting()
+              ? 'assessment.saving'
+              : failures().length
+                ? 'assessment.retry'
+                : 'assessment.save'
+            ) | transloco
+          }}
         </button>
       </div>
     }

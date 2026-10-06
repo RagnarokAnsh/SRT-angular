@@ -89,7 +89,10 @@ export function isAppError(value: unknown): value is AppError {
 }
 
 /** Turns anything thrown by an HTTP call into an AppError. */
-export function toAppError(error: unknown, online = typeof navigator === 'undefined' || navigator.onLine): AppError {
+export function toAppError(
+  error: unknown,
+  online = typeof navigator === 'undefined' || navigator.onLine,
+): AppError {
   if (isAppError(error)) return error;
   if (error instanceof TimeoutError) return make('timeout', null);
   if (error instanceof HttpErrorResponse) {
@@ -101,5 +104,7 @@ export function toAppError(error: unknown, online = typeof navigator === 'undefi
 
 /** True for failures that may succeed if simply tried again. */
 export function isRetryable(error: AppError): boolean {
-  return ['offline', 'network', 'timeout', 'server', 'tooManyRequests', 'unknown'].includes(error.kind);
+  return ['offline', 'network', 'timeout', 'server', 'tooManyRequests', 'unknown'].includes(
+    error.kind,
+  );
 }

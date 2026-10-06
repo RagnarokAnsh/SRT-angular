@@ -33,7 +33,13 @@ import { catchError, filter, map, of, startWith, switchMap, tap } from 'rxjs';
 import { CenterApi } from '@core/api/center-api';
 import { ChildApi } from '@core/api/child-api';
 import { SessionStore } from '@core/auth/session';
-import { CHILD_GENDERS, CHILD_LIMITS, type Child, type ChildGender, type ChildInput } from '@core/models/child';
+import {
+  CHILD_GENDERS,
+  CHILD_LIMITS,
+  type Child,
+  type ChildGender,
+  type ChildInput,
+} from '@core/models/child';
 import { toAppError } from '@core/network/app-error';
 import { NotifyService } from '@core/notify/notify';
 import { type IsoDate, addYears, ageOn, isValidIsoDate, toIsoDate } from '@core/util/dates';
@@ -67,7 +73,9 @@ function normalized(name: string): string {
 
 /** Same name (ignoring case and spacing) and same date of birth. */
 export function isSameChild(child: Child, input: ChildInput): boolean {
-  return child.dateOfBirth === input.dateOfBirth && normalized(child.name) === normalized(input.name);
+  return (
+    child.dateOfBirth === input.dateOfBirth && normalized(child.name) === normalized(input.name)
+  );
 }
 
 /** API field names (422 errors) → form controls. */
@@ -114,7 +122,8 @@ export class ChildFormPage implements HasUnsavedChanges {
 
   /** Route parameter; absent when adding a child. */
   readonly id = input<number | undefined, unknown>(undefined, {
-    transform: (value: unknown) => (value === undefined || value === null ? undefined : Number(value)),
+    transform: (value: unknown) =>
+      value === undefined || value === null ? undefined : Number(value),
   });
 
   protected readonly limits = CHILD_LIMITS;
@@ -130,12 +139,17 @@ export class ChildFormPage implements HasUnsavedChanges {
   protected readonly ownCenterName = computed(() => this.session.user()?.anganwadi?.name ?? null);
 
   /** An address like /children/abc/edit points at nothing; don't ask the server. */
-  protected readonly invalidId = computed(() => this.id() !== undefined && !isPositiveId(this.id()));
+  protected readonly invalidId = computed(
+    () => this.id() !== undefined && !isPositiveId(this.id()),
+  );
 
-  protected readonly existing = createLoader(() => {
-    const id = this.id();
-    return id === undefined || !isPositiveId(id) ? of(null) : this.childApi.get(id);
-  }, { lazy: true });
+  protected readonly existing = createLoader(
+    () => {
+      const id = this.id();
+      return id === undefined || !isPositiveId(id) ? of(null) : this.childApi.get(id);
+    },
+    { lazy: true },
+  );
   protected readonly centers = createLoader(() => this.centerApi.list(), { lazy: true });
 
   /** A worker may only edit children of their own centre. */
@@ -156,24 +170,35 @@ export class ChildFormPage implements HasUnsavedChanges {
       : ageInRange(CHILD_LIMITS.ageMin, CHILD_LIMITS.ageMax)(control);
 
   protected readonly form = inject(NonNullableFormBuilder).group({
-    name: ['', [requiredText, minTextLength(2), Validators.maxLength(CHILD_LIMITS.nameMax), personName]],
+    name: [
+      '',
+      [requiredText, minTextLength(2), Validators.maxLength(CHILD_LIMITS.nameMax), personName],
+    ],
     dateOfBirth: ['', [Validators.required, pastIsoDate(), this.ageRule]],
     gender: ['' as ChildGender | '', Validators.required],
     symbol: ['', [requiredText, Validators.maxLength(CHILD_LIMITS.symbolMax), plainText]],
     language: ['', [requiredText, Validators.maxLength(CHILD_LIMITS.languageMax), languageName]],
     heightCm: [
       '',
-      [requiredText, decimalInRange(CHILD_LIMITS.heightCm.min, CHILD_LIMITS.heightCm.max, CHILD_LIMITS.decimals)],
+      [
+        requiredText,
+        decimalInRange(CHILD_LIMITS.heightCm.min, CHILD_LIMITS.heightCm.max, CHILD_LIMITS.decimals),
+      ],
     ],
     weightKg: [
       '',
-      [requiredText, decimalInRange(CHILD_LIMITS.weightKg.min, CHILD_LIMITS.weightKg.max, CHILD_LIMITS.decimals)],
+      [
+        requiredText,
+        decimalInRange(CHILD_LIMITS.weightKg.min, CHILD_LIMITS.weightKg.max, CHILD_LIMITS.decimals),
+      ],
     ],
     anganwadiId: [null as number | null, Validators.required],
   });
 
   private readonly dob = toSignal(
-    this.form.controls.dateOfBirth.valueChanges.pipe(startWith(this.form.controls.dateOfBirth.value)),
+    this.form.controls.dateOfBirth.valueChanges.pipe(
+      startWith(this.form.controls.dateOfBirth.value),
+    ),
     { initialValue: '' },
   );
   protected readonly ageToday = computed(() => {
@@ -225,7 +250,9 @@ export class ChildFormPage implements HasUnsavedChanges {
       anganwadiId: value.anganwadiId as number,
     };
     const id = this.id();
-    const awwId = this.isWorker() ? (this.session.user()?.id ?? null) : (this.existing.data()?.awwId ?? null);
+    const awwId = this.isWorker()
+      ? (this.session.user()?.id ?? null)
+      : (this.existing.data()?.awwId ?? null);
     this.saving.set(true);
     // A new child with the same name and date of birth at the same centre is probably a
     // duplicate: ask before adding (if the check itself fails, just continue).
@@ -253,7 +280,9 @@ export class ChildFormPage implements HasUnsavedChanges {
         }),
         filter(Boolean),
         switchMap(() =>
-          id === undefined ? this.childApi.create(input, awwId) : this.childApi.update(id, input, awwId),
+          id === undefined
+            ? this.childApi.create(input, awwId)
+            : this.childApi.update(id, input, awwId),
         ),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -262,7 +291,9 @@ export class ChildFormPage implements HasUnsavedChanges {
           this.saving.set(false);
           this.saved = true;
           this.form.markAsPristine();
-          this.notify.success(id === undefined ? 'childForm.added' : 'childForm.saved', { name: input.name });
+          this.notify.success(id === undefined ? 'childForm.added' : 'childForm.saved', {
+            name: input.name,
+          });
           void this.router.navigate(['/children']);
         },
         error: (error: unknown) => {
@@ -285,7 +316,9 @@ export class ChildFormPage implements HasUnsavedChanges {
 
   private fill(child: Child): void {
     this.originalDob = child.dateOfBirth;
-    const gender = (CHILD_GENDERS as readonly string[]).includes(child.gender) ? (child.gender as ChildGender) : '';
+    const gender = (CHILD_GENDERS as readonly string[]).includes(child.gender)
+      ? (child.gender as ChildGender)
+      : '';
     this.form.reset({
       name: child.name,
       dateOfBirth: child.dateOfBirth ?? '',

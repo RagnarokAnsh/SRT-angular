@@ -145,8 +145,7 @@ export class ReadinessWheel {
   private readonly fontsVersion = signal(0);
 
   /** `<textPath>` needs the page URL: a bare `#id` would resolve against `<base href>`. */
-  protected readonly pageUrl =
-    this.document.location.pathname + this.document.location.search;
+  protected readonly pageUrl = this.document.location.pathname + this.document.location.search;
 
   protected readonly spec = computed(() => LAYOUTS[this.layout()]);
 
@@ -250,11 +249,18 @@ export class ReadinessWheel {
       if (lines < 2) return [domainMid];
       const offset = font * 0.62;
       // Upper half: the first line is outermost; lower half (flipped text): innermost.
-      return lower ? [domainMid - offset, domainMid + offset] : [domainMid + offset, domainMid - offset];
+      return lower
+        ? [domainMid - offset, domainMid + offset]
+        : [domainMid + offset, domainMid - offset];
     };
     const domainLines = FRAMEWORK.map((domain, index) => {
       const mid = index * DOMAIN_SPAN;
-      return { index, mid, lower: isLowerHalf(mid), lines: labelLines(t(`catalog.domains.${domain.slug}.wheel`)) };
+      return {
+        index,
+        mid,
+        lower: isLowerHalf(mid),
+        lines: labelLines(t(`catalog.domains.${domain.slug}.wheel`)),
+      };
     });
     const usableDeg = DOMAIN_SPAN - 2 * ARC_PADDING_DEG;
     const domainFont = fitFontSize(
@@ -293,7 +299,13 @@ export class ReadinessWheel {
         const baseline = radii[i] + (lower ? 0.35 : -0.35) * domainFont;
         return {
           id: `${this.idPrefix}-d${index}-${i}`,
-          arc: textArcPath(CENTER, CENTER, baseline, start + ARC_PADDING_DEG, end - ARC_PADDING_DEG),
+          arc: textArcPath(
+            CENTER,
+            CENTER,
+            baseline,
+            start + ARC_PADDING_DEG,
+            end - ARC_PADDING_DEG,
+          ),
           text,
         };
       });
@@ -308,7 +320,11 @@ export class ReadinessWheel {
           const point = polar(CENTER, CENTER, competencyMid, angle);
           label = {
             transform: `translate(${point.x} ${point.y}) rotate(${radialRotation(angle)})`,
-            lines: this.stackLines(labelLines(t(`catalog.competencies.${slug}.wheel`)), competencyFont, 0),
+            lines: this.stackLines(
+              labelLines(t(`catalog.competencies.${slug}.wheel`)),
+              competencyFont,
+              0,
+            ),
           };
         }
         return {

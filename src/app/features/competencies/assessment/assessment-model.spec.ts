@@ -35,7 +35,11 @@ function session(n: 1 | 2 | 3 | 4, level: SessionResult['level'] = 'progressing'
   };
 }
 
-function record(childId: number | null, name: string, sessions: SessionResult[]): ChildAssessmentRecord {
+function record(
+  childId: number | null,
+  name: string,
+  sessions: SessionResult[],
+): ChildAssessmentRecord {
   return { childId, name, sessions, remarks: '' };
 }
 
@@ -58,7 +62,10 @@ describe('matchProgress', () => {
   });
 
   it('falls back to an exact, unique name when a row has no child id', () => {
-    const [aarav] = matchProgress([child(1, 'Aarav  Kumar')], [record(null, 'aarav kumar', [session(1)])]);
+    const [aarav] = matchProgress(
+      [child(1, 'Aarav  Kumar')],
+      [record(null, 'aarav kumar', [session(1)])],
+    );
     expect(aarav.nextSession).toBe(2);
     const twins = matchProgress(
       [child(1, 'Aarav'), child(2, 'Aarav')],
@@ -79,7 +86,10 @@ describe('matchProgress', () => {
 
 describe('buildSubmissions', () => {
   it('builds one request per child in the existing format', () => {
-    const [progress] = matchProgress([child(5, 'Ramesh', '2021-01-09')], [record(5, 'Ramesh', [session(1)])]);
+    const [progress] = matchProgress(
+      [child(5, 'Ramesh', '2021-01-09')],
+      [record(5, 'Ramesh', [session(1)])],
+    );
     expect(
       buildSubmissions({
         children: [{ progress, heightCm: 101.5, weightKg: 15 }],
@@ -119,7 +129,13 @@ describe('buildSubmissions', () => {
       today: '2026-10-06',
     });
     expect(result).toHaveLength(1);
-    expect(result[0]).toMatchObject({ children: [1], age: '', height: '', weight: '', attempt_number: 1 });
+    expect(result[0]).toMatchObject({
+      children: [1],
+      age: '',
+      height: '',
+      weight: '',
+      attempt_number: 1,
+    });
   });
 });
 

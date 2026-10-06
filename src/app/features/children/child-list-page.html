@@ -34,12 +34,20 @@
       <mat-form-field class="toolbar__search">
         <mat-label>{{ 'children.search' | transloco }}</mat-label>
         <mat-icon matPrefix svgIcon="search" aria-hidden="true" />
-        <input matInput type="search" [value]="query()" (input)="query.set($any($event.target).value)" />
+        <input
+          matInput
+          type="search"
+          [value]="query()"
+          (input)="query.set($any($event.target).value)"
+        />
       </mat-form-field>
       @if (!isWorker() && centers().length > 1) {
         <mat-form-field class="toolbar__center">
           <mat-label>{{ 'children.center' | transloco }}</mat-label>
-          <mat-select [value]="centerFilter() ?? 0" (selectionChange)="centerFilter.set($event.value || null)">
+          <mat-select
+            [value]="centerFilter() ?? 0"
+            (selectionChange)="centerFilter.set($event.value || null)"
+          >
             <mat-option [value]="0">{{ 'children.allCenters' | transloco }}</mat-option>
             @for (center of centers(); track center.id) {
               <mat-option [value]="center.id">{{ center.name }}</mat-option>
@@ -56,7 +64,8 @@
             class="avatar"
             [class.avatar--girl]="genderKey(child.gender) === 'children.gender.girl'"
             aria-hidden="true"
-          >{{ initials(child.name) }}</span>
+            >{{ initials(child.name) }}</span
+          >
           <div class="row__main">
             <span class="row__name">{{ child.name }}</span>
             <span class="row__meta">

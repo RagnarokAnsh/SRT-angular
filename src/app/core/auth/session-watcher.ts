@@ -79,5 +79,4 @@ export class SessionWatcher {
       this.auth.logout('idle');
     }
   }
-
 }

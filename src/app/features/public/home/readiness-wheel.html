@@ -66,13 +66,18 @@
       {{ 'home.wheel.allDomains' | transloco }}
     </button>
     <p class="panel__eyebrow">
-      {{ 'home.wheel.domainOf' | transloco: { current: domain.index + 1, total: model().domains.length } }}
+      {{
+        'home.wheel.domainOf'
+          | transloco: { current: domain.index + 1, total: model().domains.length }
+      }}
     </p>
     <h3 class="panel__title" tabindex="-1" #panelTitle>
       <span class="swatch" [style.background]="domain.color" aria-hidden="true"></span>
       {{ domain.name }}
     </h3>
-    <p class="panel__meta">{{ 'home.wheel.competencyCount' | plural: domain.competencies.length }}</p>
+    <p class="panel__meta">
+      {{ 'home.wheel.competencyCount' | plural: domain.competencies.length }}
+    </p>
     <ol class="competency-list">
       @for (competency of domain.competencies; track competency.slug) {
         <li>

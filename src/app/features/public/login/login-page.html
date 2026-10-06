@@ -75,7 +75,9 @@
             mat-icon-button
             matSuffix
             type="button"
-            [attr.aria-label]="(showPassword() ? 'login.hidePassword' : 'login.showPassword') | transloco"
+            [attr.aria-label]="
+              (showPassword() ? 'login.hidePassword' : 'login.showPassword') | transloco
+            "
             [attr.aria-pressed]="showPassword()"
             (click)="showPassword.set(!showPassword())"
           >

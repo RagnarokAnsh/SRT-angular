@@ -11,7 +11,11 @@ import { domainColors } from '@core/catalog/framework';
 import { competencyThumbnail } from '@core/catalog/media';
 import { LanguageService } from '@core/i18n/language';
 import { createLoader } from '@shared/loader';
-import { CompetencyDescriptionPipe, CompetencyNamePipe, DomainNamePipe } from '@shared/pipes/catalog-pipes';
+import {
+  CompetencyDescriptionPipe,
+  CompetencyNamePipe,
+  DomainNamePipe,
+} from '@shared/pipes/catalog-pipes';
 import { PluralPipe } from '@shared/pipes/plural-pipe';
 import { ErrorState } from '@shared/ui/error-state';
 import { PageHeader } from '@shared/ui/page-header';
@@ -52,7 +56,12 @@ import { StateMessage } from '@shared/ui/state-message';
         <mat-form-field class="search">
           <mat-label>{{ 'competencies.search' | transloco }}</mat-label>
           <mat-icon matPrefix svgIcon="search" aria-hidden="true" />
-          <input matInput type="search" [value]="query()" (input)="query.set($any($event.target).value)" />
+          <input
+            matInput
+            type="search"
+            [value]="query()"
+            (input)="query.set($any($event.target).value)"
+          />
         </mat-form-field>
 
         @for (domain of domains(); track domain.id) {
@@ -60,7 +69,9 @@ import { StateMessage } from '@shared/ui/state-message';
             <h2 class="domain__title" [id]="'domain-' + domain.id">
               <span class="swatch" [style.background]="domain.color" aria-hidden="true"></span>
               {{ domain | domainName }}
-              <span class="domain__count">{{ 'competencies.count' | plural: domain.competencies.length }}</span>
+              <span class="domain__count">{{
+                'competencies.count' | plural: domain.competencies.length
+              }}</span>
             </h2>
             <ul class="grid">
               @for (competency of domain.competencies; track competency.id) {
@@ -75,7 +86,9 @@ import { StateMessage } from '@shared/ui/state-message';
                     </span>
                     <span class="card__text">
                       <span class="card__name">{{ competency | competencyName }}</span>
-                      <span class="card__description">{{ competency | competencyDescription }}</span>
+                      <span class="card__description">{{
+                        competency | competencyDescription
+                      }}</span>
                     </span>
                     <mat-icon class="card__chevron" svgIcon="chevron-right" aria-hidden="true" />
                   </a>
@@ -84,7 +97,10 @@ import { StateMessage } from '@shared/ui/state-message';
             </ul>
           </section>
         } @empty {
-          <app-state-message icon="search" [title]="'competencies.noMatch' | transloco: { query: query() }" />
+          <app-state-message
+            icon="search"
+            [title]="'competencies.noMatch' | transloco: { query: query() }"
+          />
         }
       }
     </div>

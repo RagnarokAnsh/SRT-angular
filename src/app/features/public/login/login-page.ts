@@ -111,14 +111,17 @@ export class LoginPage {
   }
 
   private describe(error: unknown): { key: string; detail: string | null } {
-    if (error instanceof InvalidLoginResponseError) return { key: 'login.invalidResponse', detail: null };
+    if (error instanceof InvalidLoginResponseError)
+      return { key: 'login.invalidResponse', detail: null };
     const appError = toAppError(error);
     if (appError.kind === 'unauthorized') return { key: 'login.invalidCredentials', detail: null };
     if (appError.kind === 'validation') {
       const unmatched = applyServerErrors(this.form, appError.fieldErrors);
       return {
         key: 'login.invalidCredentials',
-        detail: unmatched[0] ?? (Object.keys(appError.fieldErrors).length ? null : appError.serverMessage),
+        detail:
+          unmatched[0] ??
+          (Object.keys(appError.fieldErrors).length ? null : appError.serverMessage),
       };
     }
     return { key: appError.messageKey, detail: appError.serverMessage };

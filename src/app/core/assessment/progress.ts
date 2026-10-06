@@ -28,7 +28,10 @@ function sortedSessions(record: ChildAssessmentRecord | undefined): SessionResul
  * versions) only match a child with exactly the same name, and only when that name is
  * unique on both sides, so "Ram" can never pick up "Ramesh"'s results.
  */
-export function matchProgress(children: Child[], records: ChildAssessmentRecord[]): ChildProgress[] {
+export function matchProgress(
+  children: Child[],
+  records: ChildAssessmentRecord[],
+): ChildProgress[] {
   const byId = new Map<number, ChildAssessmentRecord>();
   const unmatchedByName = new Map<string, ChildAssessmentRecord[]>();
   for (const record of records) {

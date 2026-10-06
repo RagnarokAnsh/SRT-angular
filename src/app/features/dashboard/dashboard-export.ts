@@ -4,7 +4,11 @@ import { type IsoDate, ageOn, formatAgeCompact } from '@core/util/dates';
 
 import type { CompetencyRow, Summary } from './dashboard-model';
 
-type Cell = { value?: string | number; fontWeight?: 'bold'; type?: StringConstructor | NumberConstructor } | null;
+type Cell = {
+  value?: string | number;
+  fontWeight?: 'bold';
+  type?: StringConstructor | NumberConstructor;
+} | null;
 
 export interface ExportText {
   /** Translates a key (with params) in the current language. */

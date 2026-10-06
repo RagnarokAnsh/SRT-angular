@@ -155,11 +155,21 @@ export class DashboardPage {
   });
 
   protected readonly groups = computed(() => {
-    const groups: { domainId: number; domain: CompetencyRow['domain']; color: string; rows: CompetencyRow[] }[] = [];
+    const groups: {
+      domainId: number;
+      domain: CompetencyRow['domain'];
+      color: string;
+      rows: CompetencyRow[];
+    }[] = [];
     for (const row of this.rows()) {
       let group = groups.find((g) => g.domainId === row.domain.id);
       if (!group) {
-        group = { domainId: row.domain.id, domain: row.domain, color: domainColors(row.domain.slug).color, rows: [] };
+        group = {
+          domainId: row.domain.id,
+          domain: row.domain,
+          color: domainColors(row.domain.slug).color,
+          rows: [],
+        };
         groups.push(group);
       }
       group.rows.push(row);
@@ -244,7 +254,9 @@ export class DashboardPage {
         {
           centerName: this.centerName() ?? this.transloco.translate('dashboard.export.center'),
           filters: {
-            domain: domain ? this.catalog.domainName(domain) : this.transloco.translate('dashboard.allDomains'),
+            domain: domain
+              ? this.catalog.domainName(domain)
+              : this.transloco.translate('dashboard.allDomains'),
             session: this.sessionLabel(this.sessionFilter()),
           },
           summary: summarize(data.children, this.rows()),

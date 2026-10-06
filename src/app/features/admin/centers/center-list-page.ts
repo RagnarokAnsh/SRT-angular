@@ -56,7 +56,8 @@ export class CenterListPage {
       switchMap((centers) => {
         const countryIds = [...new Set((centers ?? []).map((c) => c.country_id).filter(Boolean))];
         const stateIds = [...new Set((centers ?? []).map((c) => c.state_id).filter(Boolean))];
-        if (!countryIds.length) return of({ states: new Map<number, string>(), districts: new Map<number, string>() });
+        if (!countryIds.length)
+          return of({ states: new Map<number, string>(), districts: new Map<number, string>() });
         // Names are a nicety: a failed lookup just leaves them out.
         const safe = <T>(source: Observable<T[]>) => source.pipe(catchError(() => of([] as T[])));
         return forkJoin({

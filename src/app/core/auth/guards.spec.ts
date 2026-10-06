@@ -34,9 +34,7 @@ describe('route guards', () => {
     result instanceof UrlTree ? router.serializeUrl(result) : result;
 
   it('authGuard sends signed-out users to login, remembering the page', () => {
-    expect(serialize(run(authGuard, '/children?q=a'))).toBe(
-      '/login?returnUrl=%2Fchildren%3Fq%3Da',
-    );
+    expect(serialize(run(authGuard, '/children?q=a'))).toBe('/login?returnUrl=%2Fchildren%3Fq%3Da');
     session.start(validToken(), testUser());
     expect(run(authGuard)).toBe(true);
   });

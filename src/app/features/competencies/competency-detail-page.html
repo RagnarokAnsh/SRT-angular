@@ -25,12 +25,21 @@
         </p>
         <p class="hero__description">{{ view.competency | competencyDescription }}</p>
         @if (ready()) {
-          <a mat-flat-button class="hero__cta" [routerLink]="['/competencies', view.competency.id, 'assess']">
+          <a
+            mat-flat-button
+            class="hero__cta"
+            [routerLink]="['/competencies', view.competency.id, 'assess']"
+          >
             <mat-icon svgIcon="assessment" aria-hidden="true" />
             {{ 'competencyDetail.assess' | transloco }}
           </a>
         } @else {
-          <a mat-stroked-button class="hero__cta" href="#checklist-title" (click)="goToChecklist($event)">
+          <a
+            mat-stroked-button
+            class="hero__cta"
+            href="#checklist-title"
+            (click)="goToChecklist($event)"
+          >
             <mat-icon svgIcon="check-circle-outline" aria-hidden="true" />
             {{ 'competencyDetail.prepare' | transloco }}
           </a>
@@ -64,7 +73,9 @@
     </section>
 
     <section class="section checklist" aria-labelledby="checklist-title">
-      <h2 id="checklist-title" tabindex="-1">{{ 'competencyDetail.checklistTitle' | transloco }}</h2>
+      <h2 id="checklist-title" tabindex="-1">
+        {{ 'competencyDetail.checklistTitle' | transloco }}
+      </h2>
       <p class="section__intro">{{ 'competencyDetail.checklistIntro' | transloco }}</p>
       <ul class="checklist__items">
         @for (item of checklist; track item) {

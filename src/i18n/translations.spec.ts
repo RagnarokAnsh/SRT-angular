@@ -18,7 +18,8 @@ function flatten(tree: Tree, prefix = ''): Record<string, string> {
   return result;
 }
 
-const placeholders = (text: string) => [...text.matchAll(/{{\s*(\w+)\s*}}/g)].map((m) => m[1]).sort();
+const placeholders = (text: string) =>
+  [...text.matchAll(/{{\s*(\w+)\s*}}/g)].map((m) => m[1]).sort();
 
 const english = flatten(en as Tree);
 const hindi = flatten(hi as Tree);
@@ -61,7 +62,8 @@ describe('translations', () => {
 
   it('keeps wheel labels to at most two lines', () => {
     for (const [key, text] of [...Object.entries(english), ...Object.entries(hindi)]) {
-      if (key.endsWith('.wheel')) expect({ key, lines: text.split('\n').length <= 2 }).toEqual({ key, lines: true });
+      if (key.endsWith('.wheel'))
+        expect({ key, lines: text.split('\n').length <= 2 }).toEqual({ key, lines: true });
     }
   });
 });

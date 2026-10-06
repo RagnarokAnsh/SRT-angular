@@ -39,7 +39,12 @@ const competency = (id: number, domainId: number): Competency => ({
   slug: `c${id}`,
 });
 
-const domainA: Domain = { id: 1, name: 'A', slug: 'a', competencies: [competency(1, 1), competency(2, 1)] };
+const domainA: Domain = {
+  id: 1,
+  name: 'A',
+  slug: 'a',
+  competencies: [competency(1, 1), competency(2, 1)],
+};
 const domainB: Domain = { id: 2, name: 'B', slug: 'b', competencies: [competency(3, 2)] };
 
 const record = (childId: number, sessions: SessionResult[]): ChildAssessmentRecord => ({
@@ -72,7 +77,13 @@ describe('dashboard model', () => {
   });
 
   it('keeps unrecognised stored values visible as "other"', () => {
-    const row = competencyRow(domainA.competencies[0], domainA, [child(1)], [record(1, [session(1, null, 'Excellent')])], 'latest');
+    const row = competencyRow(
+      domainA.competencies[0],
+      domainA,
+      [child(1)],
+      [record(1, [session(1, null, 'Excellent')])],
+      'latest',
+    );
     expect(row.other).toBe(1);
     expect(row.notAssessed).toBe(0);
   });
@@ -86,7 +97,14 @@ describe('dashboard model', () => {
   it('summarises children, sessions done and levels', () => {
     const data = { domains: [domainA, domainB], children, records: new Map([[1, records]]) };
     const summary = summarize(children, buildRows(data, 'latest', null));
-    expect(summary).toMatchObject({ children: 3, boys: 1, girls: 2, sessionsDone: 3, sessionsPossible: 36, results: 2 });
+    expect(summary).toMatchObject({
+      children: 3,
+      boys: 1,
+      girls: 2,
+      sessionsDone: 3,
+      sessionsPossible: 36,
+      results: 2,
+    });
     expect(summary.counts.advancing).toBe(1);
   });
 

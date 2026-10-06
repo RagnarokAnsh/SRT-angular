@@ -44,7 +44,11 @@ describe('AuthService', () => {
   });
 
   it('uses the top-level roles list when the user has none', () => {
-    const user = userFromLogin({ token: 't', user: { ...testUser(), roles: [] }, roles: ['admin'] });
+    const user = userFromLogin({
+      token: 't',
+      user: { ...testUser(), roles: [] },
+      roles: ['admin'],
+    });
     expect(user.roles.map((r) => r.name)).toEqual(['admin']);
   });
 

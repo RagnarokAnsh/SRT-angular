@@ -76,6 +76,8 @@ export class AuthService {
 
   /** After login: the requested page if it is a safe in-app path, otherwise home. */
   navigateAfterLogin(returnUrl: unknown): Promise<boolean> {
-    return this.router.navigateByUrl(safeReturnUrl(returnUrl) ?? this.homeUrl(), { replaceUrl: true });
+    return this.router.navigateByUrl(safeReturnUrl(returnUrl) ?? this.homeUrl(), {
+      replaceUrl: true,
+    });
   }
 }

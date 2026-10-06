@@ -25,7 +25,9 @@ import { Skeleton } from '@shared/ui/skeleton';
 
 /** A user's main role (the API allows several; the highest one counts). */
 export function primaryRole(user: ApiUser): RoleName | null {
-  const names = (user.roles ?? []).map((r) => toRoleName(r.name)).filter((r): r is RoleName => r !== null);
+  const names = (user.roles ?? [])
+    .map((r) => toRoleName(r.name))
+    .filter((r): r is RoleName => r !== null);
   return ROLE_PRIORITY.find((role) => names.includes(role)) ?? null;
 }
 

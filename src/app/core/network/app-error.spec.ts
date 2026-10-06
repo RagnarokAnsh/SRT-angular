@@ -25,14 +25,19 @@ describe('toAppError', () => {
 
   it('keeps the server message for client errors only, shortened', () => {
     expect(toAppError(http(400, { message: 'Bad thing' })).serverMessage).toBe('Bad thing');
-    expect(toAppError(http(500, { message: 'SQLSTATE[42S22] secret details' })).serverMessage).toBeNull();
+    expect(
+      toAppError(http(500, { message: 'SQLSTATE[42S22] secret details' })).serverMessage,
+    ).toBeNull();
     const long = toAppError(http(400, { message: 'x'.repeat(500) })).serverMessage ?? '';
     expect(long.length).toBeLessThanOrEqual(301);
   });
 
   it('reads Laravel validation errors', () => {
     const error = toAppError(
-      http(422, { message: 'Invalid', errors: { email: ['Taken.'], name: 'Required.', bad: [42] } }),
+      http(422, {
+        message: 'Invalid',
+        errors: { email: ['Taken.'], name: 'Required.', bad: [42] },
+      }),
     );
     expect(error.fieldErrors).toEqual({ email: ['Taken.'], name: ['Required.'] });
     expect(error.messageKey).toBe('errors.validation');

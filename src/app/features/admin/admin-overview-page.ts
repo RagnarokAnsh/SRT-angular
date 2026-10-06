@@ -17,12 +17,22 @@ import { Skeleton } from '@shared/ui/skeleton';
 
 @Component({
   selector: 'app-admin-overview-page',
-  imports: [RouterLink, MatButtonModule, MatIconModule, TranslocoPipe, ErrorState, PageHeader, Skeleton],
+  imports: [
+    RouterLink,
+    MatButtonModule,
+    MatIconModule,
+    TranslocoPipe,
+    ErrorState,
+    PageHeader,
+    Skeleton,
+  ],
   template: `
     <div class="page">
       <app-page-header>
         <span pageTitle>{{ 'admin.overview.title' | transloco }}</span>
-        <span pageSubtitle>{{ 'admin.overview.subtitle' | transloco: { name: session.user()?.name } }}</span>
+        <span pageSubtitle>{{
+          'admin.overview.subtitle' | transloco: { name: session.user()?.name }
+        }}</span>
       </app-page-header>
 
       @if (loader.error(); as error) {
@@ -91,7 +101,9 @@ import { Skeleton } from '@shared/ui/skeleton';
       padding: var(--space-5);
       color: inherit;
       text-decoration: none;
-      transition: box-shadow 0.15s, border-color 0.15s;
+      transition:
+        box-shadow 0.15s,
+        border-color 0.15s;
 
       &:hover {
         border-color: var(--color-border-strong);
@@ -162,7 +174,11 @@ export class AdminOverviewPage {
 
   protected readonly roleNames = ROLE_NAMES;
   protected readonly loader = createLoader(() =>
-    forkJoin({ users: this.userApi.list(), centers: this.centerApi.list(), children: this.childApi.list() }),
+    forkJoin({
+      users: this.userApi.list(),
+      centers: this.centerApi.list(),
+      children: this.childApi.list(),
+    }),
   );
 
   protected readonly stats = computed(() => {
@@ -175,6 +191,11 @@ export class AdminOverviewPage {
         if (name) byRole[name]++;
       }
     }
-    return { users: data.users.length, centers: data.centers.length, children: data.children.length, byRole };
+    return {
+      users: data.users.length,
+      centers: data.centers.length,
+      children: data.children.length,
+      byRole,
+    };
   });
 }

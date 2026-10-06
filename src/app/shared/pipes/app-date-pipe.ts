@@ -8,7 +8,10 @@ import { type IsoDate, formatIsoDate } from '@core/util/dates';
 export class AppDatePipe implements PipeTransform {
   private readonly language = inject(LanguageService);
 
-  transform(value: IsoDate | null | undefined, style: 'short' | 'medium' | 'long' = 'medium'): string {
+  transform(
+    value: IsoDate | null | undefined,
+    style: 'short' | 'medium' | 'long' = 'medium',
+  ): string {
     return value ? formatIsoDate(value, this.language.locale(), style) : '—';
   }
 }

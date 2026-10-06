@@ -88,7 +88,9 @@ describe('HTTP interceptors', () => {
     expect(logout).not.toHaveBeenCalled();
 
     const children = firstValueFrom(http.get(`${TEST_API}/children`));
-    backend.expectOne(`${TEST_API}/children`).flush({}, { status: 401, statusText: 'Unauthorized' });
+    backend
+      .expectOne(`${TEST_API}/children`)
+      .flush({}, { status: 401, statusText: 'Unauthorized' });
     await expect(children).rejects.toBeTruthy();
     expect(logout).toHaveBeenCalledWith('expired');
   });

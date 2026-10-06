@@ -1,7 +1,15 @@
 import { type DestroyRef, type WritableSignal, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { FormControl } from '@angular/forms';
-import { type Observable, catchError, distinctUntilChanged, finalize, of, switchMap, tap } from 'rxjs';
+import {
+  type Observable,
+  catchError,
+  distinctUntilChanged,
+  finalize,
+  of,
+  switchMap,
+  tap,
+} from 'rxjs';
 
 import type { LocationCache } from '@core/api/location-cache';
 import type { Country, District, State } from '@core/models/location';
@@ -46,21 +54,42 @@ export class LocationCascade {
   ) {
     const c = controls;
     this.fetch(cache.countries(), this.countries).pipe(takeUntilDestroyed(destroyRef)).subscribe();
-    this.follow(c.country_id, (id) => (id ? cache.states(id) : of([])), this.states, () => {
-      c.state_id.reset(null);
-      c.district_id.reset(null);
-      c.project.reset('');
-      c.sector.reset('');
-    }).pipe(takeUntilDestroyed(destroyRef)).subscribe();
-    this.follow(c.state_id, (id) => (id ? cache.districts(id) : of([])), this.districts, () => {
-      c.district_id.reset(null);
-      c.project.reset('');
-      c.sector.reset('');
-    }).pipe(takeUntilDestroyed(destroyRef)).subscribe();
-    this.follow(c.district_id, (id) => (id ? cache.projects(id) : of([])), this.projects, () => {
-      c.project.reset('');
-      c.sector.reset('');
-    }).pipe(takeUntilDestroyed(destroyRef)).subscribe();
+    this.follow(
+      c.country_id,
+      (id) => (id ? cache.states(id) : of([])),
+      this.states,
+      () => {
+        c.state_id.reset(null);
+        c.district_id.reset(null);
+        c.project.reset('');
+        c.sector.reset('');
+      },
+    )
+      .pipe(takeUntilDestroyed(destroyRef))
+      .subscribe();
+    this.follow(
+      c.state_id,
+      (id) => (id ? cache.districts(id) : of([])),
+      this.districts,
+      () => {
+        c.district_id.reset(null);
+        c.project.reset('');
+        c.sector.reset('');
+      },
+    )
+      .pipe(takeUntilDestroyed(destroyRef))
+      .subscribe();
+    this.follow(
+      c.district_id,
+      (id) => (id ? cache.projects(id) : of([])),
+      this.projects,
+      () => {
+        c.project.reset('');
+        c.sector.reset('');
+      },
+    )
+      .pipe(takeUntilDestroyed(destroyRef))
+      .subscribe();
     this.follow(
       c.project,
       (project) => {
@@ -69,7 +98,9 @@ export class LocationCascade {
       },
       this.sectors,
       () => c.sector.reset(''),
-    ).pipe(takeUntilDestroyed(destroyRef)).subscribe();
+    )
+      .pipe(takeUntilDestroyed(destroyRef))
+      .subscribe();
   }
 
   /** Shows saved values (when editing) and loads the lists that go with them. */
@@ -92,12 +123,17 @@ export class LocationCascade {
     this.error.set(null);
     const c = this.controls;
     this.fetch(this.cache.countries(), this.countries).subscribe();
-    if (c.country_id.value) this.fetch(this.cache.states(c.country_id.value), this.states).subscribe();
-    if (c.state_id.value) this.fetch(this.cache.districts(c.state_id.value), this.districts).subscribe();
+    if (c.country_id.value)
+      this.fetch(this.cache.states(c.country_id.value), this.states).subscribe();
+    if (c.state_id.value)
+      this.fetch(this.cache.districts(c.state_id.value), this.districts).subscribe();
     if (c.district_id.value) {
       this.fetch(this.cache.projects(c.district_id.value), this.projects).subscribe();
       if (c.project.value) {
-        this.fetch(this.cache.sectors(c.district_id.value, c.project.value), this.sectors).subscribe();
+        this.fetch(
+          this.cache.sectors(c.district_id.value, c.project.value),
+          this.sectors,
+        ).subscribe();
       }
     }
   }

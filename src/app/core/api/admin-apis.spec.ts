@@ -89,7 +89,9 @@ describe('LocationApi', () => {
 
   it('accepts projects as strings or objects and removes duplicates', async () => {
     const result = firstValueFrom(api.projects(3));
-    http.expectOne(`${TEST_API}/projects/3`).flush(['Jaipur Urban', { name: 'Sanganer' }, 'Jaipur Urban']);
+    http
+      .expectOne(`${TEST_API}/projects/3`)
+      .flush(['Jaipur Urban', { name: 'Sanganer' }, 'Jaipur Urban']);
     expect(await result).toEqual(['Jaipur Urban', 'Sanganer']);
   });
 

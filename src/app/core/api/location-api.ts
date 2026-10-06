@@ -12,7 +12,9 @@ export class LocationApi {
   private readonly base = inject(API_BASE_URL);
 
   countries(): Observable<Country[]> {
-    return this.http.get<unknown>(`${this.base}/countries`).pipe(map((b) => unwrapList<Country>(b)));
+    return this.http
+      .get<unknown>(`${this.base}/countries`)
+      .pipe(map((b) => unwrapList<Country>(b)));
   }
 
   states(countryId: number): Observable<State[]> {

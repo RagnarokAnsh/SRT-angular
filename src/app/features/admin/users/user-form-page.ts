@@ -98,7 +98,8 @@ export class UserFormPage implements HasUnsavedChanges {
 
   /** Route parameter; absent when adding a user. */
   readonly id = input<number | undefined, unknown>(undefined, {
-    transform: (value: unknown) => (value === undefined || value === null ? undefined : Number(value)),
+    transform: (value: unknown) =>
+      value === undefined || value === null ? undefined : Number(value),
   });
 
   protected readonly roles = ROLE_PRIORITY;
@@ -147,14 +148,21 @@ export class UserFormPage implements HasUnsavedChanges {
   });
   protected readonly needsCenter = computed(() => this.role() === 'aww');
 
-  protected readonly invalidId = computed(() => this.id() !== undefined && !isPositiveId(this.id()));
+  protected readonly invalidId = computed(
+    () => this.id() !== undefined && !isPositiveId(this.id()),
+  );
   /** Admins can't change their own role (they could lock themselves out). */
-  protected readonly editingSelf = computed(() => this.id() !== undefined && this.id() === this.session.user()?.id);
+  protected readonly editingSelf = computed(
+    () => this.id() !== undefined && this.id() === this.session.user()?.id,
+  );
 
-  protected readonly existing = createLoader(() => {
-    const id = this.id();
-    return id === undefined || !isPositiveId(id) ? of(null) : this.userApi.get(id);
-  }, { lazy: true });
+  protected readonly existing = createLoader(
+    () => {
+      const id = this.id();
+      return id === undefined || !isPositiveId(id) ? of(null) : this.userApi.get(id);
+    },
+    { lazy: true },
+  );
   protected readonly centers = createLoader(() => this.centerApi.list(), { lazy: true });
 
   /** Centres in the chosen district, project and sector. */
@@ -171,7 +179,9 @@ export class UserFormPage implements HasUnsavedChanges {
       const depth = this.depth();
       const needsCenter = this.needsCenter();
       untracked(() => {
-        LOCATION_KEYS.forEach((key, index) => this.configure(this.form.controls[key], index < depth));
+        LOCATION_KEYS.forEach((key, index) =>
+          this.configure(this.form.controls[key], index < depth),
+        );
         this.configure(this.form.controls.anganwadi_id, needsCenter);
         if (needsCenter && !this.centers.data() && !this.centers.loading()) this.centers.reload();
       });
@@ -241,7 +251,9 @@ export class UserFormPage implements HasUnsavedChanges {
           this.saving.set(false);
           this.saved = true;
           this.form.markAsPristine();
-          this.notify.success(id === undefined ? 'admin.users.added' : 'admin.users.saved', { name: input.name });
+          this.notify.success(id === undefined ? 'admin.users.added' : 'admin.users.saved', {
+            name: input.name,
+          });
           void this.router.navigate(['/admin/users']);
         },
         error: (error: unknown) => {

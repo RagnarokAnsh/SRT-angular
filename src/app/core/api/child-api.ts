@@ -59,7 +59,9 @@ export class ChildApi {
 
   /** The children of one centre. Filtered here because the API does not filter (see AUDIT C2). */
   listForCenter(anganwadiId: number): Observable<Child[]> {
-    return this.list().pipe(map((children) => children.filter((c) => c.anganwadiId === anganwadiId)));
+    return this.list().pipe(
+      map((children) => children.filter((c) => c.anganwadiId === anganwadiId)),
+    );
   }
 
   get(id: number): Observable<Child> {

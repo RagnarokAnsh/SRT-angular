@@ -18,7 +18,10 @@ export interface Loader<T> {
  * Loading/error/data signals for one request, created in an injection context
  * (component field initialiser). Starts immediately unless `lazy` is set.
  */
-export function createLoader<T>(fetch: () => Observable<T>, options: { lazy?: boolean } = {}): Loader<T> {
+export function createLoader<T>(
+  fetch: () => Observable<T>,
+  options: { lazy?: boolean } = {},
+): Loader<T> {
   const destroyRef = inject(DestroyRef);
   const data = signal<T | undefined>(undefined);
   const error = signal<AppError | null>(null);

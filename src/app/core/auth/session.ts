@@ -39,7 +39,9 @@ export class SessionStore {
 
   readonly token = this.tokenSignal.asReadonly();
   readonly user = this.userSignal.asReadonly();
-  readonly isAuthenticated = computed(() => this.tokenSignal() !== null && this.userSignal() !== null);
+  readonly isAuthenticated = computed(
+    () => this.tokenSignal() !== null && this.userSignal() !== null,
+  );
 
   readonly roles = computed<RoleName[]>(() =>
     (this.userSignal()?.roles ?? [])

@@ -24,8 +24,11 @@ const ICONS: Partial<Record<AppError['kind'], string>> = {
     <app-state-message
       tone="error"
       [icon]="icon()"
-      [title]="(title() || 'errors.loadFailedTitle') | transloco"
-      [message]="(error().messageKey | transloco) + (error().serverMessage ? ' (' + error().serverMessage + ')' : '')"
+      [title]="title() || 'errors.loadFailedTitle' | transloco"
+      [message]="
+        (error().messageKey | transloco) +
+        (error().serverMessage ? ' (' + error().serverMessage + ')' : '')
+      "
     >
       @if (canRetry()) {
         <button mat-flat-button type="button" (click)="retry.emit()">

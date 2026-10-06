@@ -116,6 +116,11 @@ export function formatIsoDate(
   const options: Intl.DateTimeFormatOptions =
     style === 'short'
       ? { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }
-      : { day: 'numeric', month: style === 'long' ? 'long' : 'short', year: 'numeric', timeZone: 'UTC' };
+      : {
+          day: 'numeric',
+          month: style === 'long' ? 'long' : 'short',
+          year: 'numeric',
+          timeZone: 'UTC',
+        };
   return new Intl.DateTimeFormat(locale, options).format(utc);
 }

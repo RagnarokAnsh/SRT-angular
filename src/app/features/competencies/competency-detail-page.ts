@@ -23,7 +23,11 @@ import { domainColors } from '@core/catalog/framework';
 import { activityVideos, competencyImage } from '@core/catalog/media';
 import { createLoader } from '@shared/loader';
 import { scrollToElement } from '@shared/scroll';
-import { CompetencyDescriptionPipe, CompetencyNamePipe, DomainNamePipe } from '@shared/pipes/catalog-pipes';
+import {
+  CompetencyDescriptionPipe,
+  CompetencyNamePipe,
+  DomainNamePipe,
+} from '@shared/pipes/catalog-pipes';
 import { ErrorState } from '@shared/ui/error-state';
 import { PageHeader } from '@shared/ui/page-header';
 import { Skeleton } from '@shared/ui/skeleton';

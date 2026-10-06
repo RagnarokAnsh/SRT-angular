@@ -4,7 +4,9 @@ describe('chunk reload', () => {
   beforeEach(() => sessionStorage.clear());
 
   it('recognises missing-chunk errors from each browser', () => {
-    expect(isChunkLoadError(new TypeError('Failed to fetch dynamically imported module: /chunk-1.js'))).toBe(true);
+    expect(
+      isChunkLoadError(new TypeError('Failed to fetch dynamically imported module: /chunk-1.js')),
+    ).toBe(true);
     expect(isChunkLoadError(new TypeError('Importing a module script failed.'))).toBe(true);
     expect(isChunkLoadError(new Error('error loading dynamically imported module'))).toBe(true);
     expect(isChunkLoadError(new Error('Cannot read properties of undefined'))).toBe(false);

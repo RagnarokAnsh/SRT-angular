@@ -120,8 +120,10 @@ function apiChild(data: DemoData, child: DbChild) {
 function validateChild(data: DemoData, body: Body): Record<string, string> {
   const errors: Record<string, string> = {};
   if (!str(body['name'])) errors['name'] = 'The name field is required.';
-  if (!isValidIsoDate(body['date_of_birth'])) errors['date_of_birth'] = 'The date of birth is not a valid date.';
-  if (!CHILD_GENDERS.includes(str(body['gender']))) errors['gender'] = 'The selected gender is invalid.';
+  if (!isValidIsoDate(body['date_of_birth']))
+    errors['date_of_birth'] = 'The date of birth is not a valid date.';
+  if (!CHILD_GENDERS.includes(str(body['gender'])))
+    errors['gender'] = 'The selected gender is invalid.';
   if (num(body['height_cm']) === null) errors['height_cm'] = 'The height must be a number.';
   if (num(body['weight_kg']) === null) errors['weight_kg'] = 'The weight must be a number.';
   if (!data.centers.some((c) => c.id === num(body['anganwadi_id']))) {
@@ -188,7 +190,8 @@ function validateCenter(data: DemoData, body: Body, id?: number): Record<string,
     errors['code'] = 'The code has already been taken.';
   }
   for (const field of ['country_id', 'state_id', 'district_id']) {
-    if (num(body[field]) === null) errors[field] = `The ${field.replace('_id', '')} field is required.`;
+    if (num(body[field]) === null)
+      errors[field] = `The ${field.replace('_id', '')} field is required.`;
   }
   return errors;
 }
@@ -269,7 +272,10 @@ const routes: Route[] = [
       if (index < 0) return notFound();
       const errors = validateChild(data, body);
       if (Object.keys(errors).length) return invalid(errors);
-      data.children[index] = { id: data.children[index].id, ...childFromBody(body, data.children[index]) };
+      data.children[index] = {
+        id: data.children[index].id,
+        ...childFromBody(body, data.children[index]),
+      };
       db.save();
       return ok(apiChild(data, data.children[index]));
     },
@@ -300,7 +306,8 @@ const routes: Route[] = [
           const row: Record<string, unknown> = { name: c.name, gender: c.gender, child_id: c.id };
           for (let n = 1; n <= 4; n++) {
             const record = data.assessments.find(
-              (a) => a.child_id === c.id && a.competency_id === competencyId && a.attempt_number === n,
+              (a) =>
+                a.child_id === c.id && a.competency_id === competencyId && a.attempt_number === n,
             );
             row[`session_${n}`] = record
               ? {
@@ -323,7 +330,9 @@ const routes: Route[] = [
     pattern: /^\/assessments\/$/,
     access: 'user',
     handle: ({ db, data, body }) => {
-      const children = Array.isArray(body['children']) ? (body['children'] as unknown[]).map(num) : [];
+      const children = Array.isArray(body['children'])
+        ? (body['children'] as unknown[]).map(num)
+        : [];
       const attempt = num(body['attempt_number']);
       const errors: Record<string, string> = {};
       if (!children.length || children.some((id) => !data.children.some((c) => c.id === id))) {
@@ -332,13 +341,21 @@ const routes: Route[] = [
       if (!data.competencies.some((c) => c.id === num(body['competency_id']))) {
         errors['competency_id'] = 'The selected competency is invalid.';
       }
-      if (!LEVELS.includes(str(body['observation']))) errors['observation'] = 'The observation is invalid.';
-      if (attempt === null || attempt < 1 || attempt > 4) errors['attempt_number'] = 'The attempt number must be between 1 and 4.';
-      if (!isValidIsoDate(body['assessment_date'])) errors['assessment_date'] = 'The assessment date is invalid.';
+      if (!LEVELS.includes(str(body['observation'])))
+        errors['observation'] = 'The observation is invalid.';
+      if (attempt === null || attempt < 1 || attempt > 4)
+        errors['attempt_number'] = 'The attempt number must be between 1 and 4.';
+      if (!isValidIsoDate(body['assessment_date']))
+        errors['assessment_date'] = 'The assessment date is invalid.';
       if (Object.keys(errors).length) return invalid(errors);
       for (const childId of children as number[]) {
         data.assessments = data.assessments.filter(
-          (a) => !(a.child_id === childId && a.competency_id === num(body['competency_id']) && a.attempt_number === attempt),
+          (a) =>
+            !(
+              a.child_id === childId &&
+              a.competency_id === num(body['competency_id']) &&
+              a.attempt_number === attempt
+            ),
         );
         data.assessments.push({
           id: db.nextId(data.assessments),
@@ -360,7 +377,12 @@ const routes: Route[] = [
     },
   },
   // Anganwadi centres
-  { method: 'GET', pattern: /^\/anganwadi-centers$/, access: 'user', handle: ({ data }) => ok(data.centers) },
+  {
+    method: 'GET',
+    pattern: /^\/anganwadi-centers$/,
+    access: 'user',
+    handle: ({ data }) => ok(data.centers),
+  },
   {
     method: 'GET',
     pattern: /^\/anganwadi-centers\/(\d+)$/,
@@ -411,7 +433,12 @@ const routes: Route[] = [
     },
   },
   // Locations
-  { method: 'GET', pattern: /^\/countries$/, access: 'user', handle: ({ data }) => ok(data.countries) },
+  {
+    method: 'GET',
+    pattern: /^\/countries$/,
+    access: 'user',
+    handle: ({ data }) => ok(data.countries),
+  },
   {
     method: 'GET',
     pattern: /^\/states\/(\d+)$/,
@@ -422,7 +449,8 @@ const routes: Route[] = [
     method: 'GET',
     pattern: /^\/districts\/(\d+)$/,
     access: 'user',
-    handle: ({ data, params }) => ok(data.districts.filter((d) => d.state_id === Number(params[0]))),
+    handle: ({ data, params }) =>
+      ok(data.districts.filter((d) => d.state_id === Number(params[0]))),
   },
   {
     method: 'GET',
@@ -434,10 +462,16 @@ const routes: Route[] = [
     method: 'GET',
     pattern: /^\/sectors\/(\d+)\/(.+)$/,
     access: 'user',
-    handle: ({ data, params }) => ok(data.sectors[`${params[0]}|${decodeURIComponent(params[1])}`] ?? []),
+    handle: ({ data, params }) =>
+      ok(data.sectors[`${params[0]}|${decodeURIComponent(params[1])}`] ?? []),
   },
   // Users (admin only)
-  { method: 'GET', pattern: /^\/users$/, access: 'admin', handle: ({ data }) => ok(data.users.map((u) => apiUser(data, u))) },
+  {
+    method: 'GET',
+    pattern: /^\/users$/,
+    access: 'admin',
+    handle: ({ data }) => ok(data.users.map((u) => apiUser(data, u))),
+  },
   {
     method: 'GET',
     pattern: /^\/users\/(\d+)$/,
@@ -481,7 +515,8 @@ const routes: Route[] = [
     access: 'admin',
     handle: ({ db, data, params, user }) => {
       const id = Number(params[0]);
-      if (user?.id === id) return { status: 403, body: { message: 'You cannot delete your own account.' } };
+      if (user?.id === id)
+        return { status: 403, body: { message: 'You cannot delete your own account.' } };
       if (!data.users.some((u) => u.id === id)) return notFound();
       data.users = data.users.filter((u) => u.id !== id);
       db.save();
@@ -490,7 +525,11 @@ const routes: Route[] = [
   },
 ];
 
-function respond(req: HttpRequest<unknown>, result: Result, latency: number): Observable<HttpEvent<unknown>> {
+function respond(
+  req: HttpRequest<unknown>,
+  result: Result,
+  latency: number,
+): Observable<HttpEvent<unknown>> {
   return timer(latency).pipe(
     mergeMap(() =>
       result.status >= 400
@@ -521,7 +560,9 @@ export const mockBackendInterceptor: HttpInterceptorFn = (req, next) => {
   if (db.offline()) {
     return timer(600).pipe(
       mergeMap(() =>
-        throwError(() => new HttpErrorResponse({ status: 0, statusText: 'Unknown Error', url: req.url })),
+        throwError(
+          () => new HttpErrorResponse({ status: 0, statusText: 'Unknown Error', url: req.url }),
+        ),
       ),
     );
   }
@@ -537,7 +578,11 @@ export const mockBackendInterceptor: HttpInterceptorFn = (req, next) => {
     user = db.data.users.find((u) => u.id === userId) ?? null;
     if (!user) return respond(req, { status: 401, body: { message: 'Unauthenticated.' } }, latency);
     if (route.access === 'admin' && user.role !== 'admin') {
-      return respond(req, { status: 403, body: { message: 'This action is unauthorized.' } }, latency);
+      return respond(
+        req,
+        { status: 403, body: { message: 'This action is unauthorized.' } },
+        latency,
+      );
     }
   }
 

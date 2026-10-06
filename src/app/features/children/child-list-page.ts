@@ -58,7 +58,9 @@ export class ChildListPage {
 
   protected readonly loader = createLoader(() => {
     const centerId = this.ownCenterId();
-    return this.isWorker() && centerId !== null ? this.api.listForCenter(centerId) : this.api.list();
+    return this.isWorker() && centerId !== null
+      ? this.api.listForCenter(centerId)
+      : this.api.list();
   });
 
   protected readonly query = signal('');
@@ -69,7 +71,8 @@ export class ChildListPage {
   protected readonly centers = computed(() => {
     const byId = new Map<number, string>();
     for (const child of this.loader.data() ?? []) {
-      if (child.anganwadiId !== null) byId.set(child.anganwadiId, child.centerName ?? `#${child.anganwadiId}`);
+      if (child.anganwadiId !== null)
+        byId.set(child.anganwadiId, child.centerName ?? `#${child.anganwadiId}`);
     }
     return [...byId.entries()]
       .map(([id, name]) => ({ id, name }))

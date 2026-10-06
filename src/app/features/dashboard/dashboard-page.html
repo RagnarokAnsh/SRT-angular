@@ -3,7 +3,13 @@
     <span pageTitle>{{ 'dashboard.title' | transloco }}</span>
     <span pageSubtitle>{{ centerName() ?? ('dashboard.subtitle' | transloco) }}</span>
     @if (data()) {
-      <button pageActions mat-stroked-button type="button" [disabled]="exporting()" (click)="export()">
+      <button
+        pageActions
+        mat-stroked-button
+        type="button"
+        [disabled]="exporting()"
+        (click)="export()"
+      >
         <mat-icon svgIcon="excel" aria-hidden="true" />
         {{ (exporting() ? 'dashboard.exporting' : 'dashboard.export.button') | transloco }}
       </button>
@@ -45,7 +51,10 @@
             <span class="kpi__label">{{ 'dashboard.sessionsRecorded' | transloco }}</span>
             <span class="kpi__value">{{ o.sessionsDone }}</span>
             <span class="kpi__detail">
-              {{ 'dashboard.sessionsOf' | transloco: { total: o.sessionsPossible, percent: o.sessionsPercent } }}
+              {{
+                'dashboard.sessionsOf'
+                  | transloco: { total: o.sessionsPossible, percent: o.sessionsPercent }
+              }}
             </span>
             <span
               class="meter"
@@ -62,7 +71,9 @@
             <span class="kpi__label">{{ 'dashboard.schoolReady' | transloco }}</span>
             <span class="kpi__value">{{ o.readyPercent }}%</span>
             <span class="kpi__detail">
-              {{ 'dashboard.readyOf' | transloco: { count: o.counts.schoolReady, total: o.results } }}
+              {{
+                'dashboard.readyOf' | transloco: { count: o.counts.schoolReady, total: o.results }
+              }}
             </span>
           </div>
         </section>
@@ -78,7 +89,10 @@
         <div class="filters">
           <mat-form-field class="filters__domain">
             <mat-label>{{ 'dashboard.filterDomain' | transloco }}</mat-label>
-            <mat-select [value]="domainFilter() ?? 0" (selectionChange)="domainFilter.set($event.value || null)">
+            <mat-select
+              [value]="domainFilter() ?? 0"
+              (selectionChange)="domainFilter.set($event.value || null)"
+            >
               <mat-option [value]="0">{{ 'dashboard.allDomains' | transloco }}</mat-option>
               @for (domain of data()!.domains; track domain.id) {
                 <mat-option [value]="domain.id">{{ domain | domainName }}</mat-option>
@@ -86,7 +100,9 @@
             </mat-select>
           </mat-form-field>
           <div class="filters__session">
-            <span class="filters__label" id="session-filter-label">{{ 'dashboard.filterSession' | transloco }}</span>
+            <span class="filters__label" id="session-filter-label">{{
+              'dashboard.filterSession' | transloco
+            }}</span>
             <mat-button-toggle-group
               [value]="sessionFilter()"
               (change)="sessionFilter.set($event.value)"
@@ -105,12 +121,25 @@
         <section class="chart surface-card" aria-labelledby="chart-title">
           <div class="chart__head">
             <div>
-              <h2 id="chart-title" class="chart__title">{{ 'dashboard.chartTitle' | transloco }}</h2>
+              <h2 id="chart-title" class="chart__title">
+                {{ 'dashboard.chartTitle' | transloco }}
+              </h2>
               <p class="chart__subtitle">
-                {{ (sessionFilter() === 'latest' ? 'dashboard.chartLatest' : 'dashboard.chartSession') | transloco: { session: sessionLabel(sessionFilter()) } }}
+                {{
+                  (sessionFilter() === 'latest'
+                    ? 'dashboard.chartLatest'
+                    : 'dashboard.chartSession'
+                  ) | transloco: { session: sessionLabel(sessionFilter()) }
+                }}
               </p>
             </div>
-            <button mat-button type="button" class="chart__toggle" [attr.aria-pressed]="showTable()" (click)="showTable.set(!showTable())">
+            <button
+              mat-button
+              type="button"
+              class="chart__toggle"
+              [attr.aria-pressed]="showTable()"
+              (click)="showTable.set(!showTable())"
+            >
               <mat-icon [svgIcon]="showTable() ? 'chart' : 'notes'" aria-hidden="true" />
               {{ (showTable() ? 'dashboard.showChart' : 'dashboard.showTable') | transloco }}
             </button>
@@ -118,20 +147,35 @@
 
           <ul class="legend" [attr.aria-label]="'dashboard.legend' | transloco">
             @for (level of levels; track level) {
-              <li><span class="legend__swatch" [style.background]="'var(--chart-level-' + level + ')'"></span>{{ 'levels.' + level + '.label' | transloco }}</li>
+              <li>
+                <span
+                  class="legend__swatch"
+                  [style.background]="'var(--chart-level-' + level + ')'"
+                ></span
+                >{{ 'levels.' + level + '.label' | transloco }}
+              </li>
             }
-            <li><span class="legend__swatch" style="background: var(--chart-none)"></span>{{ 'dashboard.notAssessed' | transloco }}</li>
+            <li>
+              <span class="legend__swatch" style="background: var(--chart-none)"></span
+              >{{ 'dashboard.notAssessed' | transloco }}
+            </li>
           </ul>
 
           @if (showTable()) {
             <div class="table-wrap">
               <table class="data-table">
-                <caption class="visually-hidden">{{ 'dashboard.chartTitle' | transloco }}</caption>
+                <caption class="visually-hidden">
+                  {{
+                    'dashboard.chartTitle' | transloco
+                  }}
+                </caption>
                 <thead>
                   <tr>
                     <th scope="col">{{ 'dashboard.table.competency' | transloco }}</th>
                     @for (level of levels; track level) {
-                      <th scope="col" class="num">{{ 'levels.' + level + '.label' | transloco }}</th>
+                      <th scope="col" class="num">
+                        {{ 'levels.' + level + '.label' | transloco }}
+                      </th>
                     }
                     <th scope="col" class="num">{{ 'dashboard.notAssessed' | transloco }}</th>
                     <th scope="col" class="num">{{ 'dashboard.table.total' | transloco }}</th>
@@ -154,7 +198,11 @@
           } @else {
             @for (group of groups(); track group.domainId) {
               <h3 class="group__title">
-                <span class="group__swatch" [style.background]="group.color" aria-hidden="true"></span>
+                <span
+                  class="group__swatch"
+                  [style.background]="group.color"
+                  aria-hidden="true"
+                ></span>
                 {{ group.domain | domainName }}
               </h3>
               <ul class="rows">
@@ -169,9 +217,15 @@
                     >
                       <span class="row__name">{{ row.competency | competencyName }}</span>
                       <span class="row__meta">
-                        {{ 'dashboard.assessedOf' | transloco: { assessed: row.total - row.notAssessed, total: row.total } }}
+                        {{
+                          'dashboard.assessedOf'
+                            | transloco: { assessed: row.total - row.notAssessed, total: row.total }
+                        }}
                       </span>
-                      <mat-icon [svgIcon]="expanded() === row.competency.id ? 'chevron-up' : 'chevron-down'" aria-hidden="true" />
+                      <mat-icon
+                        [svgIcon]="expanded() === row.competency.id ? 'chevron-up' : 'chevron-down'"
+                        aria-hidden="true"
+                      />
                     </button>
                     <div class="bar" role="img" [attr.aria-label]="barLabel(row)">
                       @for (segment of segments(row); track segment.key) {

@@ -125,6 +125,8 @@ export class OfficialHomePage {
     ];
     return items
       .slice(0, depth)
-      .filter((item): item is { key: string; value: string } => !!item.value && item.value.trim() !== '');
+      .filter(
+        (item): item is { key: string; value: string } => !!item.value && item.value.trim() !== '',
+      );
   });
 }

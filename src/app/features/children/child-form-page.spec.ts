@@ -29,12 +29,18 @@ const input = (name: string, dateOfBirth: string): ChildInput => ({
 
 describe('isSameChild', () => {
   it('matches the same name (ignoring case and spaces) and date of birth', () => {
-    expect(isSameChild(child('Aarav  Kumar', '2021-03-14'), input(' aarav kumar', '2021-03-14'))).toBe(true);
+    expect(
+      isSameChild(child('Aarav  Kumar', '2021-03-14'), input(' aarav kumar', '2021-03-14')),
+    ).toBe(true);
   });
 
   it('does not match a different date of birth or name', () => {
-    expect(isSameChild(child('Aarav Kumar', '2021-03-15'), input('Aarav Kumar', '2021-03-14'))).toBe(false);
-    expect(isSameChild(child('Aarav', '2021-03-14'), input('Aarav Kumar', '2021-03-14'))).toBe(false);
+    expect(
+      isSameChild(child('Aarav Kumar', '2021-03-15'), input('Aarav Kumar', '2021-03-14')),
+    ).toBe(false);
+    expect(isSameChild(child('Aarav', '2021-03-14'), input('Aarav Kumar', '2021-03-14'))).toBe(
+      false,
+    );
     expect(isSameChild(child('Aarav Kumar', null), input('Aarav Kumar', '2021-03-14'))).toBe(false);
   });
 });

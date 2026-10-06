@@ -6,7 +6,12 @@ import { TEST_API, setupHttpTesting } from '../../../testing/http';
 import type { ApiCompetency } from '../models/competency';
 import { CompetencyApi } from './competency-api';
 
-function apiCompetency(id: number, name: string, domainId: number, domainName: string): ApiCompetency {
+function apiCompetency(
+  id: number,
+  name: string,
+  domainId: number,
+  domainName: string,
+): ApiCompetency {
   return {
     id,
     name,

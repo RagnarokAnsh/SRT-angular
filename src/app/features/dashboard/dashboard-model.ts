@@ -61,15 +61,34 @@ export function competencyRow(
     else other++;
     return { child: p.child, result };
   });
-  return { competency, domain, counts, other, notAssessed, total: children.length, children: results, progress };
+  return {
+    competency,
+    domain,
+    counts,
+    other,
+    notAssessed,
+    total: children.length,
+    children: results,
+    progress,
+  };
 }
 
-export function buildRows(data: DashboardData, session: SessionFilter, domainId: number | null): CompetencyRow[] {
+export function buildRows(
+  data: DashboardData,
+  session: SessionFilter,
+  domainId: number | null,
+): CompetencyRow[] {
   return data.domains
     .filter((domain) => domainId === null || domain.id === domainId)
     .flatMap((domain) =>
       domain.competencies.map((competency) =>
-        competencyRow(competency, domain, data.children, data.records.get(competency.id) ?? [], session),
+        competencyRow(
+          competency,
+          domain,
+          data.children,
+          data.records.get(competency.id) ?? [],
+          session,
+        ),
       ),
     );
 }

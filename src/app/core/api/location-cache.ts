@@ -30,7 +30,9 @@ export class LocationCache {
   }
 
   sectors(districtId: number, project: string): Observable<string[]> {
-    return this.cached(`sectors:${districtId}:${project}`, () => this.api.sectors(districtId, project));
+    return this.cached(`sectors:${districtId}:${project}`, () =>
+      this.api.sectors(districtId, project),
+    );
   }
 
   clear(): void {

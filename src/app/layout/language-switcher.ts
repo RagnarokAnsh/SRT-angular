@@ -21,8 +21,12 @@ import { NotifyService } from '@core/notify/notify';
       [attr.aria-label]="('language.change' | transloco) + ': ' + language.info().label"
     >
       <mat-icon svgIcon="language" aria-hidden="true" />
-      <span class="label label--full" [attr.lang]="language.current()">{{ language.info().label }}</span>
-      <span class="label label--short" [attr.lang]="language.current()">{{ language.info().short }}</span>
+      <span class="label label--full" [attr.lang]="language.current()">{{
+        language.info().label
+      }}</span>
+      <span class="label label--short" [attr.lang]="language.current()">{{
+        language.info().short
+      }}</span>
     </button>
     <mat-menu #menu="matMenu" xPosition="before">
       @for (lang of language.languages; track lang.code) {
@@ -34,7 +38,10 @@ import { NotifyService } from '@core/notify/notify';
           [attr.lang]="lang.code"
           (click)="switchTo(lang.code)"
         >
-          <mat-icon [svgIcon]="lang.code === language.current() ? 'check' : 'circle'" aria-hidden="true" />
+          <mat-icon
+            [svgIcon]="lang.code === language.current() ? 'check' : 'circle'"
+            aria-hidden="true"
+          />
           <span>{{ lang.label }}</span>
         </button>
       }

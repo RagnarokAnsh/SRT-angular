@@ -65,7 +65,9 @@ describe('ChildApi', () => {
 
   it('filters children by centre on the client', async () => {
     const result = firstValueFrom(api.listForCenter(2));
-    http.expectOne(`${TEST_API}/children`).flush([apiChild, { ...apiChild, id: 4, anganwadi_id: 2 }]);
+    http
+      .expectOne(`${TEST_API}/children`)
+      .flush([apiChild, { ...apiChild, id: 4, anganwadi_id: 2 }]);
     expect((await result).map((c) => c.id)).toEqual([4]);
   });
 

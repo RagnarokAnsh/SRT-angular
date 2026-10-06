@@ -30,7 +30,13 @@ import { applyServerErrors, validateAndFocus } from '@shared/forms/form-utils';
 import { LocationCascade } from '@shared/forms/location-cascade';
 import { LocationFields } from '@shared/forms/location-fields';
 import { ValidationMessagePipe } from '@shared/forms/validation-message-pipe';
-import { centerCode, isPositiveId, minTextLength, plainText, requiredText } from '@shared/forms/validators';
+import {
+  centerCode,
+  isPositiveId,
+  minTextLength,
+  plainText,
+  requiredText,
+} from '@shared/forms/validators';
 import { createLoader } from '@shared/loader';
 import type { HasUnsavedChanges } from '@shared/unsaved-changes-guard';
 import { ErrorState } from '@shared/ui/error-state';
@@ -71,7 +77,8 @@ export class CenterFormPage implements HasUnsavedChanges {
 
   /** Route parameter; absent when adding a centre. */
   readonly id = input<number | undefined, unknown>(undefined, {
-    transform: (value: unknown) => (value === undefined || value === null ? undefined : Number(value)),
+    transform: (value: unknown) =>
+      value === undefined || value === null ? undefined : Number(value),
   });
 
   protected readonly limits = CENTER_LIMITS;
@@ -81,7 +88,10 @@ export class CenterFormPage implements HasUnsavedChanges {
   private saved = false;
 
   protected readonly form = inject(NonNullableFormBuilder).group({
-    name: ['', [requiredText, minTextLength(2), Validators.maxLength(CENTER_LIMITS.nameMax), plainText]],
+    name: [
+      '',
+      [requiredText, minTextLength(2), Validators.maxLength(CENTER_LIMITS.nameMax), plainText],
+    ],
     code: ['', [requiredText, Validators.maxLength(CENTER_LIMITS.codeMax), centerCode]],
     country_id: [null as number | null, Validators.required],
     state_id: [null as number | null, Validators.required],
@@ -96,12 +106,17 @@ export class CenterFormPage implements HasUnsavedChanges {
     this.destroyRef,
   );
 
-  protected readonly invalidId = computed(() => this.id() !== undefined && !isPositiveId(this.id()));
+  protected readonly invalidId = computed(
+    () => this.id() !== undefined && !isPositiveId(this.id()),
+  );
 
-  protected readonly existing = createLoader(() => {
-    const id = this.id();
-    return id === undefined || !isPositiveId(id) ? of(null) : this.api.get(id);
-  }, { lazy: true });
+  protected readonly existing = createLoader(
+    () => {
+      const id = this.id();
+      return id === undefined || !isPositiveId(id) ? of(null) : this.api.get(id);
+    },
+    { lazy: true },
+  );
 
   constructor() {
     effect(() => {

@@ -1,11 +1,17 @@
 <div class="page page--narrow">
   <app-page-header backLink="/admin/centers" [backLabel]="'admin.centers.title' | transloco">
-    <span pageTitle>{{ (isEdit() ? 'admin.centers.editTitle' : 'admin.centers.addTitle') | transloco }}</span>
+    <span pageTitle>{{
+      (isEdit() ? 'admin.centers.editTitle' : 'admin.centers.addTitle') | transloco
+    }}</span>
     <span pageSubtitle>{{ 'childForm.subtitle' | transloco }}</span>
   </app-page-header>
 
   @if (invalidId()) {
-    <app-state-message icon="not-found" [title]="'notFound.heading' | transloco" [message]="'notFound.message' | transloco" />
+    <app-state-message
+      icon="not-found"
+      [title]="'notFound.heading' | transloco"
+      [message]="'notFound.message' | transloco"
+    />
   } @else if (existing.error(); as error) {
     <app-error-state [error]="error" (retry)="existing.reload()" />
   } @else if (isEdit() && existing.loading()) {
@@ -24,7 +30,12 @@
         <div class="form-grid">
           <mat-form-field>
             <mat-label>{{ 'admin.centers.name' | transloco }}</mat-label>
-            <input matInput formControlName="name" autocomplete="off" [maxlength]="limits.nameMax" />
+            <input
+              matInput
+              formControlName="name"
+              autocomplete="off"
+              [maxlength]="limits.nameMax"
+            />
             <mat-error>{{ form.controls.name.errors | validationMessage }}</mat-error>
           </mat-form-field>
           <mat-form-field>
@@ -58,7 +69,10 @@
           } @else {
             <mat-icon svgIcon="check" aria-hidden="true" />
           }
-          {{ (saving() ? 'childForm.saving' : isEdit() ? 'childForm.save' : 'admin.centers.add') | transloco }}
+          {{
+            (saving() ? 'childForm.saving' : isEdit() ? 'childForm.save' : 'admin.centers.add')
+              | transloco
+          }}
         </button>
       </div>
     </form>

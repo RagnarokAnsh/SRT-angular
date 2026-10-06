@@ -12,7 +12,10 @@ export function isChunkLoadError(error: unknown): boolean {
  * After a new version is deployed, an open tab may ask for files that were replaced.
  * Reload once to pick up the new version; never loop if the reload doesn't help.
  */
-export function reloadOnceForNewVersion(win: Window | null | undefined, targetUrl?: string): boolean {
+export function reloadOnceForNewVersion(
+  win: Window | null | undefined,
+  targetUrl?: string,
+): boolean {
   if (!win) return false;
   try {
     if (win.sessionStorage.getItem(RELOAD_FLAG)) return false;

@@ -64,5 +64,7 @@ export const FRAMEWORK_COMPETENCY_COUNT = FRAMEWORK.reduce(
 /** Colours for a domain, by slug; unknown domains get a neutral pair. */
 export function domainColors(slug: string): { color: string; tint: string } {
   const domain = FRAMEWORK.find((d) => d.slug === slug);
-  return domain ? { color: domain.color, tint: domain.tint } : { color: '#5f6672', tint: '#e5e7eb' };
+  return domain
+    ? { color: domain.color, tint: domain.tint }
+    : { color: '#5f6672', tint: '#e5e7eb' };
 }

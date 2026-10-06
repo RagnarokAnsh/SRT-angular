@@ -57,7 +57,10 @@ describe('SessionStore', () => {
 
   it('picks the highest role as primary and finds the centre id', () => {
     const session = create();
-    session.start(validToken(), testUser(['aww', 'supervisor'], { anganwadi_id: null, anganwadi: { id: 9 } as never }));
+    session.start(
+      validToken(),
+      testUser(['aww', 'supervisor'], { anganwadi_id: null, anganwadi: { id: 9 } as never }),
+    );
     expect(session.primaryRole()).toBe('supervisor');
     expect(session.hasAnyRole('aww')).toBe(true);
     expect(session.anganwadiId()).toBe(9);

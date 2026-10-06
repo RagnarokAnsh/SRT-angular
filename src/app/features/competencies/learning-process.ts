@@ -14,7 +14,11 @@ import { LEVELS } from '@core/models/level';
   template: `
     <ol class="steps">
       @for (step of steps(); track step.level; let i = $index) {
-        <li class="step" [style.--step-color]="'var(--level-' + step.level + ')'" [style.--step]="i">
+        <li
+          class="step"
+          [style.--step-color]="'var(--level-' + step.level + ')'"
+          [style.--step]="i"
+        >
           <span class="step__marker" aria-hidden="true">{{ i + 1 }}</span>
           <div class="step__body">
             <h3 class="step__title">{{ 'levels.' + step.level + '.label' | transloco }}</h3>
@@ -91,7 +95,9 @@ export class LearningProcess {
     const known = isKnownCompetency(this.slug());
     return LEVELS.map((level) => ({
       level,
-      key: known ? `catalog.competencies.${this.slug()}.levels.${level}` : `levels.${level}.generic`,
+      key: known
+        ? `catalog.competencies.${this.slug()}.levels.${level}`
+        : `levels.${level}.generic`,
     }));
   });
 }
