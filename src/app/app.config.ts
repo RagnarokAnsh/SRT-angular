@@ -5,7 +5,7 @@ import { provideHttpClient, withInterceptors, HTTP_INTERCEPTORS } from '@angular
 import { HttpRequest, HttpHandlerFn } from '@angular/common/http';
 import { providePrimeNG } from 'primeng/config';
 import { MessageService } from 'primeng/api';
-import Lara from '@primeng/themes/lara';
+import Lara from '@primeuix/themes/lara';
 import { inject } from '@angular/core';
 
 import { routes } from './app.routes';
