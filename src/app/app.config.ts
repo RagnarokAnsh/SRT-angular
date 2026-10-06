@@ -2,7 +2,6 @@ import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { NGX_ECHARTS_CONFIG } from 'ngx-echarts';
 import { HttpRequest, HttpHandlerFn } from '@angular/common/http';
 import { providePrimeNG } from 'primeng/config';
 import { MessageService } from 'primeng/api';
@@ -61,12 +60,6 @@ export const appConfig: ApplicationConfig = {
     ErrorHandlerService,
     HttpService,
     PerformanceService,
-    UserService, // Ensure UserService is provided
-    {
-      provide: NGX_ECHARTS_CONFIG,
-      useValue: {
-        echarts: () => import('echarts')
-      }
-    }
+    UserService // Ensure UserService is provided
   ]
 };
