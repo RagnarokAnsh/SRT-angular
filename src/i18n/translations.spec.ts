@@ -1,4 +1,5 @@
 import { FRAMEWORK } from '@core/catalog/framework';
+import type { LanguageCode } from '@core/i18n/languages';
 import { ROLE_NAMES } from '@core/models/role';
 
 import en from './en.json';
@@ -21,25 +22,33 @@ function flatten(tree: Tree, prefix = ''): Record<string, string> {
 const placeholders = (text: string) =>
   [...text.matchAll(/{{\s*(\w+)\s*}}/g)].map((m) => m[1]).sort();
 
-const english = flatten(en as Tree);
-const hindi = flatten(hi as Tree);
+/** Every language file; a language added to `LANGUAGES` doesn't compile until it's listed. */
+const FILES: Record<LanguageCode, Tree> = { en: en as Tree, hi: hi as Tree };
+
+const languages = Object.entries(FILES).map(([code, tree]) => ({ code, texts: flatten(tree) }));
+const english = flatten(FILES.en);
+const allTexts = languages.flatMap(({ code, texts }) =>
+  Object.entries(texts).map(([key, text]) => ({ key: `${code}:${key}`, text })),
+);
 
 describe('translations', () => {
-  it('Hindi has exactly the same keys as English', () => {
-    expect(Object.keys(hindi).sort()).toEqual(Object.keys(english).sort());
-  });
+  for (const { code, texts } of languages.filter((l) => l.code !== 'en')) {
+    it(`${code} has exactly the same keys as English`, () => {
+      expect(Object.keys(texts).sort()).toEqual(Object.keys(english).sort());
+    });
 
-  it('uses the same placeholders in both languages', () => {
-    for (const [key, text] of Object.entries(english)) {
-      expect({ key, placeholders: placeholders(hindi[key] ?? '') }).toEqual({
-        key,
-        placeholders: placeholders(text),
-      });
-    }
-  });
+    it(`${code} uses the same placeholders as English`, () => {
+      for (const [key, text] of Object.entries(english)) {
+        expect({ key, placeholders: placeholders(texts[key] ?? '') }).toEqual({
+          key,
+          placeholders: placeholders(text),
+        });
+      }
+    });
+  }
 
   it('has no empty strings', () => {
-    for (const [key, text] of [...Object.entries(english), ...Object.entries(hindi)]) {
+    for (const { key, text } of allTexts) {
       expect({ key, empty: !text.trim() }).toEqual({ key, empty: false });
     }
   });
@@ -61,7 +70,7 @@ describe('translations', () => {
   });
 
   it('keeps wheel labels to at most two lines', () => {
-    for (const [key, text] of [...Object.entries(english), ...Object.entries(hindi)]) {
+    for (const { key, text } of allTexts) {
       if (key.endsWith('.wheel'))
         expect({ key, lines: text.split('\n').length <= 2 }).toEqual({ key, lines: true });
     }
