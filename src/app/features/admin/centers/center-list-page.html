@@ -1,0 +1,73 @@
+<div class="page">
+  <app-page-header>
+    <span pageTitle>{{ 'admin.centers.title' | transloco }}</span>
+    <span pageSubtitle>
+      @if (loader.data(); as all) {
+        {{ 'admin.centers.count' | plural: all.length }}
+      } @else {
+        {{ 'admin.centers.subtitle' | transloco }}
+      }
+    </span>
+    <a pageActions mat-flat-button routerLink="/admin/centers/new">
+      <mat-icon svgIcon="add" aria-hidden="true" />
+      {{ 'admin.centers.add' | transloco }}
+    </a>
+  </app-page-header>
+
+  @if (loader.error(); as error) {
+    <app-error-state [error]="error" (retry)="loader.reload()" />
+  } @else if (loader.loading() && !loader.data()) {
+    <app-skeleton variant="rows" [count]="6" />
+  } @else if (!(loader.data() ?? []).length) {
+    <app-state-message icon="center" [title]="'admin.centers.empty' | transloco">
+      <a mat-flat-button routerLink="/admin/centers/new">
+        <mat-icon svgIcon="add" aria-hidden="true" />
+        {{ 'admin.centers.add' | transloco }}
+      </a>
+    </app-state-message>
+  } @else {
+    <div class="toolbar">
+      <mat-form-field class="toolbar__search">
+        <mat-label>{{ 'admin.centers.search' | transloco }}</mat-label>
+        <mat-icon matPrefix svgIcon="search" aria-hidden="true" />
+        <input matInput type="search" [value]="query()" (input)="query.set($any($event.target).value)" />
+      </mat-form-field>
+    </div>
+
+    <ul class="list">
+      @for (row of visible(); track row.center.id) {
+        <li class="row">
+          <span class="avatar" aria-hidden="true"><mat-icon svgIcon="center" /></span>
+          <div class="row__main">
+            <span class="row__name">{{ row.center.name }}</span>
+            <span class="row__meta">{{ row.center.code }}</span>
+            @if (row.place) {
+              <span class="row__place">{{ row.place }}</span>
+            }
+          </div>
+          <div class="row__actions">
+            <a
+              mat-icon-button
+              [routerLink]="['/admin/centers', row.center.id, 'edit']"
+              [attr.aria-label]="'admin.centers.editLabel' | transloco: { name: row.center.name }"
+            >
+              <mat-icon svgIcon="edit" aria-hidden="true" />
+            </a>
+            <button
+              mat-icon-button
+              type="button"
+              class="row__delete"
+              [disabled]="deleting() === row.center.id"
+              [attr.aria-label]="'admin.centers.deleteLabel' | transloco: { name: row.center.name }"
+              (click)="remove(row.center)"
+            >
+              <mat-icon svgIcon="delete" aria-hidden="true" />
+            </button>
+          </div>
+        </li>
+      } @empty {
+        <li class="list__empty">{{ 'admin.centers.noMatch' | transloco }}</li>
+      }
+    </ul>
+  }
+</div>

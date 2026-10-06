@@ -48,3 +48,16 @@ export const ROLE_NAV: Record<RoleName, readonly NavItem[]> = {
     { path: '/children', labelKey: 'nav.children', icon: 'children' },
   ],
 };
+
+/**
+ * How much of the location each role is tied to (1 country … 5 sector), as the backend
+ * expects; workers are also linked to a centre.
+ */
+export const ROLE_LOCATION_DEPTH: Record<RoleName, number> = {
+  admin: 0,
+  stateofficial: 2,
+  dpo: 3,
+  cdpo: 4,
+  supervisor: 5,
+  aww: 5,
+};

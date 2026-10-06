@@ -1,0 +1,87 @@
+<div class="page">
+  <app-page-header>
+    <span pageTitle>{{ 'admin.users.title' | transloco }}</span>
+    <span pageSubtitle>
+      @if (loader.data(); as all) {
+        {{ 'admin.users.count' | plural: all.length }}
+      } @else {
+        {{ 'admin.users.subtitle' | transloco }}
+      }
+    </span>
+    <a pageActions mat-flat-button routerLink="/admin/users/new">
+      <mat-icon svgIcon="add" aria-hidden="true" />
+      {{ 'admin.users.add' | transloco }}
+    </a>
+  </app-page-header>
+
+  @if (loader.error(); as error) {
+    <app-error-state [error]="error" (retry)="loader.reload()" />
+  } @else if (loader.loading() && !loader.data()) {
+    <app-skeleton variant="rows" [count]="6" />
+  } @else {
+    <div class="toolbar">
+      <mat-form-field class="toolbar__search">
+        <mat-label>{{ 'admin.users.search' | transloco }}</mat-label>
+        <mat-icon matPrefix svgIcon="search" aria-hidden="true" />
+        <input matInput type="search" [value]="query()" (input)="query.set($any($event.target).value)" />
+      </mat-form-field>
+      <mat-form-field class="toolbar__filter">
+        <mat-label>{{ 'admin.users.role' | transloco }}</mat-label>
+        <mat-select [value]="roleFilter()" (selectionChange)="roleFilter.set($event.value)">
+          <mat-option value="">{{ 'admin.users.allRoles' | transloco }}</mat-option>
+          @for (role of roles; track role) {
+            <mat-option [value]="role">{{ 'roles.' + role | transloco }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <ul class="list">
+      @for (row of visible(); track row.user.id) {
+        <li class="row">
+          <span class="avatar" aria-hidden="true">{{ initials(row.user.name) }}</span>
+          <div class="row__main">
+            <span class="row__name">
+              {{ row.user.name }}
+              @if (row.user.id === currentUserId()) {
+                <span class="you">{{ 'admin.users.you' | transloco }}</span>
+              }
+            </span>
+            <span class="row__meta">{{ row.user.email }}</span>
+            <span class="row__tags">
+              @if (row.role; as role) {
+                <span class="tag">{{ 'roles.' + role | transloco }}</span>
+              }
+              @if (row.place) {
+                <span class="row__place">{{ row.place }}</span>
+              }
+            </span>
+          </div>
+          <div class="row__actions">
+            <a
+              mat-icon-button
+              [routerLink]="['/admin/users', row.user.id, 'edit']"
+              [attr.aria-label]="'admin.users.editLabel' | transloco: { name: row.user.name }"
+            >
+              <mat-icon svgIcon="edit" aria-hidden="true" />
+            </a>
+            @if (row.user.id !== currentUserId()) {
+              <button
+                mat-icon-button
+                type="button"
+                class="row__delete"
+                [disabled]="deleting() === row.user.id"
+                [attr.aria-label]="'admin.users.deleteLabel' | transloco: { name: row.user.name }"
+                (click)="remove(row.user)"
+              >
+                <mat-icon svgIcon="delete" aria-hidden="true" />
+              </button>
+            }
+          </div>
+        </li>
+      } @empty {
+        <li class="list__empty">{{ 'admin.users.noMatch' | transloco }}</li>
+      }
+    </ul>
+  }
+</div>

@@ -84,7 +84,8 @@
     "ageRange": "The child must be between {{min}} and {{max}} years old.",
     "decimal": "Enter a number with up to {{decimals}} decimal place(s).",
     "range": "Enter a value from {{min}} to {{max}}.",
-    "languageName": "Use letters and spaces only."
+    "languageName": "Use letters and spaces only.",
+    "centerCode": "Use letters, numbers and - _ / only, like AWC-JP-001."
   },
   "age": {
     "yearsMonths": "{{years}} y {{months}} m"
@@ -603,6 +604,107 @@
       "sheetSummary": "Summary",
       "sheetChildren": "Children",
       "sheetAssessments": "Assessments"
+    }
+  },
+  "location": {
+    "country": "Country",
+    "state": "State",
+    "district": "District",
+    "project": "Project",
+    "sector": "Sector",
+    "chooseCountryFirst": "Choose a country first.",
+    "chooseStateFirst": "Choose a state first.",
+    "chooseDistrictFirst": "Choose a district first.",
+    "chooseProjectFirst": "Choose a project first.",
+    "loadFailed": "Couldn't load the location lists."
+  },
+  "officials": {
+    "pageTitle": "Home",
+    "welcome": "Welcome, {{name}}",
+    "yourArea": "Your area",
+    "reportsTitle": "Reports for your area",
+    "reportsMessage": "Area-wide reports aren't available in the app yet. They will appear here once they are ready.",
+    "viewChildren": "View children",
+    "viewFramework": "See the readiness framework"
+  },
+  "admin": {
+    "overview": {
+      "title": "Overview",
+      "subtitle": "Welcome, {{name}}. Manage accounts, centres and children.",
+      "users": "Users",
+      "centers": "Anganwadi centres",
+      "children": "Children",
+      "manageUsers": "Manage users",
+      "manageCenters": "Manage centres",
+      "viewChildren": "View children",
+      "byRole": "Users by role"
+    },
+    "users": {
+      "title": "Users",
+      "subtitle": "Accounts that can sign in",
+      "count": {
+        "one": "{{count}} user",
+        "other": "{{count}} users"
+      },
+      "add": "Add user",
+      "addTitle": "Add a user",
+      "editTitle": "Edit user",
+      "formSubtitle": "The person will sign in with this email and password.",
+      "search": "Search by name, email or place",
+      "role": "Role",
+      "allRoles": "All roles",
+      "you": "You",
+      "noMatch": "No users match your search.",
+      "editLabel": "Edit {{name}}",
+      "deleteLabel": "Delete {{name}}",
+      "deleteTitle": "Delete {{name}}'s account?",
+      "deleteMessage": "They will no longer be able to sign in. This can't be undone.",
+      "delete": "Delete account",
+      "deleted": "{{name}}'s account was deleted.",
+      "account": "Account",
+      "name": "Full name",
+      "newPassword": "New password",
+      "passwordRule": "At least 8 characters, with letters and numbers.",
+      "passwordKeep": "Leave empty to keep the current password.",
+      "gender": "Gender",
+      "genders": {
+        "male": "Male",
+        "female": "Female",
+        "other": "Not specified"
+      },
+      "area": "Area of work",
+      "areaIntro": "A {{role}} is linked to this area.",
+      "chooseSectorFirst": "Choose a sector first.",
+      "noCentersInSector": "There are no centres in this sector yet.",
+      "added": "{{name}} was added.",
+      "saved": "Changes to {{name}} were saved."
+    },
+    "centers": {
+      "title": "Anganwadi centres",
+      "subtitle": "Centres where children are assessed",
+      "count": {
+        "one": "{{count}} centre",
+        "other": "{{count}} centres"
+      },
+      "add": "Add centre",
+      "addTitle": "Add a centre",
+      "editTitle": "Edit centre",
+      "search": "Search by name, code or place",
+      "empty": "No centres yet",
+      "noMatch": "No centres match your search.",
+      "editLabel": "Edit {{name}}",
+      "deleteLabel": "Delete {{name}}",
+      "deleteTitle": "Delete {{name}}?",
+      "deleteMessage": "Children and workers linked to this centre may lose their link to it. This can't be undone.",
+      "delete": "Delete centre",
+      "deleted": "{{name}} was deleted.",
+      "details": "Centre details",
+      "name": "Centre name",
+      "code": "Centre code",
+      "codeHint": "For example AWC-JP-001.",
+      "location": "Location",
+      "added": "{{name}} was added.",
+      "saved": "Changes to {{name}} were saved."
     }
   }
 }

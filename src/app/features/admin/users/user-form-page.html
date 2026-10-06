@@ -1,0 +1,135 @@
+<div class="page page--narrow">
+  <app-page-header backLink="/admin/users" [backLabel]="'admin.users.title' | transloco">
+    <span pageTitle>{{ (isEdit() ? 'admin.users.editTitle' : 'admin.users.addTitle') | transloco }}</span>
+    <span pageSubtitle>{{ 'admin.users.formSubtitle' | transloco }}</span>
+  </app-page-header>
+
+  @if (existing.error(); as error) {
+    <app-error-state [error]="error" (retry)="existing.reload()" />
+  } @else if (isEdit() && existing.loading()) {
+    <app-skeleton variant="lines" [count]="8" />
+  } @else {
+    <form class="form surface-card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      @if (formError(); as message) {
+        <div class="form-error" role="alert">
+          <mat-icon svgIcon="error" aria-hidden="true" />
+          {{ message }}
+        </div>
+      }
+
+      <fieldset class="group">
+        <legend class="group__title">{{ 'admin.users.account' | transloco }}</legend>
+        <div class="form-grid">
+          <mat-form-field class="span-all">
+            <mat-label>{{ 'admin.users.name' | transloco }}</mat-label>
+            <input matInput formControlName="name" autocomplete="off" [maxlength]="nameMax" />
+            <mat-error>{{ form.controls.name.errors | validationMessage }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field class="span-all">
+            <mat-label>{{ 'login.email' | transloco }}</mat-label>
+            <input
+              matInput
+              type="email"
+              formControlName="email"
+              autocomplete="off"
+              inputmode="email"
+              autocapitalize="none"
+              spellcheck="false"
+            />
+            <mat-error>{{ form.controls.email.errors | validationMessage }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field class="span-all">
+            <mat-label>{{ (isEdit() ? 'admin.users.newPassword' : 'login.password') | transloco }}</mat-label>
+            <input
+              matInput
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="new-password"
+              autocapitalize="none"
+              spellcheck="false"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              [attr.aria-label]="(showPassword() ? 'login.hidePassword' : 'login.showPassword') | transloco"
+              [attr.aria-pressed]="showPassword()"
+              (click)="showPassword.set(!showPassword())"
+            >
+              <mat-icon [svgIcon]="showPassword() ? 'eye-off' : 'eye'" aria-hidden="true" />
+            </button>
+            <mat-hint>{{ (isEdit() ? 'admin.users.passwordKeep' : 'admin.users.passwordRule') | transloco }}</mat-hint>
+            <mat-error>{{ form.controls.password.errors | validationMessage }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>{{ 'admin.users.role' | transloco }}</mat-label>
+            <mat-select formControlName="role">
+              @for (role of roles; track role) {
+                <mat-option [value]="role">{{ 'roles.' + role | transloco }}</mat-option>
+              }
+            </mat-select>
+            <mat-error>{{ form.controls.role.errors | validationMessage }}</mat-error>
+          </mat-form-field>
+
+          <div class="radio-field">
+            <span class="radio-field__label" id="user-gender-label">{{ 'admin.users.gender' | transloco }}</span>
+            <mat-radio-group formControlName="gender" aria-labelledby="user-gender-label" class="radio-field__options">
+              @for (gender of genders; track gender) {
+                <mat-radio-button [value]="gender">{{ 'admin.users.genders.' + (gender === 'N/A' ? 'other' : gender) | transloco }}</mat-radio-button>
+              }
+            </mat-radio-group>
+            @if (form.controls.gender.touched && form.controls.gender.invalid) {
+              <p class="radio-field__error" role="alert">{{ form.controls.gender.errors | validationMessage }}</p>
+            }
+          </div>
+        </div>
+      </fieldset>
+
+      @if (depth() > 0) {
+        <fieldset class="group">
+          <legend class="group__title">{{ 'admin.users.area' | transloco }}</legend>
+          <p class="group__intro">{{ 'admin.users.areaIntro' | transloco: { role: ('roles.' + role() | transloco) } }}</p>
+          <app-location-fields [controls]="form.controls" [cascade]="location" [levels]="depth()" />
+
+          @if (needsCenter()) {
+            @if (centers.error(); as error) {
+              <app-error-state [error]="error" (retry)="centers.reload()" />
+            } @else {
+              <mat-form-field class="center-field">
+                <mat-label>{{ 'childForm.center' | transloco }}</mat-label>
+                <mat-select formControlName="anganwadi_id">
+                  @for (center of centerOptions(); track center.id) {
+                    <mat-option [value]="center.id">{{ center.name }} ({{ center.code }})</mat-option>
+                  }
+                </mat-select>
+                @if (!form.controls.sector.value) {
+                  <mat-hint>{{ 'admin.users.chooseSectorFirst' | transloco }}</mat-hint>
+                } @else if (!centerOptions().length) {
+                  <mat-hint>{{ 'admin.users.noCentersInSector' | transloco }}</mat-hint>
+                }
+                <mat-error>{{ form.controls.anganwadi_id.errors | validationMessage }}</mat-error>
+              </mat-form-field>
+            }
+          }
+        </fieldset>
+      }
+
+      <div class="form-actions">
+        <button mat-stroked-button type="button" [disabled]="saving()" (click)="cancel()">
+          {{ 'common.cancel' | transloco }}
+        </button>
+        <button mat-flat-button type="submit" [disabled]="saving()">
+          @if (saving()) {
+            <mat-spinner diameter="20" aria-hidden="true" />
+          } @else {
+            <mat-icon svgIcon="check" aria-hidden="true" />
+          }
+          {{ (saving() ? 'childForm.saving' : isEdit() ? 'childForm.save' : 'admin.users.add') | transloco }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

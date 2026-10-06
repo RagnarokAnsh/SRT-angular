@@ -1,0 +1,64 @@
+<div class="page page--narrow">
+  <app-page-header backLink="/admin/centers" [backLabel]="'admin.centers.title' | transloco">
+    <span pageTitle>{{ (isEdit() ? 'admin.centers.editTitle' : 'admin.centers.addTitle') | transloco }}</span>
+    <span pageSubtitle>{{ 'childForm.subtitle' | transloco }}</span>
+  </app-page-header>
+
+  @if (existing.error(); as error) {
+    <app-error-state [error]="error" (retry)="existing.reload()" />
+  } @else if (isEdit() && existing.loading()) {
+    <app-skeleton variant="lines" [count]="6" />
+  } @else {
+    <form class="form surface-card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      @if (formError(); as message) {
+        <div class="form-error" role="alert">
+          <mat-icon svgIcon="error" aria-hidden="true" />
+          {{ message }}
+        </div>
+      }
+
+      <fieldset class="group">
+        <legend class="group__title">{{ 'admin.centers.details' | transloco }}</legend>
+        <div class="form-grid">
+          <mat-form-field>
+            <mat-label>{{ 'admin.centers.name' | transloco }}</mat-label>
+            <input matInput formControlName="name" autocomplete="off" [maxlength]="limits.nameMax" />
+            <mat-error>{{ form.controls.name.errors | validationMessage }}</mat-error>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>{{ 'admin.centers.code' | transloco }}</mat-label>
+            <input
+              matInput
+              formControlName="code"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+              [maxlength]="limits.codeMax"
+            />
+            <mat-hint>{{ 'admin.centers.codeHint' | transloco }}</mat-hint>
+            <mat-error>{{ form.controls.code.errors | validationMessage }}</mat-error>
+          </mat-form-field>
+        </div>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend class="group__title">{{ 'admin.centers.location' | transloco }}</legend>
+        <app-location-fields [controls]="form.controls" [cascade]="location" [levels]="5" />
+      </fieldset>
+
+      <div class="form-actions">
+        <button mat-stroked-button type="button" [disabled]="saving()" (click)="cancel()">
+          {{ 'common.cancel' | transloco }}
+        </button>
+        <button mat-flat-button type="submit" [disabled]="saving()">
+          @if (saving()) {
+            <mat-spinner diameter="20" aria-hidden="true" />
+          } @else {
+            <mat-icon svgIcon="check" aria-hidden="true" />
+          }
+          {{ (saving() ? 'childForm.saving' : isEdit() ? 'childForm.save' : 'admin.centers.add') | transloco }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

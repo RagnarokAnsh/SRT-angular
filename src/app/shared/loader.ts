@@ -1,13 +1,13 @@
-import { DestroyRef, inject, signal } from '@angular/core';
+import { DestroyRef, type Signal, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { Observable, Subscription } from 'rxjs';
 
 import { type AppError, toAppError } from '@core/network/app-error';
 
 export interface Loader<T> {
-  readonly data: () => T | undefined;
-  readonly error: () => AppError | null;
-  readonly loading: () => boolean;
+  readonly data: Signal<T | undefined>;
+  readonly error: Signal<AppError | null>;
+  readonly loading: Signal<boolean>;
   /** Fetches again (cancels a request still in flight). */
   reload(): void;
   /** Replaces the data locally, e.g. after a save. */

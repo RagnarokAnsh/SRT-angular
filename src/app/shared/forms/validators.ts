@@ -49,6 +49,14 @@ export const languageName: ValidatorFn = (control) => {
     : { languageName: { key: 'validation.languageName' } };
 };
 
+/** A centre code such as "AWC-JP-001": letters, digits, - _ / and spaces. */
+export const centerCode: ValidatorFn = (control) => {
+  if (isEmpty(control)) return null;
+  return /^[A-Za-z0-9][A-Za-z0-9\-_/ ]*$/.test(text(control))
+    ? null
+    : { centerCode: { key: 'validation.centerCode' } };
+};
+
 /** Rejects control characters (pasted from other apps) in free text. */
 export const plainText: ValidatorFn = (control) =>
   typeof control.value === 'string' && hasControlCharacters(control.value)

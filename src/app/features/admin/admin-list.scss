@@ -1,0 +1,130 @@
+@use 'mixins' as *;
+
+// Shared by the admin lists (users, centres).
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-4);
+}
+
+.toolbar__search {
+  flex: 1 1 260px;
+  max-width: 480px;
+}
+
+.toolbar__filter {
+  flex: 1 1 200px;
+  max-width: 280px;
+}
+
+.list {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+
+  @include up(lg) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.list__empty {
+  grid-column: 1 / -1;
+  padding: var(--space-6);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.row {
+  @include card;
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 76px;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+}
+
+.avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-secondary-soft);
+  color: var(--color-secondary-strong);
+  font-weight: 700;
+}
+
+.avatar mat-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.row__main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.row__name {
+  overflow: hidden;
+  color: var(--color-text-strong);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row__meta {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin-top: 2px;
+}
+
+.tag {
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  color: var(--color-on-primary-soft);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.row__place {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.you {
+  margin-inline-start: var(--space-1);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-secondary-soft);
+  color: var(--color-secondary-strong);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.row__actions {
+  display: flex;
+  flex: none;
+}
+
+.row__delete {
+  color: var(--color-danger);
+}

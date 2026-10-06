@@ -11,7 +11,8 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: () => (inject(SessionStore).isAuthenticated() ? inject(AuthService).homeUrl() : '/home'),
+    redirectTo: () =>
+      inject(SessionStore).isAuthenticated() ? inject(AuthService).homeUrl() : '/home',
   },
   {
     path: 'home',
@@ -31,6 +32,29 @@ export const routes: Routes = [
       import('./features/public/unauthorized-page').then((m) => m.UnauthorizedPage),
   },
 
+  // Addresses used by the previous version, so bookmarks keep working.
+  { path: 'select-competency', pathMatch: 'full', redirectTo: 'competencies' },
+  { path: 'details/:id', pathMatch: 'full', redirectTo: 'competencies/:id' },
+  { path: 'assessments/:id', pathMatch: 'full', redirectTo: 'competencies/:id/assess' },
+  { path: 'aww/assessments/:id', pathMatch: 'full', redirectTo: 'competencies/:id/assess' },
+  { path: 'assessments', pathMatch: 'full', redirectTo: 'competencies' },
+  { path: 'aww', pathMatch: 'full', redirectTo: 'dashboard' },
+  { path: 'aww/dashboard', pathMatch: 'full', redirectTo: 'dashboard' },
+  { path: 'students', pathMatch: 'full', redirectTo: 'children' },
+  { path: 'students/create', pathMatch: 'full', redirectTo: 'children/new' },
+  { path: 'students/edit/:id', pathMatch: 'full', redirectTo: 'children/:id/edit' },
+  { path: 'admin/dashboard', pathMatch: 'full', redirectTo: 'admin' },
+  { path: 'admin/anganwadi', pathMatch: 'full', redirectTo: 'admin/centers' },
+  { path: 'admin/anganwadi/create', pathMatch: 'full', redirectTo: 'admin/centers/new' },
+  { path: 'admin/anganwadi/edit/:id', pathMatch: 'full', redirectTo: 'admin/centers/:id/edit' },
+  { path: 'admin/users/create', pathMatch: 'full', redirectTo: 'admin/users/new' },
+  { path: 'admin/users/edit/:id', pathMatch: 'full', redirectTo: 'admin/users/:id/edit' },
+  { path: 'state/dashboard', pathMatch: 'full', redirectTo: 'state' },
+  { path: 'dpo/dashboard', pathMatch: 'full', redirectTo: 'dpo' },
+  { path: 'cdpo/dashboard', pathMatch: 'full', redirectTo: 'cdpo' },
+  { path: 'supervisor/dashboard', pathMatch: 'full', redirectTo: 'supervisor' },
+  { path: '404', pathMatch: 'full', redirectTo: 'not-found' },
+
   // Anganwadi workers (administrators can use these too, as before).
   {
     path: 'competencies',
@@ -46,14 +70,18 @@ export const routes: Routes = [
         path: ':id',
         title: 'competencyDetail.pageTitle',
         loadComponent: () =>
-          import('./features/competencies/competency-detail-page').then((m) => m.CompetencyDetailPage),
+          import('./features/competencies/competency-detail-page').then(
+            (m) => m.CompetencyDetailPage,
+          ),
       },
       {
         path: ':id/assess',
         title: 'assessment.pageTitle',
         canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>
-          import('./features/competencies/assessment/assessment-page').then((m) => m.AssessmentPage),
+          import('./features/competencies/assessment/assessment-page').then(
+            (m) => m.AssessmentPage,
+          ),
       },
     ],
   },
@@ -64,19 +92,22 @@ export const routes: Routes = [
       {
         path: '',
         title: 'children.title',
-        loadComponent: () => import('./features/children/child-list-page').then((m) => m.ChildListPage),
+        loadComponent: () =>
+          import('./features/children/child-list-page').then((m) => m.ChildListPage),
       },
       {
         path: 'new',
         title: 'childForm.addTitle',
         canDeactivate: [unsavedChangesGuard],
-        loadComponent: () => import('./features/children/child-form-page').then((m) => m.ChildFormPage),
+        loadComponent: () =>
+          import('./features/children/child-form-page').then((m) => m.ChildFormPage),
       },
       {
         path: ':id/edit',
         title: 'childForm.editTitle',
         canDeactivate: [unsavedChangesGuard],
-        loadComponent: () => import('./features/children/child-form-page').then((m) => m.ChildFormPage),
+        loadComponent: () =>
+          import('./features/children/child-form-page').then((m) => m.ChildFormPage),
       },
     ],
   },
@@ -88,28 +119,65 @@ export const routes: Routes = [
     loadComponent: () => import('./features/dashboard/dashboard-page').then((m) => m.DashboardPage),
   },
 
-  // Addresses used by the previous version, so bookmarks keep working.
-  { path: 'select-competency', redirectTo: 'competencies' },
-  { path: 'details/:id', redirectTo: 'competencies/:id' },
-  { path: 'assessments/:id', redirectTo: 'competencies/:id/assess' },
-  { path: 'aww/assessments/:id', redirectTo: 'competencies/:id/assess' },
-  { path: 'assessments', redirectTo: 'competencies' },
-  { path: 'aww', redirectTo: 'dashboard' },
-  { path: 'aww/dashboard', redirectTo: 'dashboard' },
-  { path: 'students', redirectTo: 'children' },
-  { path: 'students/create', redirectTo: 'children/new' },
-  { path: 'students/edit/:id', redirectTo: 'children/:id/edit' },
-  { path: 'admin/dashboard', redirectTo: 'admin' },
-  { path: 'admin/anganwadi', redirectTo: 'admin/centers' },
-  { path: 'admin/anganwadi/create', redirectTo: 'admin/centers/new' },
-  { path: 'admin/anganwadi/edit/:id', redirectTo: 'admin/centers/:id/edit' },
-  { path: 'admin/users/create', redirectTo: 'admin/users/new' },
-  { path: 'admin/users/edit/:id', redirectTo: 'admin/users/:id/edit' },
-  { path: 'state/dashboard', redirectTo: 'state' },
-  { path: 'dpo/dashboard', redirectTo: 'dpo' },
-  { path: 'cdpo/dashboard', redirectTo: 'cdpo' },
-  { path: 'supervisor/dashboard', redirectTo: 'supervisor' },
-  { path: '404', redirectTo: 'not-found' },
+  {
+    path: 'admin',
+    canActivate: [roleGuard('admin')],
+    children: [
+      {
+        path: '',
+        title: 'admin.overview.title',
+        loadComponent: () =>
+          import('./features/admin/admin-overview-page').then((m) => m.AdminOverviewPage),
+      },
+      {
+        path: 'users',
+        title: 'admin.users.title',
+        loadComponent: () =>
+          import('./features/admin/users/user-list-page').then((m) => m.UserListPage),
+      },
+      {
+        path: 'users/new',
+        title: 'admin.users.addTitle',
+        canDeactivate: [unsavedChangesGuard],
+        loadComponent: () =>
+          import('./features/admin/users/user-form-page').then((m) => m.UserFormPage),
+      },
+      {
+        path: 'users/:id/edit',
+        title: 'admin.users.editTitle',
+        canDeactivate: [unsavedChangesGuard],
+        loadComponent: () =>
+          import('./features/admin/users/user-form-page').then((m) => m.UserFormPage),
+      },
+      {
+        path: 'centers',
+        title: 'admin.centers.title',
+        loadComponent: () =>
+          import('./features/admin/centers/center-list-page').then((m) => m.CenterListPage),
+      },
+      {
+        path: 'centers/new',
+        title: 'admin.centers.addTitle',
+        canDeactivate: [unsavedChangesGuard],
+        loadComponent: () =>
+          import('./features/admin/centers/center-form-page').then((m) => m.CenterFormPage),
+      },
+      {
+        path: 'centers/:id/edit',
+        title: 'admin.centers.editTitle',
+        canDeactivate: [unsavedChangesGuard],
+        loadComponent: () =>
+          import('./features/admin/centers/center-form-page').then((m) => m.CenterFormPage),
+      },
+    ],
+  },
+  ...(['stateofficial', 'dpo', 'cdpo', 'supervisor'] as const).map((role) => ({
+    path: { stateofficial: 'state', dpo: 'dpo', cdpo: 'cdpo', supervisor: 'supervisor' }[role],
+    title: 'officials.pageTitle',
+    canActivate: [roleGuard(role)],
+    loadComponent: () =>
+      import('./features/officials/official-home-page').then((m) => m.OfficialHomePage),
+  })),
 
   {
     path: '**',
