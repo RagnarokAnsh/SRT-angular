@@ -1,63 +1,91 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptors, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { HttpRequest, HttpHandlerFn } from '@angular/common/http';
-import { providePrimeNG } from 'primeng/config';
-import { MessageService } from 'primeng/api';
-import Lara from '@primeuix/themes/lara';
-import { inject } from '@angular/core';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import {
+  type ApplicationConfig,
+  inject,
+  isDevMode,
+  provideAppInitializer,
+  provideBrowserGlobalErrorListeners,
+  provideZonelessChangeDetection,
+} from '@angular/core';
+import { MAT_DIALOG_DEFAULT_OPTIONS, MatDialogConfig } from '@angular/material/dialog';
+import {
+  MAT_FORM_FIELD_DEFAULT_OPTIONS,
+  type MatFormFieldDefaultOptions,
+} from '@angular/material/form-field';
+import {
+  TitleStrategy,
+  provideRouter,
+  withComponentInputBinding,
+  withInMemoryScrolling,
+} from '@angular/router';
+import { provideTransloco } from '@jsverse/transloco';
+
+import { SessionWatcher } from '@core/auth/session-watcher';
+import { demoInterceptors } from '@core/demo/demo-providers';
+import { LanguageService } from '@core/i18n/language';
+import { LANGUAGES, DEFAULT_LANGUAGE } from '@core/i18n/languages';
+import { TranslatedTitleStrategy } from '@core/i18n/title-strategy';
+import { TranslationLoader } from '@core/i18n/translation-loader';
+import { provideAppIcons } from '@core/icons/icons';
+import {
+  apiRequestInterceptor,
+  loadingInterceptor,
+  unauthorizedInterceptor,
+} from '@core/network/interceptors';
 
 import { routes } from './app.routes';
-import { AuthInterceptor, createAuthInterceptor } from './auth/auth.interceptor';
-import { UserService } from './services/user.service';
-import { AppStateService } from './core/state/app.state';
-import { SecurityService } from './core/security/security.service';
-import { ErrorHandlerService } from './core/error/error-handler.service';
-import { HttpService } from './core/http/http.service';
-import { PerformanceService } from './core/performance/performance.service';
-import { Router } from '@angular/router';
-import { loadingInterceptor } from './core/interceptors/loading.interceptor';
-
-// Enhanced functional interceptor for Angular 19
-export function authInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn) {
-  const userService = inject(UserService);
-  const router = inject(Router);
-
-  return createAuthInterceptor(userService, router)(req, next);
-}
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor, loadingInterceptor])),
-    // Alternative: Use class-based interceptor (comment above and uncomment below)
-    // provideHttpClient(),
-    // { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
-    providePrimeNG({
-      theme: {
-        preset: Lara,
-        options: {
-          prefix: 'p',
-          cssLayer: {
-            name: 'primeng',
-            order: 'primeui'
-          },
-          colorScheme: 'light',
-          variables: {
-            primaryColor: '#3B82F6',
-            primaryColorText: '#ffffff'
-          }
-        }
-      }
+    provideBrowserGlobalErrorListeners(),
+    provideZonelessChangeDetection(),
+    provideRouter(
+      routes,
+      withComponentInputBinding(),
+      withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }),
+    ),
+    { provide: TitleStrategy, useClass: TranslatedTitleStrategy },
+    provideHttpClient(
+      withFetch(),
+      // Order matters: the demo backend (mock builds only) must run last, like a server.
+      withInterceptors([
+        apiRequestInterceptor,
+        loadingInterceptor,
+        unauthorizedInterceptor,
+        ...demoInterceptors,
+      ]),
+    ),
+    provideTransloco({
+      config: {
+        availableLangs: LANGUAGES.map((language) => language.code),
+        defaultLang: DEFAULT_LANGUAGE,
+        fallbackLang: DEFAULT_LANGUAGE,
+        missingHandler: { useFallbackTranslation: true, logMissingKey: true },
+        reRenderOnLangChange: true,
+        prodMode: !isDevMode(),
+      },
+      loader: TranslationLoader,
     }),
-    MessageService,
-    // Core Services
-    AppStateService,
-    SecurityService,
-    ErrorHandlerService,
-    HttpService,
-    PerformanceService,
-    UserService // Ensure UserService is provided
-  ]
+    // The first screen renders only after its translations are loaded.
+    provideAppInitializer(() => inject(LanguageService).init()),
+    provideAppInitializer(() => inject(SessionWatcher).start()),
+    provideAppIcons(),
+    {
+      provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
+      useValue: {
+        appearance: 'outline',
+        subscriptSizing: 'dynamic',
+      } satisfies MatFormFieldDefaultOptions,
+    },
+    {
+      provide: MAT_DIALOG_DEFAULT_OPTIONS,
+      // Replaces Material's defaults wholesale, so start from them.
+      useValue: {
+        ...new MatDialogConfig(),
+        autoFocus: 'first-tabbable',
+        restoreFocus: true,
+        maxWidth: 'calc(100vw - 32px)',
+      } satisfies MatDialogConfig,
+    },
+  ],
 };

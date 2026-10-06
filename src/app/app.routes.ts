@@ -1,236 +1,61 @@
-import { Routes } from '@angular/router';
-import { LoginComponent } from './login/login.component';
-import { HomeComponent } from './home/home.component';
-import { UnauthorizedComponent } from './components/unauthorized/unauthorized.component';
-import {
-    AuthGuard,
-    RoleGuard,
-    AdminGuard,
-    StateOfficialGuard,
-    DPOGuard,
-    CDPOGuard,
-    SupervisorGuard,
-    AWWGuard,
-    AdminAccessGuard,
-    SupervisorAccessGuard,
-    FieldAccessGuard
-} from './auth/auth.guard';
-import { STUDENT_MANAGEMENT_ROUTES } from './AWW/student-management/student-management.routes';
-import { ANGANWADI_MANAGEMENT_ROUTES } from './admin/anganwadi-management/anganwadi-management.routes';
-import { USER_MANAGEMENT_ROUTES } from './admin/user-management/user-management.routes';
+import { inject } from '@angular/core';
+import type { Routes } from '@angular/router';
 
+import { AuthService } from '@core/auth/auth';
+import { guestGuard } from '@core/auth/guards';
+import { SessionStore } from '@core/auth/session';
+
+/** Route `title`s are translation keys (see TranslatedTitleStrategy). */
 export const routes: Routes = [
-    // Public routes
-    {
-        path: '',
-        redirectTo: 'home',
-        pathMatch: 'full'
-    },
-    {
-        path: 'login',
-        component: LoginComponent
-    },
-    {
-        path: 'home',
-        component: HomeComponent
-    },
-    {
-        path: 'unauthorized',
-        component: UnauthorizedComponent
-    },
+  {
+    path: '',
+    pathMatch: 'full',
+    redirectTo: () => (inject(SessionStore).isAuthenticated() ? inject(AuthService).homeUrl() : '/home'),
+  },
+  {
+    path: 'home',
+    title: 'home.pageTitle',
+    loadComponent: () => import('./features/public/home/home-page').then((m) => m.HomePage),
+  },
+  {
+    path: 'login',
+    title: 'login.pageTitle',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./features/public/login/login-page').then((m) => m.LoginPage),
+  },
+  {
+    path: 'unauthorized',
+    title: 'unauthorized.pageTitle',
+    loadComponent: () =>
+      import('./features/public/unauthorized-page').then((m) => m.UnauthorizedPage),
+  },
 
-    // Admin routes - only accessible by admin role
-    {
-        path: 'admin',
-        canActivate: [AdminAccessGuard],
-        children: [
-            {
-                path: '',
-                redirectTo: 'dashboard',
-                pathMatch: 'full'
-            },
-            {
-                path: 'dashboard',
-                loadComponent: () => import('./admin/admin-dashboard/admin-dashboard.component')
-                    .then(m => m.AdminDashboardComponent),
-                canActivate: [AdminGuard]
-            },
-            {
-                path: 'anganwadi',
-                loadChildren: () => ANGANWADI_MANAGEMENT_ROUTES,
-                canActivate: [AdminGuard]
-            },
-            {
-                path: 'users',
-                loadChildren: () => USER_MANAGEMENT_ROUTES,
-                canActivate: [AdminGuard]
-            }
-        ]
-    },
+  // Addresses used by the previous version, so bookmarks keep working.
+  { path: 'select-competency', redirectTo: 'competencies' },
+  { path: 'details/:id', redirectTo: 'competencies/:id' },
+  { path: 'assessments/:id', redirectTo: 'competencies/:id/assess' },
+  { path: 'aww/assessments/:id', redirectTo: 'competencies/:id/assess' },
+  { path: 'assessments', redirectTo: 'competencies' },
+  { path: 'aww', redirectTo: 'dashboard' },
+  { path: 'aww/dashboard', redirectTo: 'dashboard' },
+  { path: 'students', redirectTo: 'children' },
+  { path: 'students/create', redirectTo: 'children/new' },
+  { path: 'students/edit/:id', redirectTo: 'children/:id/edit' },
+  { path: 'admin/dashboard', redirectTo: 'admin' },
+  { path: 'admin/anganwadi', redirectTo: 'admin/centers' },
+  { path: 'admin/anganwadi/create', redirectTo: 'admin/centers/new' },
+  { path: 'admin/anganwadi/edit/:id', redirectTo: 'admin/centers/:id/edit' },
+  { path: 'admin/users/create', redirectTo: 'admin/users/new' },
+  { path: 'admin/users/edit/:id', redirectTo: 'admin/users/:id/edit' },
+  { path: 'state/dashboard', redirectTo: 'state' },
+  { path: 'dpo/dashboard', redirectTo: 'dpo' },
+  { path: 'cdpo/dashboard', redirectTo: 'cdpo' },
+  { path: 'supervisor/dashboard', redirectTo: 'supervisor' },
+  { path: '404', redirectTo: 'not-found' },
 
-    // State Official routes
-    {
-        path: 'state',
-        canActivate: [AuthGuard],
-        children: [
-            {
-                path: '',
-                redirectTo: 'dashboard',
-                pathMatch: 'full'
-            },
-            {
-                path: 'dashboard',
-                loadComponent: () => import('./state/state-dashboard/state-dashboard.component')
-                    .then(m => m.StateDashboardComponent),
-                canActivate: [StateOfficialGuard]
-            }
-        ]
-    },
-
-    // DPO routes
-    {
-        path: 'dpo',
-        canActivate: [AuthGuard],
-        children: [
-            {
-                path: '',
-                redirectTo: 'dashboard',
-                pathMatch: 'full'
-            },
-            {
-                path: 'dashboard',
-                loadComponent: () => import('./dpo/dpo-dashboard/dpo-dashboard.component')
-                    .then(m => m.DpoDashboardComponent),
-                canActivate: [DPOGuard]
-            }
-        ]
-    },
-
-    // CDPO routes
-    {
-        path: 'cdpo',
-        canActivate: [AuthGuard],
-        children: [
-            {
-                path: '',
-                redirectTo: 'dashboard',
-                pathMatch: 'full'
-            },
-            {
-                path: 'dashboard',
-                loadComponent: () => import('./cdpo/cdpo-dashboard/cdpo-dashboard.component')
-                    .then(m => m.CdpoDashboardComponent),
-                canActivate: [CDPOGuard]
-            }
-        ]
-    },
-
-    // Supervisor routes
-    {
-        path: 'supervisor',
-        canActivate: [AuthGuard],
-        children: [
-            {
-                path: '',
-                redirectTo: 'dashboard',
-                pathMatch: 'full'
-            },
-            {
-                path: 'dashboard',
-                loadComponent: () => import('./supervisor/supervisor-dashboard/supervisor-dashboard.component')
-                    .then(m => m.SupervisorDashboardComponent),
-                canActivate: [SupervisorGuard]
-            }
-        ]
-    },
-
-    // AWW scoped routes
-    {
-        path: 'aww',
-        canActivate: [AuthGuard],
-        children: [
-            {
-                path: '',
-                redirectTo: 'dashboard',
-                pathMatch: 'full'
-            },
-            {
-                path: 'dashboard',
-                loadComponent: () => import('./AWW/dashboard/dashboard.component')
-                    .then(m => m.DashboardComponent),
-                canActivate: [AWWGuard]
-            }
-        ]
-    },
-
-    // AWW routes - accessible by AWW and admin
-    {
-        path: 'dashboard',
-        loadComponent: () => import('./AWW/dashboard/dashboard.component')
-            .then(m => m.DashboardComponent),
-        canActivate: [RoleGuard],
-        data: { roles: ['aww', 'admin'] }
-    },
-    {
-        path: 'select-competency',
-        loadComponent: () => import('./AWW/select-competency/select-competency.component')
-            .then(m => m.SelectCompetencyComponent),
-        canActivate: [RoleGuard],
-        data: { roles: ['aww', 'admin'] }
-    },
-    {
-        path: 'details/:id',
-        loadComponent: () => import('./AWW/details/details.component')
-            .then(m => m.DetailsComponent),
-        canActivate: [RoleGuard],
-        data: { roles: ['aww', 'admin'] }
-    },
-    {
-        path: 'assessments',
-        loadComponent: () => import('./AWW/assessments/assessments.component').then(m => m.AssessmentsComponent),
-        canActivate: [RoleGuard],
-        data: {
-            roles: ['aww', 'admin'],
-            permissions: ['conduct_assessments']
-        }
-    },
-    {
-        path: 'assessments/:id',
-        loadComponent: () => import('./AWW/assessments/assessments.component').then(m => m.AssessmentsComponent),
-        canActivate: [RoleGuard],
-        data: {
-            roles: ['aww', 'admin'],
-            permissions: ['conduct_assessments']
-        }
-    },
-    {
-        path: 'aww/assessments/:id',
-        loadComponent: () => import('./AWW/assessments/assessments.component').then(m => m.AssessmentsComponent),
-        canActivate: [RoleGuard],
-        data: {
-            roles: ['aww', 'admin'],
-            permissions: ['conduct_assessments']
-        }
-    },
-
-    // Student management routes - accessible by admin, supervisor, and aww
-    {
-        path: 'students',
-        loadChildren: () => STUDENT_MANAGEMENT_ROUTES,
-        canActivate: [RoleGuard],
-        data: {
-            roles: ['admin', 'supervisor', 'aww'],
-            permissions: ['manage_students']
-        }
-    },
-
-    // Fallback routes
-    {
-        path: '404',
-        redirectTo: 'unauthorized'
-    },
-    {
-        path: '**',
-        redirectTo: 'home'
-    }
+  {
+    path: '**',
+    title: 'notFound.pageTitle',
+    loadComponent: () => import('./features/public/not-found-page').then((m) => m.NotFoundPage),
+  },
 ];

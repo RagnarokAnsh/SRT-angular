@@ -1,0 +1,125 @@
+<div class="login">
+  <aside class="art" aria-hidden="true">
+    <div class="art__text">
+      <p class="art__title">{{ 'login.artTitle' | transloco }}</p>
+      <p class="art__subtitle">{{ 'login.artSubtitle' | transloco }}</p>
+    </div>
+    <img
+      class="art__image"
+      src="assets/images/login-illustration.webp"
+      width="990"
+      height="370"
+      alt=""
+      fetchpriority="high"
+    />
+  </aside>
+
+  <div class="form-side">
+    <div class="card">
+      <h1 class="title">{{ 'login.heading' | transloco }}</h1>
+      <p class="subtitle">{{ 'login.subheading' | transloco }}</p>
+
+      @if (reasonKey(); as key) {
+        <div class="notice notice--info" role="status">
+          <mat-icon svgIcon="info" aria-hidden="true" />
+          <span>{{ key | transloco }}</span>
+        </div>
+      }
+
+      <div role="alert">
+        @if (failure(); as failure) {
+          <div class="notice notice--error">
+            <mat-icon svgIcon="error" aria-hidden="true" />
+            <span>
+              {{ failure.key | transloco }}
+              @if (failure.detail) {
+                <span class="notice__detail">({{ failure.detail }})</span>
+              }
+            </span>
+          </div>
+        }
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <mat-form-field>
+          <mat-label>{{ 'login.email' | transloco }}</mat-label>
+          <mat-icon matPrefix svgIcon="email" aria-hidden="true" />
+          <input
+            matInput
+            type="email"
+            formControlName="email"
+            autocomplete="username"
+            inputmode="email"
+            autocapitalize="none"
+            spellcheck="false"
+            [readonly]="submitting()"
+          />
+          <mat-error>{{ form.controls.email.errors | validationMessage }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>{{ 'login.password' | transloco }}</mat-label>
+          <mat-icon matPrefix svgIcon="lock" aria-hidden="true" />
+          <input
+            matInput
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+            autocapitalize="none"
+            spellcheck="false"
+            [readonly]="submitting()"
+            (keyup)="onPasswordKey($event)"
+            (keydown)="onPasswordKey($event)"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            [attr.aria-label]="(showPassword() ? 'login.hidePassword' : 'login.showPassword') | transloco"
+            [attr.aria-pressed]="showPassword()"
+            (click)="showPassword.set(!showPassword())"
+          >
+            <mat-icon [svgIcon]="showPassword() ? 'eye-off' : 'eye'" aria-hidden="true" />
+          </button>
+          @if (capsLock()) {
+            <mat-hint>{{ 'login.capsLock' | transloco }}</mat-hint>
+          }
+          <mat-error>{{ form.controls.password.errors | validationMessage }}</mat-error>
+        </mat-form-field>
+
+        <mat-checkbox formControlName="remember">{{ 'login.remember' | transloco }}</mat-checkbox>
+
+        <button mat-flat-button type="submit" class="submit" [disabled]="submitting()">
+          @if (submitting()) {
+            <mat-spinner diameter="20" aria-hidden="true" />
+            {{ 'login.signingIn' | transloco }}
+          } @else {
+            {{ 'login.submit' | transloco }}
+          }
+        </button>
+      </form>
+
+      <p class="help">{{ 'login.help' | transloco }}</p>
+
+      @if (demoAccounts.length) {
+        <section class="demo" aria-labelledby="demo-accounts-title">
+          <h2 id="demo-accounts-title" class="demo__title">
+            <mat-icon svgIcon="demo" aria-hidden="true" />
+            {{ 'demo.accountsTitle' | transloco }}
+          </h2>
+          <p class="demo__hint">{{ 'demo.accountsHint' | transloco }}</p>
+          <ul class="demo__list">
+            @for (account of demoAccounts; track account.email) {
+              <li>
+                <button mat-stroked-button type="button" (click)="useDemoAccount(account.email)">
+                  <span class="demo__role">{{ account.roleKey | transloco }}</span>
+                  <span class="demo__email">{{ account.email }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+  </div>
+</div>

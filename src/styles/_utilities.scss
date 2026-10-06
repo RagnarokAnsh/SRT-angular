@@ -1,0 +1,114 @@
+@use 'mixins' as *;
+
+// Page container with responsive side gutters.
+.page {
+  width: 100%;
+  max-width: var(--page-max-width);
+  margin-inline: auto;
+  padding: var(--space-5) var(--page-gutter) var(--space-10);
+
+  @include up(md) {
+    padding-top: var(--space-8);
+  }
+}
+
+.page--narrow {
+  max-width: 760px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.surface-card {
+  @include card;
+}
+
+.visually-hidden {
+  @include visually-hidden;
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-strong {
+  color: var(--color-text-strong);
+  font-weight: 600;
+}
+
+// Highlighted word in page titles, e.g. "School <mark>Ready</mark> Children".
+.title-highlight {
+  display: inline-block;
+  padding: 0 0.3em;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: #fff;
+  line-height: 1.2;
+}
+
+// Bottom-of-screen action bar on phones (sticks above the bottom navigation).
+.sticky-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+  padding: var(--space-3) 0;
+  background: linear-gradient(to top, var(--color-bg) 70%, transparent);
+
+  > * {
+    flex: 1 1 auto;
+
+    @include up(sm) {
+      flex: 0 0 auto;
+    }
+  }
+
+  // Sit above the fixed bottom navigation.
+  @include down(md) {
+    body.has-bottom-nav & {
+      bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+    }
+  }
+}
+
+.form-grid {
+  display: grid;
+  gap: var(--space-2) var(--space-4);
+  grid-template-columns: 1fr;
+
+  @include up(sm) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  > .span-all {
+    grid-column: 1 / -1;
+  }
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: flex-end;
+  margin-top: var(--space-4);
+
+  > * {
+    flex: 1 1 100%;
+
+    @include up(sm) {
+      flex: 0 0 auto;
+    }
+  }
+}

@@ -1,0 +1,92 @@
+<a class="skip-link" href="#main-content" (click)="skipToContent($event)">
+  {{ 'nav.skipToContent' | transloco }}
+</a>
+
+<div class="progress" aria-hidden="true">
+  @if (loading.active()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+</div>
+
+<header class="top-bar">
+  <div class="top-bar__inner">
+    <a class="brand" [routerLink]="homeLink()">
+      <img
+        class="brand__logo"
+        src="assets/images/sri-logo.webp"
+        width="480"
+        height="145"
+        [alt]="'app.name' | transloco"
+      />
+    </a>
+
+    @if (nav().length) {
+      <nav class="top-nav" [attr.aria-label]="'nav.main' | transloco">
+        @for (item of nav(); track item.path) {
+          <a
+            class="top-nav__link"
+            [routerLink]="item.path"
+            routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: !!item.exact }"
+            ariaCurrentWhenActive="page"
+          >
+            <mat-icon [svgIcon]="item.icon" aria-hidden="true" />
+            <span>{{ item.labelKey | transloco }}</span>
+          </a>
+        }
+      </nav>
+    }
+
+    <div class="top-bar__actions">
+      <app-language-switcher />
+      @if (session.isAuthenticated()) {
+        <app-account-menu />
+      } @else if (!onLoginPage()) {
+        <a mat-flat-button class="login-link" routerLink="/login">
+          <mat-icon svgIcon="login" aria-hidden="true" />
+          {{ 'nav.login' | transloco }}
+        </a>
+      }
+    </div>
+  </div>
+</header>
+
+<div class="offline-region" role="status">
+  @if (!connectivity.online()) {
+    <div class="offline-bar">
+      <mat-icon svgIcon="offline" aria-hidden="true" />
+      <span>{{ 'network.offlineBanner' | transloco }}</span>
+    </div>
+  }
+</div>
+
+@if (demoBanner) {
+  <ng-container *ngComponentOutlet="demoBanner" />
+}
+
+<main id="main-content" class="main" tabindex="-1" #main>
+  <router-outlet />
+</main>
+
+<footer class="footer">
+  <p>© {{ year }} {{ 'app.name' | transloco }}</p>
+</footer>
+
+@if (showBottomNav()) {
+  <nav class="bottom-nav" [attr.aria-label]="'nav.main' | transloco">
+    @for (item of nav(); track item.path) {
+      <a
+        class="bottom-nav__item"
+        [routerLink]="item.path"
+        routerLinkActive="is-active"
+        [routerLinkActiveOptions]="{ exact: !!item.exact }"
+        ariaCurrentWhenActive="page"
+      >
+        <span class="bottom-nav__icon">
+          <mat-icon [svgIcon]="item.icon" aria-hidden="true" />
+        </span>
+        <span class="bottom-nav__label">{{ item.labelKey | transloco }}</span>
+      </a>
+    }
+  </nav>
+}

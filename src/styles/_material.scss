@@ -1,0 +1,65 @@
+@use '@angular/material' as mat;
+
+// Small adjustments on top of the Material theme.
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+// Buttons: never shrink below a comfortable touch target.
+.mat-mdc-button-base {
+  min-height: 40px;
+}
+
+.mat-mdc-icon-button.mat-mdc-button-base {
+  --mat-icon-button-state-layer-size: 44px;
+  padding: 10px;
+  width: 44px;
+  height: 44px;
+}
+
+// Snack bar variants (see NotifyService).
+.app-snack {
+  --mat-snack-bar-button-color: #fff;
+
+  &.app-snack--success {
+    --mat-snack-bar-container-color: var(--color-success);
+  }
+
+  &.app-snack--error {
+    --mat-snack-bar-container-color: var(--color-danger);
+  }
+
+  &.app-snack--info {
+    --mat-snack-bar-container-color: var(--color-text-strong);
+  }
+
+  --mat-snack-bar-supporting-text-color: #fff;
+}
+
+// Keep snack bars above the bottom navigation on phones.
+@media (max-width: 899.98px) {
+  body.has-bottom-nav .mat-mdc-snack-bar-container {
+    margin-bottom: calc(var(--bottom-nav-height) + 12px + env(safe-area-inset-bottom));
+  }
+}
+
+.mat-mdc-dialog-container {
+  --mat-dialog-container-shape: var(--radius-xl);
+}
+
+.mat-mdc-menu-panel {
+  --mat-menu-container-shape: var(--radius-md);
+}
+
+// Tables: readable row height and wrapping cells.
+.mat-mdc-table {
+  --mat-table-row-item-outline-color: var(--color-border);
+  background: transparent;
+
+  .mat-mdc-header-cell {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+}

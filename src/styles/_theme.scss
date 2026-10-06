@@ -1,0 +1,62 @@
+@use '@angular/material' as mat;
+
+// Angular Material 3 theme. The base palettes give Material its tonal steps; the overrides
+// pin the roles components actually use to the app's own colours.
+html {
+  color-scheme: light;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$orange-palette,
+        tertiary: mat.$violet-palette,
+        theme-type: light,
+      ),
+      typography: (
+        plain-family: (Figtree, 'Noto Sans Devanagari', system-ui, sans-serif),
+        brand-family: (Figtree, 'Noto Sans Devanagari', system-ui, sans-serif),
+        bold-weight: 700,
+        medium-weight: 600,
+        regular-weight: 400,
+      ),
+      density: 0,
+    ),
+    $overrides: (
+      primary: #d63819,
+      on-primary: #ffffff,
+      primary-container: #fde8e3,
+      on-primary-container: #5c1407,
+      inverse-primary: #ffb4a3,
+      surface-tint: #f84525,
+      secondary: #4f46e5,
+      on-secondary: #ffffff,
+      secondary-container: #e8e9fe,
+      on-secondary-container: #1e1b4b,
+      tertiary: #6366f1,
+      on-tertiary: #ffffff,
+      tertiary-container: #e8e9fe,
+      on-tertiary-container: #1e1b4b,
+      background: #f8f4f3,
+      on-background: #374151,
+      surface: #ffffff,
+      surface-bright: #ffffff,
+      surface-dim: #ebe5e3,
+      on-surface: #374151,
+      surface-variant: #f2ecea,
+      on-surface-variant: #5f6672,
+      surface-container-lowest: #ffffff,
+      surface-container-low: #fbf8f7,
+      surface-container: #f6f1f0,
+      surface-container-high: #f2ecea,
+      surface-container-highest: #ece6e4,
+      outline: #8a837e,
+      outline-variant: #e7e0dd,
+      error: #b91c1c,
+      on-error: #ffffff,
+      error-container: #fee2e2,
+      on-error-container: #7f1d1d,
+      inverse-surface: #1f2937,
+      inverse-on-surface: #f9fafb,
+    )
+  );
+}
