@@ -1,15 +1,14 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-anganwadi-management',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [RouterModule],
   templateUrl: './anganwadi-management.component.html',
   styles: [],
-
 })
 export class AnganwadiManagementComponent {
   constructor(private messageService: MessageService) {}
@@ -18,7 +17,7 @@ export class AnganwadiManagementComponent {
     this.messageService.add({
       severity: 'success',
       summary: 'Success',
-      detail: message
+      detail: message,
     });
   }
 
@@ -26,7 +25,7 @@ export class AnganwadiManagementComponent {
     this.messageService.add({
       severity: 'error',
       summary: 'Error',
-      detail: message
+      detail: message,
     });
   }
 }

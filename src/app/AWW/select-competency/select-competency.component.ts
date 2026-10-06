@@ -1,19 +1,23 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CompetencyService, AppDomain } from '../../competency.service';
-import { NgFor } from '@angular/common';
+
 import { LoggerService } from '../../core/logger.service';
 
 @Component({
   selector: 'app-select-competency',
-  imports: [NgFor],
+  imports: [],
   templateUrl: './select-competency.component.html',
-  styleUrl: './select-competency.component.scss'
+  styleUrl: './select-competency.component.scss',
 })
 export class SelectCompetencyComponent implements OnInit {
   domains: AppDomain[] = [];
 
-  constructor(private router: Router, private competencyService: CompetencyService, private logger: LoggerService) { }
+  constructor(
+    private router: Router,
+    private competencyService: CompetencyService,
+    private logger: LoggerService,
+  ) {}
 
   ngOnInit(): void {
     this.competencyService.getDomainsWithCompetencies().subscribe({
@@ -23,7 +27,7 @@ export class SelectCompetencyComponent implements OnInit {
       },
       error: (error) => {
         this.logger.error('Error loading domains:', error);
-      }
+      },
     });
   }
 

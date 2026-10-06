@@ -1,5 +1,4 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
-import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { HttpRequest, HttpHandlerFn } from '@angular/common/http';
@@ -35,7 +34,6 @@ export const appConfig: ApplicationConfig = {
     // Alternative: Use class-based interceptor (comment above and uncomment below)
     // provideHttpClient(),
     // { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
-    provideAnimations(), // Added for PrimeNG animations
     providePrimeNG({
       theme: {
         preset: Lara,

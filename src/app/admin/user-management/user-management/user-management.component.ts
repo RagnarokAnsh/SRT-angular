@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [RouterModule],
   template: `
     <div class="container mt-4">
       <div class="card">
@@ -16,7 +16,7 @@ import { MessageService } from 'primeng/api';
       </div>
     </div>
   `,
-  styles: []
+  styles: [],
 })
 export class UserManagementComponent {
   constructor(private messageService: MessageService) {}
@@ -26,7 +26,7 @@ export class UserManagementComponent {
       severity: 'success',
       summary: 'Success',
       detail: message,
-      life: 3000
+      life: 3000,
     });
   }
 
@@ -35,7 +35,7 @@ export class UserManagementComponent {
       severity: 'error',
       summary: 'Error',
       detail: message,
-      life: 3000
+      life: 3000,
     });
   }
 }

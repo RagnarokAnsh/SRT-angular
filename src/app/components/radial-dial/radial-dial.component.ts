@@ -1,5 +1,4 @@
 import { Component, OnInit, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
 
 interface Competency {
   name: string;
@@ -37,7 +36,7 @@ interface SunburstSector {
   templateUrl: './radial-dial.component.html',
   styleUrls: ['./radial-dial.component.scss'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [],
 })
 export class RadialDialComponent implements OnInit {
   // Compact and responsive
@@ -45,7 +44,14 @@ export class RadialDialComponent implements OnInit {
   radius = 200;
   ringWidth = 80;
   colors = [
-    '#e74c3c', '#2980b9', '#27ae60', '#f39c12', '#8e44ad', '#16a085', '#d35400', '#2c3e50'
+    '#e74c3c',
+    '#2980b9',
+    '#27ae60',
+    '#f39c12',
+    '#8e44ad',
+    '#16a085',
+    '#d35400',
+    '#2c3e50',
   ];
 
   // Interactive state
@@ -59,36 +65,51 @@ export class RadialDialComponent implements OnInit {
   }[] = [
     {
       name: 'Cognitive Development',
-      competencies: ['Classification', 'Patterns', 'Number concept', 'Seriation']
+      competencies: [
+        'Classification',
+        'Patterns',
+        'Number concept',
+        'Seriation',
+      ],
     },
     {
       name: 'Language & Literacy Development',
-      competencies: ['Vocabulary & exp.', 'Listening comprehension', 'Emergent reading', 'Emergent writing']
+      competencies: [
+        'Vocabulary & exp.',
+        'Listening comprehension',
+        'Emergent reading',
+        'Emergent writing',
+      ],
     },
     {
       name: 'Physical & Motor Development',
-      competencies: ['Gross motor', 'Fine motor']
+      competencies: ['Gross motor', 'Fine motor'],
     },
     {
       name: 'Socio-Emotional Development',
-      competencies: ['Interaction', 'Sharing with others', 'Emotional expression ']
+      competencies: [
+        'Interaction',
+        'Sharing with others',
+        'Emotional expression ',
+      ],
     },
     {
       name: 'Approaches towards Learning',
-      competencies: ['Initiative', 'Task persistence']
+      competencies: ['Initiative', 'Task persistence'],
     },
     {
       name: 'Creativity Development',
-      competencies: ['Creative expression', 'Imagination']
-    }
+      competencies: ['Creative expression', 'Imagination'],
+    },
   ];
 
   ngOnInit(): void {
     this.updateDialSize();
-    this.isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    this.isTouchDevice =
+      'ontouchstart' in window || navigator.maxTouchPoints > 0;
   }
 
-  @HostListener('window:resize', ['$event'])
+  @HostListener('window:resize')
   onResize() {
     this.updateDialSize();
   }
@@ -97,7 +118,7 @@ export class RadialDialComponent implements OnInit {
     const containerWidth = window.innerWidth;
     const containerHeight = window.innerHeight;
     const minDim = Math.min(containerWidth, containerHeight);
-    
+
     let baseSize;
     if (window.innerWidth >= 1600) {
       baseSize = 1000;
@@ -113,25 +134,25 @@ export class RadialDialComponent implements OnInit {
       // Mobile screens below 426px
       baseSize = Math.min(minDim * 0.9, 400);
     }
-    
+
     this.center = Math.max(150, Math.floor(baseSize / 2));
     this.radius = Math.max(75, Math.floor(baseSize / 4));
     this.ringWidth = Math.max(30, Math.floor(baseSize / 8));
-    
+
     // Special handling for very small screens
     if (window.innerWidth <= 425) {
       this.center = Math.max(175, Math.floor(baseSize / 2));
       this.radius = Math.max(85, Math.floor(baseSize / 4));
       this.ringWidth = Math.max(35, Math.floor(baseSize / 8));
     }
-    
+
     // Extra small mobile screens
     if (window.innerWidth <= 375) {
       this.center = Math.max(150, Math.floor(baseSize / 2));
       this.radius = Math.max(70, Math.floor(baseSize / 4));
       this.ringWidth = Math.max(30, Math.floor(baseSize / 8));
     }
-    
+
     // Very small mobile screens
     if (window.innerWidth <= 320) {
       this.center = Math.max(140, Math.floor(baseSize / 2));
@@ -142,25 +163,50 @@ export class RadialDialComponent implements OnInit {
 
   // Geometry helpers
   polarToCartesian(cx: number, cy: number, r: number, angle: number) {
-    const rad = (angle - 90) * Math.PI / 180.0;
+    const rad = ((angle - 90) * Math.PI) / 180.0;
     return {
       x: cx + r * Math.cos(rad),
-      y: cy + r * Math.sin(rad)
+      y: cy + r * Math.sin(rad),
     };
   }
 
-  describeArc(cx: number, cy: number, r1: number, r2: number, startAngle: number, endAngle: number) {
+  describeArc(
+    cx: number,
+    cy: number,
+    r1: number,
+    r2: number,
+    startAngle: number,
+    endAngle: number,
+  ) {
     const startOuter = this.polarToCartesian(cx, cy, r2, endAngle);
     const endOuter = this.polarToCartesian(cx, cy, r2, startAngle);
     const startInner = this.polarToCartesian(cx, cy, r1, endAngle);
     const endInner = this.polarToCartesian(cx, cy, r1, startAngle);
     const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
     return [
-      'M', startOuter.x, startOuter.y,
-      'A', r2, r2, 0, largeArcFlag, 0, endOuter.x, endOuter.y,
-      'L', endInner.x, endInner.y,
-      'A', r1, r1, 0, largeArcFlag, 1, startInner.x, startInner.y,
-      'Z'
+      'M',
+      startOuter.x,
+      startOuter.y,
+      'A',
+      r2,
+      r2,
+      0,
+      largeArcFlag,
+      0,
+      endOuter.x,
+      endOuter.y,
+      'L',
+      endInner.x,
+      endInner.y,
+      'A',
+      r1,
+      r1,
+      0,
+      largeArcFlag,
+      1,
+      startInner.x,
+      startInner.y,
+      'Z',
     ].join(' ');
   }
 
@@ -183,8 +229,9 @@ export class RadialDialComponent implements OnInit {
         innerRadius: this.ringWidth,
         outerRadius: this.ringWidth * 2 + arcRadiusIncrease,
         color: this.colors[dIdx % this.colors.length],
-        cx, cy,
-        domainIdx: dIdx
+        cx,
+        cy,
+        domainIdx: dIdx,
       });
       angle += domainAngle;
     });
@@ -196,19 +243,19 @@ export class RadialDialComponent implements OnInit {
     const cy = this.center;
     const domain = this.domains[domainIdx];
     const domainCount = this.domains.length;
-    
+
     const domainAngle = 360 / domainCount;
     const domainStartAngle = domainIdx * domainAngle;
     const domainEndAngle = domainStartAngle + domainAngle;
-    
+
     const competencyCount = domain.competencies.length;
     const competencyAngle = domainAngle / competencyCount;
-    
+
     const sectors: any[] = [];
     domain.competencies.forEach((comp, cIdx) => {
-      const startAngle = domainStartAngle + (cIdx * competencyAngle);
+      const startAngle = domainStartAngle + cIdx * competencyAngle;
       const endAngle = startAngle + competencyAngle;
-      
+
       sectors.push({
         label: comp,
         startAngle: startAngle,
@@ -216,9 +263,10 @@ export class RadialDialComponent implements OnInit {
         innerRadius: this.ringWidth * 2,
         outerRadius: this.ringWidth * 4,
         color: this.colors[(domainIdx + 2) % this.colors.length],
-        cx, cy,
+        cx,
+        cy,
         domainIdx,
-        compIdx: cIdx
+        compIdx: cIdx,
       });
     });
     return sectors;
@@ -231,7 +279,7 @@ export class RadialDialComponent implements OnInit {
       sector.innerRadius,
       sector.outerRadius,
       sector.startAngle,
-      sector.endAngle
+      sector.endAngle,
     );
   }
 
@@ -272,8 +320,12 @@ export class RadialDialComponent implements OnInit {
   // Responsive font size for SVG text
   getResponsiveFontSize(sector: any): number {
     const arcAngle = sector.endAngle - sector.startAngle;
-    const arcLength = ((arcAngle / 360) * 2 * Math.PI * ((sector.innerRadius + sector.outerRadius) / 2));
-    
+    const arcLength =
+      (arcAngle / 360) *
+      2 *
+      Math.PI *
+      ((sector.innerRadius + sector.outerRadius) / 2);
+
     // Better responsive font sizing for mobile
     if (window.innerWidth <= 320) {
       return Math.min(10, Math.max(8, arcLength / 15));
@@ -291,22 +343,26 @@ export class RadialDialComponent implements OnInit {
   // Truncate domain label after 2 words for mobile screens
   getTruncatedDomainLabel(sector: any): string {
     const words = sector.label.split(' ');
-    
+
     // For mobile screens, truncate after 2 words
     if (window.innerWidth <= 768) {
       if (words.length > 2) {
         return words.slice(0, 2).join(' ') + '...';
       }
     }
-    
+
     return sector.label;
   }
 
   // Truncate label if it overflows the arc
   getTruncatedLabel(sector: any): string {
     const arcAngle = sector.endAngle - sector.startAngle;
-    const arcLength = ((arcAngle / 360) * 2 * Math.PI * ((sector.innerRadius + sector.outerRadius) / 2));
-    
+    const arcLength =
+      (arcAngle / 360) *
+      2 *
+      Math.PI *
+      ((sector.innerRadius + sector.outerRadius) / 2);
+
     let maxChars;
     if (window.innerWidth <= 425) {
       maxChars = Math.floor(arcLength / 12);
@@ -315,7 +371,7 @@ export class RadialDialComponent implements OnInit {
     } else {
       maxChars = Math.floor(arcLength / 16);
     }
-    
+
     if (sector.label.length > maxChars) {
       return sector.label.slice(0, Math.max(0, maxChars - 1)) + '…';
     }
@@ -325,7 +381,12 @@ export class RadialDialComponent implements OnInit {
   // Generate an arc path for text along the arc
   getArcTextPath(sector: any, id: string): string {
     const r = (sector.innerRadius + sector.outerRadius) / 2;
-    const start = this.polarToCartesian(sector.cx, sector.cy, r, sector.startAngle);
+    const start = this.polarToCartesian(
+      sector.cx,
+      sector.cy,
+      r,
+      sector.startAngle,
+    );
     const end = this.polarToCartesian(sector.cx, sector.cy, r, sector.endAngle);
     const largeArcFlag = sector.endAngle - sector.startAngle <= 180 ? '0' : '1';
     return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`;
@@ -355,8 +416,12 @@ export class RadialDialComponent implements OnInit {
 
   getMaxCharsPerLine(sector: any): number {
     const arcAngle = sector.endAngle - sector.startAngle;
-    const arcLength = ((arcAngle / 360) * 2 * Math.PI * ((sector.innerRadius + sector.outerRadius) / 2));
-    
+    const arcLength =
+      (arcAngle / 360) *
+      2 *
+      Math.PI *
+      ((sector.innerRadius + sector.outerRadius) / 2);
+
     if (window.innerWidth <= 425) {
       return Math.max(3, Math.floor(arcLength / 12));
     } else if (window.innerWidth <= 768) {
@@ -368,8 +433,12 @@ export class RadialDialComponent implements OnInit {
 
   getMaxCharsPerLineVertical(sector: any): number {
     const arcAngle = sector.endAngle - sector.startAngle;
-    const arcLength = ((arcAngle / 360) * 2 * Math.PI * ((sector.innerRadius + sector.outerRadius) / 2));
-    
+    const arcLength =
+      (arcAngle / 360) *
+      2 *
+      Math.PI *
+      ((sector.innerRadius + sector.outerRadius) / 2);
+
     if (window.innerWidth <= 425) {
       return Math.max(2, Math.floor(arcLength / 10));
     } else if (window.innerWidth <= 768) {
@@ -380,7 +449,7 @@ export class RadialDialComponent implements OnInit {
   }
 
   splitLabelToLinesVertical(label: string): string[] {
-    const maxCharsPerLine = 12; 
+    const maxCharsPerLine = 12;
     const words = label.split(' ');
     const lines: string[] = [];
     let currentLine = '';
@@ -407,8 +476,12 @@ export class RadialDialComponent implements OnInit {
 
   getCompetencyFontSize(sector: any): number {
     const arcAngle = sector.endAngle - sector.startAngle;
-    const arcLength = ((arcAngle / 360) * 2 * Math.PI * ((sector.innerRadius + sector.outerRadius) / 2));
-    
+    const arcLength =
+      (arcAngle / 360) *
+      2 *
+      Math.PI *
+      ((sector.innerRadius + sector.outerRadius) / 2);
+
     if (window.innerWidth <= 320) {
       return Math.min(10, Math.max(7, arcLength / 35));
     } else if (window.innerWidth <= 375) {

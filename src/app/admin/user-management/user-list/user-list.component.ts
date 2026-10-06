@@ -1,11 +1,16 @@
 import { Component, OnInit, Inject, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { NgStyle, TitleCasePipe } from '@angular/common';
+
 import { RouterModule, Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDialog, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import {
+  MatDialog,
+  MatDialogModule,
+  MAT_DIALOG_DATA,
+} from '@angular/material/dialog';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
@@ -19,7 +24,8 @@ import { LoggerService } from '../../../core/logger.service';
   selector: 'app-users-list',
   standalone: true,
   imports: [
-    CommonModule,
+    NgStyle,
+    TitleCasePipe,
     RouterModule,
     MatTableModule,
     MatButtonModule,
@@ -28,15 +34,23 @@ import { LoggerService } from '../../../core/logger.service';
     MatDialogModule,
     MatChipsModule,
     MatPaginatorModule,
-    SkeletonLoaderComponent
+    SkeletonLoaderComponent,
   ],
   templateUrl: './user-list.component.html',
-  styleUrls: ['./user-list.component.scss']
+  styleUrls: ['./user-list.component.scss'],
 })
 export class UsersListComponent implements OnInit {
   dataSource = new MatTableDataSource<User>([]);
-  displayedColumns: string[] = ['name', 'email', 'gender', 'roles', 'location', 'assignment', 'actions'];
-  
+  displayedColumns: string[] = [
+    'name',
+    'email',
+    'gender',
+    'roles',
+    'location',
+    'assignment',
+    'actions',
+  ];
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   pageSize = 10;
   isLoading = true;
@@ -46,7 +60,7 @@ export class UsersListComponent implements OnInit {
     private router: Router,
     private dialog: MatDialog,
     private messageService: MessageService,
-    private logger: LoggerService
+    private logger: LoggerService,
   ) {}
 
   ngOnInit() {
@@ -88,20 +102,20 @@ export class UsersListComponent implements OnInit {
           severity: 'error',
           summary: 'Error',
           detail: 'Failed to load users',
-          life: 3000
+          life: 3000,
         });
-      }
+      },
     });
   }
 
   getRoleColor(roleName: string): string {
     const colorMap: { [key: string]: string } = {
-      'admin': '#dc3545',
-      'aww': '#28a745',
-      'supervisor': '#007bff',
-      'cdpo': '#fd7e14',
-      'dpo': '#6f42c1',
-      'stateofficial': '#20c997'
+      admin: '#dc3545',
+      aww: '#28a745',
+      supervisor: '#007bff',
+      cdpo: '#fd7e14',
+      dpo: '#6f42c1',
+      stateofficial: '#20c997',
     };
     return colorMap[roleName] || '#6c757d';
   }
@@ -109,10 +123,10 @@ export class UsersListComponent implements OnInit {
   openDeleteDialog(user: User) {
     const dialogRef = this.dialog.open(DeleteConfirmDialog, {
       width: '300px',
-      data: { name: user.name }
+      data: { name: user.name },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.deleteUser(user.id, user.name);
       }
@@ -125,8 +139,10 @@ export class UsersListComponent implements OnInit {
         this.messageService.add({
           severity: 'success',
           summary: 'User Deleted',
-          detail: userName ? `User ${userName} has been successfully deleted` : 'User has been successfully deleted',
-          life: 3000
+          detail: userName
+            ? `User ${userName} has been successfully deleted`
+            : 'User has been successfully deleted',
+          life: 3000,
         });
         this.loadUsers();
       },
@@ -136,9 +152,9 @@ export class UsersListComponent implements OnInit {
           severity: 'error',
           summary: 'Error',
           detail: error.message || 'Failed to delete user',
-          life: 3000
+          life: 3000,
         });
-      }
+      },
     });
   }
 }
@@ -148,15 +164,17 @@ export class UsersListComponent implements OnInit {
   template: `
     <h2 mat-dialog-title>Delete User</h2>
     <mat-dialog-content>
-      Are you sure you want to delete {{data.name}}?
+      Are you sure you want to delete {{ data.name }}?
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-raised-button color="warn" [mat-dialog-close]="true">Delete</button>
+      <button mat-raised-button color="warn" [mat-dialog-close]="true">
+        Delete
+      </button>
     </mat-dialog-actions>
   `,
   standalone: true,
-  imports: [MatDialogModule, MatButtonModule]
+  imports: [MatDialogModule, MatButtonModule],
 })
 export class DeleteConfirmDialog {
   constructor(@Inject(MAT_DIALOG_DATA) public data: { name: string }) {}

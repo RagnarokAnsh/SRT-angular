@@ -195,7 +195,8 @@
   }
 
   .stat-card {
-    &::ng-deep .p-card {
+    // PrimeNG 21 puts the .p-card class on the <p-card> host element itself.
+    &.p-card {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -207,7 +208,9 @@
         transform: translateY(-4px);
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
       }
+    }
 
+    &.p-card ::ng-deep {
       .p-card-body {
         padding: 0;
       }
@@ -354,7 +357,7 @@
   margin-bottom: 2rem;
 
         .chart-card {
-        &::ng-deep .p-card {
+        &.p-card {
           background: rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(20px);
           border: 1px solid rgba(255, 255, 255, 0.2);
@@ -362,13 +365,13 @@
           box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
           position: relative;
           z-index: 1;
+        }
 
-          .p-card-content {
-            padding: 1.5rem;
+        &.p-card ::ng-deep .p-card-content {
+          padding: 1.5rem;
 
-            @media (max-width: 600px) {
-              padding: 1rem;
-            }
+          @media (max-width: 600px) {
+            padding: 1rem;
           }
         }
 

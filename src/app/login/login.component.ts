@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -10,9 +10,9 @@ import { SkeletonLoaderComponent } from '../components/skeleton-loader';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, SkeletonLoaderComponent],
+  imports: [FormsModule, SkeletonLoaderComponent],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+  styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent implements OnInit {
   showPassword: boolean = false;
@@ -26,13 +26,13 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private messageService: MessageService,
-    private errorHandler: ErrorHandlerService
+    private errorHandler: ErrorHandlerService,
   ) {}
 
   ngOnInit(): void {
     // Get return URL from route parameters or default to appropriate dashboard
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '';
-    
+
     // Redirect if already authenticated
     if (this.userService.isAuthenticated()) {
       this.redirectAfterLogin();
@@ -45,7 +45,7 @@ export class LoginComponent implements OnInit {
         severity: 'error',
         summary: 'Validation Error',
         detail: 'Please enter both email and password',
-        life: 3000
+        life: 3000,
       });
       return;
     }
@@ -59,9 +59,9 @@ export class LoginComponent implements OnInit {
           severity: 'success',
           summary: 'Login Successful',
           detail: `Welcome, ${response.user.name}!`,
-          life: 2000
+          life: 2000,
         });
-        
+
         // Redirect after successful login
         setTimeout(() => {
           this.redirectAfterLogin();
@@ -70,7 +70,7 @@ export class LoginComponent implements OnInit {
       error: (error) => {
         this.isLoading = false;
         // Error toast is already handled in the service, do not call errorHandler here
-      }
+      },
     });
   }
 

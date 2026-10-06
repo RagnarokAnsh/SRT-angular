@@ -1,6 +1,11 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -9,17 +14,20 @@ import { MatCardModule } from '@angular/material/card';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
-import { AnganwadiService, Country, State, District } from '../anganwadi.service';
+import {
+  AnganwadiService,
+  Country,
+  State,
+  District,
+} from '../anganwadi.service';
 import { MessageService } from 'primeng/api';
 import { ErrorHandlerService } from '../../../core/error/error-handler.service';
 import { SkeletonLoaderComponent } from '../../../components/skeleton-loader';
-
 
 @Component({
   selector: 'app-create-edit-anganwadi',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -28,21 +36,21 @@ import { SkeletonLoaderComponent } from '../../../components/skeleton-loader';
     MatSelectModule,
     MatProgressSpinnerModule,
     MatIconModule,
-    SkeletonLoaderComponent
+    SkeletonLoaderComponent,
   ],
 
   templateUrl: './create-edit-anganwadi.component.html',
-  styleUrl: './create-edit-anganwadi.component.scss'
+  styleUrl: './create-edit-anganwadi.component.scss',
 })
 export class CreateEditAnganwadiComponent implements OnInit {
   anganwadiForm: FormGroup;
   isEditMode = false;
   anganwadiId: number | null = null;
-  
+
   countries: Country[] = [];
   states: State[] = [];
   districts: District[] = [];
-  
+
   loadingStates = false;
   loadingDistricts = false;
   submitting = false;
@@ -58,7 +66,7 @@ export class CreateEditAnganwadiComponent implements OnInit {
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private anganwadiService: AnganwadiService
+    private anganwadiService: AnganwadiService,
   ) {
     this.anganwadiForm = this.fb.group({
       name: ['', Validators.required],
@@ -67,13 +75,13 @@ export class CreateEditAnganwadiComponent implements OnInit {
       sector: ['', Validators.required],
       country_id: ['', Validators.required],
       state_id: ['', Validators.required],
-      district_id: ['', Validators.required]
+      district_id: ['', Validators.required],
     });
   }
 
   ngOnInit() {
     this.loadCountries();
-    
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEditMode = true;
@@ -89,7 +97,7 @@ export class CreateEditAnganwadiComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading countries:', error);
-      }
+      },
     });
   }
 
@@ -97,7 +105,7 @@ export class CreateEditAnganwadiComponent implements OnInit {
     if (!this.isEditMode || countryId !== this.originalCountryId) {
       this.anganwadiForm.patchValue({
         state_id: '',
-        district_id: ''
+        district_id: '',
       });
       this.districts = [];
     }
@@ -110,8 +118,12 @@ export class CreateEditAnganwadiComponent implements OnInit {
         next: (states) => {
           this.states = states;
           this.loadingStates = false;
-          
-          if (this.isEditMode && countryId === this.originalCountryId && this.originalStateId) {
+
+          if (
+            this.isEditMode &&
+            countryId === this.originalCountryId &&
+            this.originalStateId
+          ) {
             this.anganwadiForm.patchValue({ state_id: this.originalStateId });
             this.onStateChange(this.originalStateId);
           }
@@ -119,7 +131,7 @@ export class CreateEditAnganwadiComponent implements OnInit {
         error: (error) => {
           console.error('Error loading states:', error);
           this.loadingStates = false;
-        }
+        },
       });
     }
   }
@@ -127,7 +139,7 @@ export class CreateEditAnganwadiComponent implements OnInit {
   onStateChange(stateId: number) {
     if (!this.isEditMode || stateId !== this.originalStateId) {
       this.anganwadiForm.patchValue({
-        district_id: ''
+        district_id: '',
       });
     }
 
@@ -139,15 +151,21 @@ export class CreateEditAnganwadiComponent implements OnInit {
         next: (districts) => {
           this.districts = districts;
           this.loadingDistricts = false;
-          
-          if (this.isEditMode && stateId === this.originalStateId && this.originalDistrictId) {
-            this.anganwadiForm.patchValue({ district_id: this.originalDistrictId });
+
+          if (
+            this.isEditMode &&
+            stateId === this.originalStateId &&
+            this.originalDistrictId
+          ) {
+            this.anganwadiForm.patchValue({
+              district_id: this.originalDistrictId,
+            });
           }
         },
         error: (error) => {
           console.error('Error loading districts:', error);
           this.loadingDistricts = false;
-        }
+        },
       });
     }
   }
@@ -158,9 +176,9 @@ export class CreateEditAnganwadiComponent implements OnInit {
         this.originalCountryId = center.country_id;
         this.originalStateId = center.state_id;
         this.originalDistrictId = center.district_id;
-        
+
         this.anganwadiForm.patchValue(center);
-        
+
         if (center.country_id) {
           this.onCountryChange(center.country_id);
         }
@@ -168,7 +186,7 @@ export class CreateEditAnganwadiComponent implements OnInit {
       error: (error) => {
         console.error('Error loading anganwadi center:', error);
         this.goBack();
-      }
+      },
     });
   }
 
@@ -176,34 +194,36 @@ export class CreateEditAnganwadiComponent implements OnInit {
     if (this.anganwadiForm.valid) {
       this.submitting = true;
       const centerData = this.anganwadiForm.value;
-      
+
       if (this.isEditMode && this.anganwadiId) {
-        this.anganwadiService.updateAnganwadiCenter(this.anganwadiId, centerData).subscribe({
-          next: () => {
-            setTimeout(() => {
-              this.messageService.add({
-                severity: 'success',
-                summary: 'Success',
-                detail: `Anganwadi center "${centerData.name}" updated successfully`,
-                life: 3000
-              });
-            }, 0);
-            this.submitting = false;
-            this.goBack();
-          },
-          error: (error) => {
-            setTimeout(() => {
-              this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: `Failed to update anganwadi center: ${error.message || 'Unknown error'}`,
-                life: 5000
-              });
-            }, 0);
-            console.error('Error updating anganwadi center:', error);
-            this.submitting = false;
-          }
-        });
+        this.anganwadiService
+          .updateAnganwadiCenter(this.anganwadiId, centerData)
+          .subscribe({
+            next: () => {
+              setTimeout(() => {
+                this.messageService.add({
+                  severity: 'success',
+                  summary: 'Success',
+                  detail: `Anganwadi center "${centerData.name}" updated successfully`,
+                  life: 3000,
+                });
+              }, 0);
+              this.submitting = false;
+              this.goBack();
+            },
+            error: (error) => {
+              setTimeout(() => {
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: `Failed to update anganwadi center: ${error.message || 'Unknown error'}`,
+                  life: 5000,
+                });
+              }, 0);
+              console.error('Error updating anganwadi center:', error);
+              this.submitting = false;
+            },
+          });
       } else {
         this.anganwadiService.createAnganwadiCenter(centerData).subscribe({
           next: () => {
@@ -212,7 +232,7 @@ export class CreateEditAnganwadiComponent implements OnInit {
                 severity: 'success',
                 summary: 'Success',
                 detail: `Anganwadi center "${centerData.name}" created successfully`,
-                life: 3000
+                life: 3000,
               });
             }, 0);
             this.submitting = false;
@@ -224,7 +244,7 @@ export class CreateEditAnganwadiComponent implements OnInit {
             }, 0);
             console.error('Error creating anganwadi center:', error);
             this.submitting = false;
-          }
+          },
         });
       }
     }

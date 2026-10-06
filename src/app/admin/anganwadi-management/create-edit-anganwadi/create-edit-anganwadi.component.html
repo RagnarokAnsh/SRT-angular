@@ -1,8 +1,8 @@
-
 <div class="card">
   <div class="card-body">
     <h2 class="heading-heading mb-4">
-      <span class="heading-highlight">{{isEditMode ? 'Edit' : 'Add'}}</span> Anganwadi Center
+      <span class="heading-highlight">{{ isEditMode ? "Edit" : "Add" }}</span>
+      Anganwadi Center
     </h2>
 
     <form [formGroup]="anganwadiForm" (ngSubmit)="onSubmit()">
@@ -10,104 +10,165 @@
         <div class="col-md-6 mb-3">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Center Name</mat-label>
-            <input matInput formControlName="name" placeholder="Enter center name">
-            <mat-error *ngIf="anganwadiForm.get('name')?.hasError('required')">
-              Center name is required
-            </mat-error>
+            <input
+              matInput
+              formControlName="name"
+              placeholder="Enter center name"
+            />
+            @if (anganwadiForm.get("name")?.hasError("required")) {
+              <mat-error> Center name is required </mat-error>
+            }
           </mat-form-field>
         </div>
 
         <div class="col-md-6 mb-3">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Center Code</mat-label>
-            <input matInput formControlName="code" placeholder="Enter center code">
-            <mat-error *ngIf="anganwadiForm.get('code')?.hasError('required')">
-              Center code is required
-            </mat-error>
+            <input
+              matInput
+              formControlName="code"
+              placeholder="Enter center code"
+            />
+            @if (anganwadiForm.get("code")?.hasError("required")) {
+              <mat-error> Center code is required </mat-error>
+            }
           </mat-form-field>
         </div>
 
         <div class="col-md-6 mb-3">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Project</mat-label>
-            <input matInput formControlName="project" placeholder="Enter project name">
-            <mat-error *ngIf="anganwadiForm.get('project')?.hasError('required')">
-              Project is required
-            </mat-error>
+            <input
+              matInput
+              formControlName="project"
+              placeholder="Enter project name"
+            />
+            @if (anganwadiForm.get("project")?.hasError("required")) {
+              <mat-error> Project is required </mat-error>
+            }
           </mat-form-field>
         </div>
 
         <div class="col-md-6 mb-3">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Sector</mat-label>
-            <input matInput formControlName="sector" placeholder="Enter sector">
-            <mat-error *ngIf="anganwadiForm.get('sector')?.hasError('required')">
-              Sector is required
-            </mat-error>
+            <input
+              matInput
+              formControlName="sector"
+              placeholder="Enter sector"
+            />
+            @if (anganwadiForm.get("sector")?.hasError("required")) {
+              <mat-error> Sector is required </mat-error>
+            }
           </mat-form-field>
         </div>
 
         <div class="col-md-4 mb-3">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Country</mat-label>
-            <mat-select formControlName="country_id" (selectionChange)="onCountryChange($event.value)">
-              <mat-option *ngFor="let country of countries" [value]="country.id">
-                {{country.name}}
-              </mat-option>
+            <mat-select
+              formControlName="country_id"
+              (selectionChange)="onCountryChange($event.value)"
+            >
+              @for (country of countries; track country) {
+                <mat-option [value]="country.id">
+                  {{ country.name }}
+                </mat-option>
+              }
             </mat-select>
-            <mat-error *ngIf="anganwadiForm.get('country_id')?.hasError('required')">
-              Country is required
-            </mat-error>
+            @if (anganwadiForm.get("country_id")?.hasError("required")) {
+              <mat-error> Country is required </mat-error>
+            }
           </mat-form-field>
         </div>
 
         <div class="col-md-4 mb-3">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>State</mat-label>
-            <mat-select formControlName="state_id" 
-                       [disabled]="!anganwadiForm.get('country_id')?.value || loadingStates"
-                       (selectionChange)="onStateChange($event.value)">
-              <mat-option *ngIf="loadingStates" disabled>
-                <app-skeleton-loader type="rect" width="80px" height="1.5em"></app-skeleton-loader> Loading...
-              </mat-option>
-              <mat-option *ngFor="let state of states" [value]="state.id">
-                {{state.name}}
-              </mat-option>
+            <mat-select
+              formControlName="state_id"
+              [disabled]="
+                !anganwadiForm.get('country_id')?.value || loadingStates
+              "
+              (selectionChange)="onStateChange($event.value)"
+            >
+              @if (loadingStates) {
+                <mat-option disabled>
+                  <app-skeleton-loader
+                    type="rect"
+                    width="80px"
+                    height="1.5em"
+                  ></app-skeleton-loader>
+                  Loading...
+                </mat-option>
+              }
+              @for (state of states; track state) {
+                <mat-option [value]="state.id">
+                  {{ state.name }}
+                </mat-option>
+              }
             </mat-select>
-            <mat-error *ngIf="anganwadiForm.get('state_id')?.hasError('required')">
-              State is required
-            </mat-error>
+            @if (anganwadiForm.get("state_id")?.hasError("required")) {
+              <mat-error> State is required </mat-error>
+            }
           </mat-form-field>
         </div>
 
         <div class="col-md-4 mb-3">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>District</mat-label>
-            <mat-select formControlName="district_id" 
-                       [disabled]="!anganwadiForm.get('state_id')?.value || loadingDistricts">
-              <mat-option *ngIf="loadingDistricts" disabled>
-                <app-skeleton-loader type="rect" width="80px" height="1.5em"></app-skeleton-loader> Loading...
-              </mat-option>
-              <mat-option *ngFor="let district of districts" [value]="district.id">
-                {{district.name}}
-              </mat-option>
+            <mat-select
+              formControlName="district_id"
+              [disabled]="
+                !anganwadiForm.get('state_id')?.value || loadingDistricts
+              "
+            >
+              @if (loadingDistricts) {
+                <mat-option disabled>
+                  <app-skeleton-loader
+                    type="rect"
+                    width="80px"
+                    height="1.5em"
+                  ></app-skeleton-loader>
+                  Loading...
+                </mat-option>
+              }
+              @for (district of districts; track district) {
+                <mat-option [value]="district.id">
+                  {{ district.name }}
+                </mat-option>
+              }
             </mat-select>
-            <mat-error *ngIf="anganwadiForm.get('district_id')?.hasError('required')">
-              District is required
-            </mat-error>
+            @if (anganwadiForm.get("district_id")?.hasError("required")) {
+              <mat-error> District is required </mat-error>
+            }
           </mat-form-field>
         </div>
       </div>
 
       <div class="d-flex justify-content-end gap-2 mt-4">
-        <button type="button" class="btn btn-outline-secondary" (click)="goBack()">Cancel</button>
-        <button type="submit" class="btn btn-primary" [disabled]="anganwadiForm.invalid || submitting">
-          <ng-container *ngIf="submitting; else submitText">
-            <app-skeleton-loader type="rect" width="80px" height="1.5em" style="vertical-align: middle;"></app-skeleton-loader>
-          </ng-container>
-          <ng-template #submitText>
-            {{isEditMode ? 'Update' : 'Create'}} Center
-          </ng-template>
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="goBack()"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="anganwadiForm.invalid || submitting"
+        >
+          @if (submitting) {
+            <app-skeleton-loader
+              type="rect"
+              width="80px"
+              height="1.5em"
+              style="vertical-align: middle"
+            ></app-skeleton-loader>
+          } @else {
+            {{ isEditMode ? "Update" : "Create" }} Center
+          }
         </button>
       </div>
     </form>

@@ -1,6 +1,22 @@
-import { Component, Input, Output, EventEmitter, forwardRef, OnInit, OnDestroy, ElementRef, ViewChild, ChangeDetectorRef, OnChanges, SimpleChanges } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  forwardRef,
+  OnInit,
+  OnDestroy,
+  ElementRef,
+  ViewChild,
+  ChangeDetectorRef,
+  OnChanges,
+  SimpleChanges,
+} from '@angular/core';
+import {
+  ControlValueAccessor,
+  NG_VALUE_ACCESSOR,
+  FormsModule,
+} from '@angular/forms';
 
 export interface DropdownOption {
   label: string;
@@ -11,19 +27,22 @@ export interface DropdownOption {
 @Component({
   selector: 'app-custom-dropdown',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './custom-dropdown.component.html',
   styleUrls: ['./custom-dropdown.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => CustomDropdownComponent),
-      multi: true
-    }
-  ]
+      multi: true,
+    },
+  ],
 })
-export class CustomDropdownComponent implements ControlValueAccessor, OnInit, OnDestroy, OnChanges {
-  @ViewChild('dropdownContainer', { static: false }) dropdownContainer!: ElementRef;
+export class CustomDropdownComponent
+  implements ControlValueAccessor, OnInit, OnDestroy, OnChanges
+{
+  @ViewChild('dropdownContainer', { static: false })
+  dropdownContainer!: ElementRef;
 
   @Input() options: DropdownOption[] = [];
   @Input() set placeholder(value: string) {
@@ -47,8 +66,8 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
   searchTerm = '';
   filteredOptions: DropdownOption[] = [];
 
-  private onChange = (value: any) => { };
-  private onTouched = () => { };
+  private onChange = (value: any) => {};
+  private onTouched = () => {};
   private boundDocumentClick = this.onDocumentClick.bind(this);
 
   constructor(private cdr: ChangeDetectorRef) {
@@ -59,16 +78,11 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
   ngOnInit() {
     this.filteredOptions = [...this.options];
 
-
     if (!this.selectedOptions) {
       this.selectedOptions = [];
     }
 
-
     document.addEventListener('click', this.boundDocumentClick);
-
-
-
 
     setTimeout(() => {
       if (this.selectedOptions.length === 0) {
@@ -118,7 +132,10 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
   }
 
   onDocumentClick(event: Event) {
-    if (this.dropdownContainer && !this.dropdownContainer.nativeElement.contains(event.target)) {
+    if (
+      this.dropdownContainer &&
+      !this.dropdownContainer.nativeElement.contains(event.target)
+    ) {
       this.closeDropdown();
     }
   }
@@ -143,7 +160,9 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
     console.log('Dropdown option clicked:', option);
 
     if (this.multiple) {
-      const index = this.selectedOptions.findIndex(o => o.value === option.value);
+      const index = this.selectedOptions.findIndex(
+        (o) => o.value === option.value,
+      );
       if (index > -1) {
         this.selectedOptions.splice(index, 1);
       } else {
@@ -157,14 +176,14 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
     this.emitChange();
   }
 
-
-
   removeOption(option: DropdownOption, event?: Event) {
     if (event) {
       event.stopPropagation();
     }
 
-    const index = this.selectedOptions.findIndex(o => o.value === option.value);
+    const index = this.selectedOptions.findIndex(
+      (o) => o.value === option.value,
+    );
     if (index > -1) {
       this.selectedOptions.splice(index, 1);
       this.emitChange();
@@ -182,23 +201,25 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
 
   private emitChange() {
     const value = this.multiple
-      ? this.selectedOptions.map(o => o.value)
+      ? this.selectedOptions.map((o) => o.value)
       : this.selectedOptions[0]?.value || null;
 
     this.onChange(value);
-    this.selectionChange.emit(this.multiple ? this.selectedOptions : this.selectedOptions[0]);
+    this.selectionChange.emit(
+      this.multiple ? this.selectedOptions : this.selectedOptions[0],
+    );
   }
 
   isSelected(option: DropdownOption): boolean {
-    return this.selectedOptions.some(o => o.value === option.value);
+    return this.selectedOptions.some((o) => o.value === option.value);
   }
 
   filterOptions() {
     if (!this.searchTerm.trim()) {
       this.filteredOptions = [...this.options];
     } else {
-      this.filteredOptions = this.options.filter(option =>
-        option.label.toLowerCase().includes(this.searchTerm.toLowerCase())
+      this.filteredOptions = this.options.filter((option) =>
+        option.label.toLowerCase().includes(this.searchTerm.toLowerCase()),
       );
     }
   }
@@ -208,7 +229,8 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
   }
 
   get shouldShowPlaceholder(): boolean {
-    const shouldShow = !this.selectedOptions || this.selectedOptions.length === 0;
+    const shouldShow =
+      !this.selectedOptions || this.selectedOptions.length === 0;
     // If we should show placeholder but selectedOptions is not initialized, force it
     if (shouldShow && !this.selectedOptions) {
       this.selectedOptions = [];
@@ -220,16 +242,27 @@ export class CustomDropdownComponent implements ControlValueAccessor, OnInit, On
   // ControlValueAccessor implementation
   writeValue(value: any): void {
     // Handle empty/null/undefined values explicitly
-    if (value === null || value === undefined ||
+    if (
+      value === null ||
+      value === undefined ||
       (Array.isArray(value) && value.length === 0) ||
       value === '' ||
       (this.multiple && (!Array.isArray(value) || value.length === 0)) ||
-      (!this.multiple && (value === null || value === undefined || value === ''))) {
+      (!this.multiple &&
+        (value === null || value === undefined || value === ''))
+    ) {
       this.selectedOptions = [];
     } else if (this.multiple && Array.isArray(value) && value.length > 0) {
-      this.selectedOptions = this.options.filter(option => value.includes(option.value));
-    } else if (!this.multiple && value !== null && value !== undefined && value !== '') {
-      const option = this.options.find(o => o.value === value);
+      this.selectedOptions = this.options.filter((option) =>
+        value.includes(option.value),
+      );
+    } else if (
+      !this.multiple &&
+      value !== null &&
+      value !== undefined &&
+      value !== ''
+    ) {
+      const option = this.options.find((o) => o.value === value);
       this.selectedOptions = option ? [option] : [];
     } else {
       this.selectedOptions = [];

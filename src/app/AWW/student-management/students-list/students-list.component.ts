@@ -1,11 +1,16 @@
 import { Component, OnInit, Inject, ViewChild, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DatePipe } from '@angular/common';
+
 import { RouterModule, Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDialog, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import {
+  MatDialog,
+  MatDialogModule,
+  MAT_DIALOG_DATA,
+} from '@angular/material/dialog';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { StudentService, Student } from '../student.service';
@@ -21,7 +26,7 @@ import { LoggerService } from '../../../core/logger.service';
   selector: 'app-students-list',
   standalone: true,
   imports: [
-    CommonModule,
+    DatePipe,
     RouterModule,
     MatTableModule,
     MatButtonModule,
@@ -29,17 +34,39 @@ import { LoggerService } from '../../../core/logger.service';
     MatTooltipModule,
     MatDialogModule,
     MatPaginatorModule,
-    SkeletonLoaderComponent
+    SkeletonLoaderComponent,
   ],
   templateUrl: './students-list.component.html',
-  styleUrls: ['./students-list.component.scss']
+  styleUrls: ['./students-list.component.scss'],
 })
 export class StudentsListComponent implements OnInit, OnDestroy {
   dataSource = new MatTableDataSource<Student>([]);
-  displayedColumns: string[] = ['name', 'age', 'gender', 'dateOfBirth', 'symbol', 'height', 'weight', 'language', 'anganwadi', 'actions'];
-  allColumns: string[] = ['name', 'age', 'gender', 'dateOfBirth', 'symbol', 'height', 'weight', 'language', 'anganwadi', 'actions'];
+  displayedColumns: string[] = [
+    'name',
+    'age',
+    'gender',
+    'dateOfBirth',
+    'symbol',
+    'height',
+    'weight',
+    'language',
+    'anganwadi',
+    'actions',
+  ];
+  allColumns: string[] = [
+    'name',
+    'age',
+    'gender',
+    'dateOfBirth',
+    'symbol',
+    'height',
+    'weight',
+    'language',
+    'anganwadi',
+    'actions',
+  ];
   // Removed mobileColumns as it's no longer needed
-  
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   pageSize = 10;
 
@@ -54,7 +81,7 @@ export class StudentsListComponent implements OnInit, OnDestroy {
     private messageService: MessageService,
     private errorHandler: ErrorHandlerService,
     private userService: UserService,
-    private logger: LoggerService
+    private logger: LoggerService,
   ) {
     // Always show all columns
     this.displayedColumns = this.allColumns;
@@ -75,13 +102,13 @@ export class StudentsListComponent implements OnInit, OnDestroy {
       this.userSubscription.unsubscribe();
     }
   }
-  
+
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
     this.paginator.pageSize = this.pageSize;
   }
 
-  @HostListener('window:resize', ['$event'])
+  @HostListener('window:resize')
   onResize() {
     // No longer update columns based on window size
   }
@@ -113,7 +140,7 @@ export class StudentsListComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         this.logger.error('Error loading students:', error);
         // Error toast is already handled in the service, do not call errorHandler here
-      }
+      },
     });
   }
 
@@ -122,23 +149,29 @@ export class StudentsListComponent implements OnInit, OnDestroy {
     const birthDate = new Date(dateOfBirth);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
       age--;
     }
-    
+
     return age;
   }
 
   openDeleteDialog(student: Student) {
     const dialogRef = this.dialog.open(DeleteConfirmDialog, {
       width: '300px',
-      data: { name: `${student.firstName} ${student.lastName}` }
+      data: { name: `${student.firstName} ${student.lastName}` },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.deleteStudent(student.id, `${student.firstName} ${student.lastName}`);
+        this.deleteStudent(
+          student.id,
+          `${student.firstName} ${student.lastName}`,
+        );
       }
     });
   }
@@ -149,8 +182,10 @@ export class StudentsListComponent implements OnInit, OnDestroy {
         this.messageService.add({
           severity: 'success',
           summary: 'Student Deleted',
-          detail: studentName ? `Student ${studentName} has been successfully deleted` : 'Student has been successfully deleted',
-          life: 3000
+          detail: studentName
+            ? `Student ${studentName} has been successfully deleted`
+            : 'Student has been successfully deleted',
+          life: 3000,
         });
         this.loadStudents();
       },
@@ -160,9 +195,9 @@ export class StudentsListComponent implements OnInit, OnDestroy {
           severity: 'error',
           summary: 'Error',
           detail: error.message || 'Failed to delete student',
-          life: 3000
+          life: 3000,
         });
-      }
+      },
     });
   }
 }
@@ -172,16 +207,24 @@ export class StudentsListComponent implements OnInit, OnDestroy {
   template: `
     <h2 mat-dialog-title>Delete Student</h2>
     <mat-dialog-content>
-      Are you sure you want to delete {{data.name}}?
+      Are you sure you want to delete {{ data.name }}?
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-    <button type="button" class="btn btn-outline-secondary me-2" mat-dialog-close>Cancel</button>
-    <button type="button" class="btn btn-danger" [mat-dialog-close]="true">Delete</button>
+      <button
+        type="button"
+        class="btn btn-outline-secondary me-2"
+        mat-dialog-close
+      >
+        Cancel
+      </button>
+      <button type="button" class="btn btn-danger" [mat-dialog-close]="true">
+        Delete
+      </button>
     </mat-dialog-actions>
   `,
   standalone: true,
-  imports: [MatDialogModule, MatButtonModule]
+  imports: [MatDialogModule, MatButtonModule],
 })
 export class DeleteConfirmDialog {
   constructor(@Inject(MAT_DIALOG_DATA) public data: { name: string }) {}
-} 
+}

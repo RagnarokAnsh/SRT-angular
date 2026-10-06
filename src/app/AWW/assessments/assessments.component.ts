@@ -2,7 +2,6 @@ import { Component, ChangeDetectionStrategy, inject, OnInit, ViewChild, Template
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { trigger, transition, style, animate } from '@angular/animations';
 import { forkJoin, of } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -141,17 +140,6 @@ interface LevelDescription {
   ],
   templateUrl: './assessments.component.html',
   styleUrls: ['./assessments.component.scss'],
-  animations: [
-    trigger('fadeAnimation', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(-20px)' }),
-        animate('300ms ease-in', style({ opacity: 1, transform: 'translateY(0)' }))
-      ]),
-      transition(':leave', [
-        animate('300ms ease-out', style({ opacity: 0, transform: 'translateY(-20px)' }))
-      ])
-    ])
-  ]
 })
 export class AssessmentsComponent implements OnInit {
   // Template references
