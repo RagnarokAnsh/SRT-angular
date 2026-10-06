@@ -1,4 +1,5 @@
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { DOCUMENT } from '@angular/common';
 import {
   type ApplicationConfig,
   inject,
@@ -17,6 +18,7 @@ import {
   provideRouter,
   withComponentInputBinding,
   withInMemoryScrolling,
+  withNavigationErrorHandler,
 } from '@angular/router';
 import { provideTransloco } from '@jsverse/transloco';
 
@@ -27,6 +29,7 @@ import { LANGUAGES, DEFAULT_LANGUAGE } from '@core/i18n/languages';
 import { TranslatedTitleStrategy } from '@core/i18n/title-strategy';
 import { TranslationLoader } from '@core/i18n/translation-loader';
 import { provideAppIcons } from '@core/icons/icons';
+import { isChunkLoadError, reloadOnceForNewVersion } from '@core/network/chunk-reload';
 import {
   apiRequestInterceptor,
   loadingInterceptor,
@@ -43,6 +46,12 @@ export const appConfig: ApplicationConfig = {
       routes,
       withComponentInputBinding(),
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }),
+      // A page's code file may be gone after a new version is deployed: reload once.
+      withNavigationErrorHandler((navError) => {
+        if (isChunkLoadError(navError.error)) {
+          reloadOnceForNewVersion(inject(DOCUMENT).defaultView, navError.url);
+        }
+      }),
     ),
     { provide: TitleStrategy, useClass: TranslatedTitleStrategy },
     provideHttpClient(

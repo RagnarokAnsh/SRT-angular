@@ -26,11 +26,22 @@ export class LanguageService {
   /** BCP 47 locale for dates and numbers (en-IN gives dd/mm/yyyy). */
   readonly locale = computed(() => this.info().locale);
 
-  /** Loads the saved (or browser) language before the first render. */
-  init(): Promise<unknown> {
+  /**
+   * Loads the saved (or browser) language before the first render. If it can't be loaded
+   * (e.g. a stale copy of the app after a deploy), falls back to English; the app always
+   * starts, even if no translations could be loaded at all.
+   */
+  async init(): Promise<void> {
     const lang = this.detect();
     this.apply(lang);
-    return firstValueFrom(this.transloco.load(lang));
+    try {
+      await firstValueFrom(this.transloco.load(lang));
+    } catch (error) {
+      console.error(`Could not load the "${lang}" translations`, error);
+      if (lang === DEFAULT_LANGUAGE) return;
+      this.apply(DEFAULT_LANGUAGE);
+      await firstValueFrom(this.transloco.load(DEFAULT_LANGUAGE)).catch(() => undefined);
+    }
   }
 
   /**

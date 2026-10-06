@@ -1,0 +1,307 @@
+<div class="page">
+  <app-page-header
+    [backLink]="['/competencies', id()]"
+    [backLabel]="'assessment.backToCompetency' | transloco"
+  >
+    <span pageTitle>
+      @if (competency.data(); as c) {
+        {{ 'assessment.title' | transloco: { name: (c | competencyName) } }}
+      } @else {
+        {{ 'assessment.titleGeneric' | transloco }}
+      }
+    </span>
+    <span pageSubtitle>{{ 'assessment.subtitle' | transloco }}</span>
+  </app-page-header>
+
+  @if (competency.error(); as error) {
+    <app-error-state [error]="error" (retry)="competency.reload()" />
+  } @else if (!competency.loading() && competency.data() === undefined && !competency.error()) {
+    <app-state-message
+      icon="not-found"
+      [title]="'competencyDetail.notFound' | transloco"
+      [message]="'competencyDetail.notFoundMessage' | transloco"
+    />
+  } @else if (centerId() === null) {
+    @if (isWorker()) {
+      <app-state-message
+        icon="center"
+        tone="error"
+        [title]="'assessment.noCenterTitle' | transloco"
+        [message]="'assessment.noCenterMessage' | transloco"
+      />
+    } @else {
+      <app-center-picker
+        intro="assessment.pickCenterIntro"
+        [value]="pickedCenterId()"
+        (picked)="pickedCenterId.set($event)"
+      />
+    }
+  } @else {
+    <ol class="stepper" [attr.aria-label]="'assessment.steps' | transloco">
+      <li class="stepper__item" [class.is-current]="step() === 'select'" [attr.aria-current]="step() === 'select' ? 'step' : null">
+        <span class="stepper__number" aria-hidden="true">1</span>
+        {{ 'assessment.stepChoose' | transloco }}
+      </li>
+      <li class="stepper__item" [class.is-current]="step() === 'record'" [attr.aria-current]="step() === 'record' ? 'step' : null">
+        <span class="stepper__number" aria-hidden="true">2</span>
+        {{ 'assessment.stepRecord' | transloco }}
+      </li>
+    </ol>
+
+    @if (data.error(); as error) {
+      <app-error-state [error]="error" (retry)="data.reload()" />
+    } @else if (data.loading() && !data.data()) {
+      <app-skeleton variant="rows" [count]="5" />
+    } @else if (step() === 'select') {
+      <!-- Step 1 -->
+      @if (!counts().all) {
+        <app-state-message
+          icon="children"
+          [title]="'assessment.noChildren' | transloco"
+          [message]="'assessment.noChildrenMessage' | transloco"
+        />
+      } @else {
+        <div class="toolbar">
+          <mat-form-field class="toolbar__search">
+            <mat-label>{{ 'assessment.search' | transloco }}</mat-label>
+            <mat-icon matPrefix svgIcon="search" aria-hidden="true" />
+            <input matInput type="search" [value]="query()" (input)="query.set($any($event.target).value)" />
+          </mat-form-field>
+          <mat-button-toggle-group
+            class="toolbar__filter"
+            [value]="listFilter()"
+            (change)="listFilter.set($event.value)"
+            [attr.aria-label]="'assessment.filterLabel' | transloco"
+            hideSingleSelectionIndicator
+          >
+            <mat-button-toggle value="all">{{ 'assessment.filterAll' | transloco: { count: counts().all } }}</mat-button-toggle>
+            <mat-button-toggle value="todo">{{ 'assessment.filterTodo' | transloco: { count: counts().todo } }}</mat-button-toggle>
+            <mat-button-toggle value="done">{{ 'assessment.filterDone' | transloco: { count: counts().done } }}</mat-button-toggle>
+          </mat-button-toggle-group>
+        </div>
+
+        @if (selectable().length) {
+          <mat-checkbox
+            class="select-all"
+            [checked]="allSelected()"
+            [indeterminate]="someSelected()"
+            (change)="toggleAll($event.checked)"
+          >
+            {{ 'assessment.selectAll' | transloco: { count: selectable().length } }}
+          </mat-checkbox>
+        }
+
+        <ul class="children">
+          @for (p of visible(); track p.child.id) {
+            <li class="child" [class.is-selected]="selected().has(p.child.id)" [class.is-done]="p.nextSession === null">
+              <mat-checkbox
+                class="child__check"
+                [checked]="selected().has(p.child.id)"
+                [disabled]="p.nextSession === null"
+                (change)="toggle(p.child.id, $event.checked)"
+              >
+                <span class="child__name">{{ p.child.name }}</span>
+                <span class="child__meta">
+                  {{ p.child.dateOfBirth | age }}
+                  ·
+                  @if (p.nextSession; as next) {
+                    {{ 'assessment.nextSession' | transloco: { n: next } }}
+                  } @else {
+                    {{ 'assessment.allDone' | transloco }}
+                  }
+                </span>
+              </mat-checkbox>
+              <div class="child__side">
+                <ol class="slots" [attr.aria-label]="'assessment.sessionsDone' | transloco: { done: p.sessions.length, total: maxSessions }">
+                  @for (n of [1, 2, 3, 4]; track n) {
+                    @let s = p.sessions.find((x) => x.session === n);
+                    <li
+                      class="slot"
+                      [class.slot--next]="p.nextSession === n"
+                      [class.slot--filled]="!!s"
+                      [style.background]="s?.level ? 'var(--level-' + s?.level + '-soft)' : null"
+                      [attr.aria-label]="s ? ('assessment.sessionN' | transloco: { n }) + ': ' + (s.level ? ('levels.' + s.level + '.label' | transloco) : s.rawObservation) : ('assessment.sessionN' | transloco: { n }) + ': ' + ('assessment.notYet' | transloco)"
+                    >
+                      {{ n }}
+                    </li>
+                  }
+                </ol>
+                @if (p.sessions.length) {
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="child__history"
+                    [attr.aria-expanded]="expanded() === p.child.id"
+                    [attr.aria-controls]="'history-' + p.child.id"
+                    [attr.aria-label]="'assessment.history' | transloco: { name: p.child.name }"
+                    (click)="toggleHistory(p.child.id)"
+                  >
+                    <mat-icon [svgIcon]="expanded() === p.child.id ? 'chevron-up' : 'chevron-down'" aria-hidden="true" />
+                  </button>
+                }
+              </div>
+              @if (expanded() === p.child.id) {
+                <ul class="history" [id]="'history-' + p.child.id">
+                  @for (s of p.sessions; track s.session) {
+                    <li class="history__item">
+                      <span class="history__session">{{ 'assessment.sessionN' | transloco: { n: s.session } }}</span>
+                      <app-level-badge [level]="s.level" [fallback]="s.rawObservation" />
+                      <span class="history__detail">
+                        {{ s.date | appDate }}
+                        @if (s.age) {
+                          · {{ s.age | age }}
+                        }
+                        @if (s.heightCm !== null && s.weightKg !== null) {
+                          · {{ 'assessment.measurementsShort' | transloco: { height: s.heightCm, weight: s.weightKg } }}
+                        }
+                      </span>
+                      @if (s.remarks) {
+                        <span class="history__remarks">“{{ s.remarks }}”</span>
+                      }
+                    </li>
+                  }
+                </ul>
+              }
+            </li>
+          } @empty {
+            <li class="children__empty">{{ 'assessment.noMatch' | transloco }}</li>
+          }
+        </ul>
+
+        <div class="sticky-actions">
+          <span class="selection-count" aria-live="polite">
+            {{ 'assessment.selectedCount' | plural: chosen().length }}
+          </span>
+          <button mat-flat-button type="button" [disabled]="!chosen().length" (click)="continue()">
+            {{ 'assessment.continue' | transloco }}
+            <mat-icon svgIcon="arrow-right" iconPositionEnd aria-hidden="true" />
+          </button>
+        </div>
+      }
+    } @else {
+      <!-- Step 2 -->
+      <section class="block" aria-labelledby="who-title">
+        <h2 id="who-title" class="block__title">{{ 'assessment.recordingFor' | plural: chosen().length }}</h2>
+        <ul class="chips">
+          @for (p of chosen(); track p.child.id) {
+            <li class="chip">
+              <span>{{ p.child.name }}</span>
+              <span class="chip__session">{{ 'assessment.sessionShort' | transloco: { n: p.nextSession } }}</span>
+              <button
+                mat-icon-button
+                type="button"
+                class="chip__remove"
+                [attr.aria-label]="'assessment.removeChild' | transloco: { name: p.child.name }"
+                (click)="remove(p.child.id)"
+              >
+                <mat-icon svgIcon="close" aria-hidden="true" />
+              </button>
+            </li>
+          }
+        </ul>
+        <p class="date-line">
+          <mat-icon svgIcon="calendar" aria-hidden="true" />
+          {{ 'assessment.dateLine' | transloco: { date: (today() | appDate: 'long') } }}
+        </p>
+      </section>
+
+      <fieldset class="block levels" [class.levels--error]="levelError()" aria-describedby="level-error">
+        <legend id="level-legend" class="block__title">{{ 'assessment.chooseLevel' | transloco }}</legend>
+        <div class="level-options">
+          @for (lvl of levels; track lvl) {
+            <label class="level-option" [class.is-checked]="level() === lvl" [style.--level-color]="'var(--level-' + lvl + ')'" [style.--level-soft]="'var(--level-' + lvl + '-soft)'">
+              <input type="radio" name="level" [value]="lvl" [checked]="level() === lvl" (change)="chooseLevel(lvl)" />
+              <span class="level-option__head">
+                <span class="level-option__dot" aria-hidden="true"></span>
+                {{ 'levels.' + lvl + '.label' | transloco }}
+              </span>
+              <span class="level-option__text">{{ rubricKey()(lvl) | transloco }}</span>
+            </label>
+          }
+        </div>
+        <p id="level-error" class="field-error" role="alert">
+          @if (levelError()) {
+            {{ 'assessment.levelRequired' | transloco }}
+          }
+        </p>
+      </fieldset>
+
+      @if (measured()) {
+        <section class="block" aria-labelledby="measure-title">
+          <h2 id="measure-title" class="block__title">{{ 'assessment.measurementsTitle' | transloco }}</h2>
+          <p class="block__intro">{{ 'assessment.measurementsIntro' | transloco }}</p>
+          <ul class="measurements">
+            @for (p of chosen(); track p.child.id) {
+              @if (measurementGroup(p.child.id); as group) {
+                <li class="measurement" [formGroup]="group">
+                  <span class="measurement__name">{{ p.child.name }}</span>
+                  <mat-form-field>
+                    <mat-label>{{ 'assessment.height' | transloco }}</mat-label>
+                    <input matInput formControlName="height" inputmode="decimal" autocomplete="off" />
+                    <span matTextSuffix>{{ 'units.cm' | transloco }}</span>
+                    @if (p.child.heightCm !== null) {
+                      <mat-hint>{{ 'assessment.lastValue' | transloco: { value: p.child.heightCm } }}</mat-hint>
+                    }
+                    <mat-error>{{ group.controls.height.errors | validationMessage }}</mat-error>
+                  </mat-form-field>
+                  <mat-form-field>
+                    <mat-label>{{ 'assessment.weight' | transloco }}</mat-label>
+                    <input matInput formControlName="weight" inputmode="decimal" autocomplete="off" />
+                    <span matTextSuffix>{{ 'units.kg' | transloco }}</span>
+                    @if (p.child.weightKg !== null) {
+                      <mat-hint>{{ 'assessment.lastValue' | transloco: { value: p.child.weightKg } }}</mat-hint>
+                    }
+                    <mat-error>{{ group.controls.weight.errors | validationMessage }}</mat-error>
+                  </mat-form-field>
+                </li>
+              }
+            }
+          </ul>
+        </section>
+      }
+
+      <section class="block" aria-labelledby="remarks-title">
+        <h2 id="remarks-title" class="block__title">{{ 'assessment.remarksTitle' | transloco }}</h2>
+        <mat-form-field class="remarks">
+          <mat-label>{{ 'assessment.remarks' | transloco }}</mat-label>
+          <textarea matInput [formControl]="remarks" rows="3" [maxlength]="remarksMax"></textarea>
+          <mat-hint>{{ 'assessment.remarksHint' | transloco }}</mat-hint>
+          <mat-hint align="end">{{ remarks.value.length }} / {{ remarksMax }}</mat-hint>
+          <mat-error>{{ remarks.errors | validationMessage }}</mat-error>
+        </mat-form-field>
+      </section>
+
+      <div role="alert">
+        @if (failures().length) {
+          <section class="failures">
+            <h2 class="failures__title">
+              <mat-icon svgIcon="error" aria-hidden="true" />
+              {{ 'assessment.failedTitle' | plural: failures().length }}
+            </h2>
+            <ul>
+              @for (f of failures(); track f.childId) {
+                <li><strong>{{ f.name }}</strong>: {{ f.message }}</li>
+              }
+            </ul>
+            <p>{{ 'assessment.failedHint' | transloco }}</p>
+          </section>
+        }
+      </div>
+
+      <div class="sticky-actions">
+        <button mat-stroked-button type="button" [disabled]="submitting()" (click)="back()">
+          <mat-icon svgIcon="arrow-left" aria-hidden="true" />
+          {{ 'common.back' | transloco }}
+        </button>
+        <button mat-flat-button type="button" [disabled]="submitting()" (click)="save()">
+          @if (submitting()) {
+            <mat-spinner diameter="20" aria-hidden="true" />
+          } @else {
+            <mat-icon svgIcon="check" aria-hidden="true" />
+          }
+          {{ (submitting() ? 'assessment.saving' : failures().length ? 'assessment.retry' : 'assessment.save') | transloco }}
+        </button>
+      </div>
+    }
+  }
+</div>

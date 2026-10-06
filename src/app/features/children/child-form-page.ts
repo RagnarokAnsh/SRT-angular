@@ -1,0 +1,255 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+  untracked,
+} from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import {
+  type AbstractControl,
+  NonNullableFormBuilder,
+  ReactiveFormsModule,
+  type ValidationErrors,
+  Validators,
+} from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatSelectModule } from '@angular/material/select';
+import { Router } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { of, startWith } from 'rxjs';
+
+import { CenterApi } from '@core/api/center-api';
+import { ChildApi } from '@core/api/child-api';
+import { SessionStore } from '@core/auth/session';
+import { CHILD_GENDERS, CHILD_LIMITS, type Child, type ChildGender, type ChildInput } from '@core/models/child';
+import { toAppError } from '@core/network/app-error';
+import { NotifyService } from '@core/notify/notify';
+import { type IsoDate, addYears, ageOn, isValidIsoDate, toIsoDate } from '@core/util/dates';
+import { applyServerErrors, validateAndFocus } from '@shared/forms/form-utils';
+import { ValidationMessagePipe } from '@shared/forms/validation-message-pipe';
+import {
+  ageInRange,
+  decimalInRange,
+  languageName,
+  pastIsoDate,
+  personName,
+  plainText,
+  requiredText,
+} from '@shared/forms/validators';
+import { createLoader } from '@shared/loader';
+import { AgePipe } from '@shared/pipes/age-pipe';
+import type { HasUnsavedChanges } from '@shared/unsaved-changes-guard';
+import { ErrorState } from '@shared/ui/error-state';
+import { PageHeader } from '@shared/ui/page-header';
+import { Skeleton } from '@shared/ui/skeleton';
+import { StateMessage } from '@shared/ui/state-message';
+
+import { LANGUAGE_SUGGESTIONS, genderKey } from './child-labels';
+
+/** API field names (422 errors) → form controls. */
+const SERVER_FIELDS: Record<string, string> = {
+  date_of_birth: 'dateOfBirth',
+  height_cm: 'heightCm',
+  weight_kg: 'weightKg',
+  anganwadi_id: 'anganwadiId',
+};
+
+@Component({
+  selector: 'app-child-form-page',
+  imports: [
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    MatRadioModule,
+    MatSelectModule,
+    TranslocoPipe,
+    ValidationMessagePipe,
+    AgePipe,
+    PageHeader,
+    Skeleton,
+    ErrorState,
+    StateMessage,
+  ],
+  templateUrl: './child-form-page.html',
+  styleUrl: './child-form-page.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(window:beforeunload)': 'onBeforeUnload($event)' },
+})
+export class ChildFormPage implements HasUnsavedChanges {
+  private readonly childApi = inject(ChildApi);
+  private readonly centerApi = inject(CenterApi);
+  private readonly session = inject(SessionStore);
+  private readonly notify = inject(NotifyService);
+  private readonly router = inject(Router);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
+
+  /** Route parameter; absent when adding a child. */
+  readonly id = input<number | undefined, unknown>(undefined, {
+    transform: (value: unknown) => (value === undefined || value === null ? undefined : Number(value)),
+  });
+
+  protected readonly limits = CHILD_LIMITS;
+  protected readonly genders = CHILD_GENDERS;
+  protected readonly genderKey = genderKey;
+  protected readonly languages = LANGUAGE_SUGGESTIONS;
+  protected readonly today = toIsoDate();
+  protected readonly earliestBirth = addYears(this.today, -(CHILD_LIMITS.ageMax + 2));
+
+  protected readonly isEdit = computed(() => this.id() !== undefined);
+  protected readonly isWorker = computed(() => this.session.primaryRole() === 'aww');
+  protected readonly ownCenterId = this.session.anganwadiId;
+  protected readonly ownCenterName = computed(() => this.session.user()?.anganwadi?.name ?? null);
+
+  protected readonly existing = createLoader(() => {
+    const id = this.id();
+    return id === undefined ? of(null) : this.childApi.get(id);
+  }, { lazy: true });
+  protected readonly centers = createLoader(() => this.centerApi.list(), { lazy: true });
+
+  /** A worker may only edit children of their own centre. */
+  protected readonly forbidden = computed(() => {
+    const child = this.existing.data();
+    return !!child && this.isWorker() && child.anganwadiId !== this.ownCenterId();
+  });
+
+  protected readonly saving = signal(false);
+  protected readonly formError = signal<string | null>(null);
+  private saved = false;
+  /** The stored date of birth: older children can still be edited without tripping the age rule. */
+  private originalDob: IsoDate | null = null;
+
+  private readonly ageRule = (control: AbstractControl): ValidationErrors | null =>
+    this.originalDob && control.value === this.originalDob
+      ? null
+      : ageInRange(CHILD_LIMITS.ageMin, CHILD_LIMITS.ageMax)(control);
+
+  protected readonly form = inject(NonNullableFormBuilder).group({
+    name: ['', [requiredText, Validators.maxLength(CHILD_LIMITS.nameMax), personName]],
+    dateOfBirth: ['', [Validators.required, pastIsoDate(), this.ageRule]],
+    gender: ['' as ChildGender | '', Validators.required],
+    symbol: ['', [requiredText, Validators.maxLength(CHILD_LIMITS.symbolMax), plainText]],
+    language: ['', [requiredText, Validators.maxLength(CHILD_LIMITS.languageMax), languageName]],
+    heightCm: [
+      '',
+      [requiredText, decimalInRange(CHILD_LIMITS.heightCm.min, CHILD_LIMITS.heightCm.max, CHILD_LIMITS.decimals)],
+    ],
+    weightKg: [
+      '',
+      [requiredText, decimalInRange(CHILD_LIMITS.weightKg.min, CHILD_LIMITS.weightKg.max, CHILD_LIMITS.decimals)],
+    ],
+    anganwadiId: [null as number | null, Validators.required],
+  });
+
+  private readonly dob = toSignal(
+    this.form.controls.dateOfBirth.valueChanges.pipe(startWith(this.form.controls.dateOfBirth.value)),
+    { initialValue: '' },
+  );
+  protected readonly ageToday = computed(() => {
+    const dob = this.dob();
+    return isValidIsoDate(dob) && dob <= this.today ? ageOn(dob, this.today) : null;
+  });
+
+  constructor() {
+    effect(() => {
+      const centerId = this.ownCenterId();
+      const worker = this.isWorker();
+      untracked(() => {
+        if (worker && centerId !== null) this.form.controls.anganwadiId.setValue(centerId);
+        else this.centers.reload();
+      });
+    });
+    effect(() => {
+      this.id();
+      untracked(() => this.existing.reload());
+    });
+    effect(() => {
+      const child = this.existing.data();
+      if (child) untracked(() => this.fill(child));
+    });
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.form.dirty && !this.saved && !this.saving();
+  }
+
+  protected onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.hasUnsavedChanges()) event.preventDefault();
+  }
+
+  protected submit(): void {
+    if (this.saving()) return;
+    this.formError.set(null);
+    if (!validateAndFocus(this.form, this.host)) return;
+
+    const value = this.form.getRawValue();
+    const input: ChildInput = {
+      name: value.name.trim().replace(/\s+/g, ' '),
+      dateOfBirth: value.dateOfBirth,
+      gender: value.gender as ChildGender,
+      symbol: value.symbol.trim(),
+      language: value.language.trim().replace(/\s+/g, ' '),
+      heightCm: Number(value.heightCm),
+      weightKg: Number(value.weightKg),
+      anganwadiId: value.anganwadiId as number,
+    };
+    const id = this.id();
+    const awwId = this.isWorker() ? (this.session.user()?.id ?? null) : (this.existing.data()?.awwId ?? null);
+    this.saving.set(true);
+    (id === undefined ? this.childApi.create(input, awwId) : this.childApi.update(id, input, awwId))
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.saving.set(false);
+          this.saved = true;
+          this.form.markAsPristine();
+          this.notify.success(id === undefined ? 'childForm.added' : 'childForm.saved', { name: input.name });
+          void this.router.navigate(['/children']);
+        },
+        error: (error: unknown) => {
+          this.saving.set(false);
+          const appError = toAppError(error);
+          if (appError.kind === 'validation') {
+            const unmatched = applyServerErrors(this.form, appError.fieldErrors, SERVER_FIELDS);
+            this.formError.set(unmatched[0] ?? appError.serverMessage ?? null);
+            validateAndFocus(this.form, this.host);
+          } else {
+            this.notify.error(appError);
+          }
+        },
+      });
+  }
+
+  protected cancel(): void {
+    void this.router.navigate(['/children']);
+  }
+
+  private fill(child: Child): void {
+    this.originalDob = child.dateOfBirth;
+    const gender = (CHILD_GENDERS as readonly string[]).includes(child.gender) ? (child.gender as ChildGender) : '';
+    this.form.reset({
+      name: child.name,
+      dateOfBirth: child.dateOfBirth ?? '',
+      gender,
+      symbol: child.symbol,
+      language: child.language,
+      heightCm: child.heightCm === null ? '' : String(child.heightCm),
+      weightKg: child.weightKg === null ? '' : String(child.weightKg),
+      anganwadiId: child.anganwadiId,
+    });
+  }
+}

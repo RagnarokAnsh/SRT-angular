@@ -1,0 +1,216 @@
+<div class="page">
+  <app-page-header>
+    <span pageTitle>{{ 'dashboard.title' | transloco }}</span>
+    <span pageSubtitle>{{ centerName() ?? ('dashboard.subtitle' | transloco) }}</span>
+    @if (data()) {
+      <button pageActions mat-stroked-button type="button" [disabled]="exporting()" (click)="export()">
+        <mat-icon svgIcon="excel" aria-hidden="true" />
+        {{ (exporting() ? 'dashboard.exporting' : 'dashboard.export.button') | transloco }}
+      </button>
+    }
+  </app-page-header>
+
+  @if (centerId() === null) {
+    @if (isWorker()) {
+      <app-state-message
+        icon="center"
+        tone="error"
+        [title]="'assessment.noCenterTitle' | transloco"
+        [message]="'assessment.noCenterMessage' | transloco"
+      />
+    } @else {
+      <app-center-picker
+        intro="dashboard.pickCenterIntro"
+        [value]="pickedCenterId()"
+        (picked)="pickedCenterId.set($event)"
+      />
+    }
+  } @else if (loader.error(); as error) {
+    <app-error-state [error]="error" (retry)="loader.reload()" />
+  } @else if (!data()) {
+    <app-skeleton variant="cards" [count]="3" />
+    <app-skeleton variant="rows" [count]="6" />
+  } @else {
+    <div class="content" [class.is-refreshing]="loader.loading()">
+      @if (overall(); as o) {
+        <section class="kpis" [attr.aria-label]="'dashboard.overview' | transloco">
+          <div class="kpi">
+            <span class="kpi__label">{{ 'dashboard.children' | transloco }}</span>
+            <span class="kpi__value">{{ o.children }}</span>
+            <span class="kpi__detail">
+              {{ 'dashboard.boysGirls' | transloco: { boys: o.boys, girls: o.girls } }}
+            </span>
+          </div>
+          <div class="kpi">
+            <span class="kpi__label">{{ 'dashboard.sessionsRecorded' | transloco }}</span>
+            <span class="kpi__value">{{ o.sessionsDone }}</span>
+            <span class="kpi__detail">
+              {{ 'dashboard.sessionsOf' | transloco: { total: o.sessionsPossible, percent: o.sessionsPercent } }}
+            </span>
+            <span
+              class="meter"
+              role="meter"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              [attr.aria-valuenow]="o.sessionsPercent"
+              [attr.aria-label]="'dashboard.sessionsRecorded' | transloco"
+            >
+              <span class="meter__fill" [style.width.%]="o.sessionsPercent"></span>
+            </span>
+          </div>
+          <div class="kpi">
+            <span class="kpi__label">{{ 'dashboard.schoolReady' | transloco }}</span>
+            <span class="kpi__value">{{ o.readyPercent }}%</span>
+            <span class="kpi__detail">
+              {{ 'dashboard.readyOf' | transloco: { count: o.counts.schoolReady, total: o.results } }}
+            </span>
+          </div>
+        </section>
+      }
+
+      @if (!data()!.children.length) {
+        <app-state-message
+          icon="children"
+          [title]="'assessment.noChildren' | transloco"
+          [message]="'assessment.noChildrenMessage' | transloco"
+        />
+      } @else {
+        <div class="filters">
+          <mat-form-field class="filters__domain">
+            <mat-label>{{ 'dashboard.filterDomain' | transloco }}</mat-label>
+            <mat-select [value]="domainFilter() ?? 0" (selectionChange)="domainFilter.set($event.value || null)">
+              <mat-option [value]="0">{{ 'dashboard.allDomains' | transloco }}</mat-option>
+              @for (domain of data()!.domains; track domain.id) {
+                <mat-option [value]="domain.id">{{ domain | domainName }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <div class="filters__session">
+            <span class="filters__label" id="session-filter-label">{{ 'dashboard.filterSession' | transloco }}</span>
+            <mat-button-toggle-group
+              [value]="sessionFilter()"
+              (change)="sessionFilter.set($event.value)"
+              aria-labelledby="session-filter-label"
+              hideSingleSelectionIndicator
+            >
+              @for (option of sessionOptions; track option) {
+                <mat-button-toggle [value]="option">
+                  {{ option === 'latest' ? ('dashboard.sessionLatestShort' | transloco) : option }}
+                </mat-button-toggle>
+              }
+            </mat-button-toggle-group>
+          </div>
+        </div>
+
+        <section class="chart surface-card" aria-labelledby="chart-title">
+          <div class="chart__head">
+            <div>
+              <h2 id="chart-title" class="chart__title">{{ 'dashboard.chartTitle' | transloco }}</h2>
+              <p class="chart__subtitle">
+                {{ (sessionFilter() === 'latest' ? 'dashboard.chartLatest' : 'dashboard.chartSession') | transloco: { session: sessionLabel(sessionFilter()) } }}
+              </p>
+            </div>
+            <button mat-button type="button" class="chart__toggle" [attr.aria-pressed]="showTable()" (click)="showTable.set(!showTable())">
+              <mat-icon [svgIcon]="showTable() ? 'chart' : 'notes'" aria-hidden="true" />
+              {{ (showTable() ? 'dashboard.showChart' : 'dashboard.showTable') | transloco }}
+            </button>
+          </div>
+
+          <ul class="legend" [attr.aria-label]="'dashboard.legend' | transloco">
+            @for (level of levels; track level) {
+              <li><span class="legend__swatch" [style.background]="'var(--chart-level-' + level + ')'"></span>{{ 'levels.' + level + '.label' | transloco }}</li>
+            }
+            <li><span class="legend__swatch" style="background: var(--chart-none)"></span>{{ 'dashboard.notAssessed' | transloco }}</li>
+          </ul>
+
+          @if (showTable()) {
+            <div class="table-wrap">
+              <table class="data-table">
+                <caption class="visually-hidden">{{ 'dashboard.chartTitle' | transloco }}</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">{{ 'dashboard.table.competency' | transloco }}</th>
+                    @for (level of levels; track level) {
+                      <th scope="col" class="num">{{ 'levels.' + level + '.label' | transloco }}</th>
+                    }
+                    <th scope="col" class="num">{{ 'dashboard.notAssessed' | transloco }}</th>
+                    <th scope="col" class="num">{{ 'dashboard.table.total' | transloco }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of rows(); track row.competency.id) {
+                    <tr>
+                      <th scope="row">{{ row.competency | competencyName }}</th>
+                      @for (level of levels; track level) {
+                        <td class="num">{{ row.counts[level] }}</td>
+                      }
+                      <td class="num">{{ row.notAssessed + row.other }}</td>
+                      <td class="num">{{ row.total }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            @for (group of groups(); track group.domainId) {
+              <h3 class="group__title">
+                <span class="group__swatch" [style.background]="group.color" aria-hidden="true"></span>
+                {{ group.domain | domainName }}
+              </h3>
+              <ul class="rows">
+                @for (row of group.rows; track row.competency.id) {
+                  <li class="row">
+                    <button
+                      type="button"
+                      class="row__head"
+                      [attr.aria-expanded]="expanded() === row.competency.id"
+                      [attr.aria-controls]="'who-' + row.competency.id"
+                      (click)="toggle(row.competency.id)"
+                    >
+                      <span class="row__name">{{ row.competency | competencyName }}</span>
+                      <span class="row__meta">
+                        {{ 'dashboard.assessedOf' | transloco: { assessed: row.total - row.notAssessed, total: row.total } }}
+                      </span>
+                      <mat-icon [svgIcon]="expanded() === row.competency.id ? 'chevron-up' : 'chevron-down'" aria-hidden="true" />
+                    </button>
+                    <div class="bar" role="img" [attr.aria-label]="barLabel(row)">
+                      @for (segment of segments(row); track segment.key) {
+                        <span
+                          class="bar__segment"
+                          [style.flex-grow]="segment.count"
+                          [style.background]="segment.color"
+                          [matTooltip]="tooltip(segment, row)"
+                          matTooltipPosition="above"
+                        ></span>
+                      }
+                    </div>
+                    @if (expanded() === row.competency.id) {
+                      <div class="who" [id]="'who-' + row.competency.id">
+                        @for (level of levels; track level) {
+                          @let names = childrenAt(row, level);
+                          @if (names.length) {
+                            <div class="who__group">
+                              <app-level-badge [level]="level" />
+                              <span class="who__names">{{ names.join(', ') }}</span>
+                            </div>
+                          }
+                        }
+                        @let pending = childrenAt(row, null);
+                        @if (pending.length) {
+                          <div class="who__group">
+                            <span class="who__none">{{ 'dashboard.notAssessed' | transloco }}</span>
+                            <span class="who__names">{{ pending.join(', ') }}</span>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </li>
+                }
+              </ul>
+            }
+          }
+        </section>
+      }
+    </div>
+  }
+</div>

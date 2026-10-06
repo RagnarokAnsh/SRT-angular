@@ -1,0 +1,89 @@
+@use 'mixins' as *;
+
+.form {
+  padding: var(--space-5);
+
+  @include up(sm) {
+    padding: var(--space-6);
+  }
+}
+
+.group {
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  border: 0;
+}
+
+.group__title {
+  margin-bottom: var(--space-3);
+  padding: 0;
+  color: var(--color-text-strong);
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.radio-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-bottom: var(--space-3);
+}
+
+.radio-field__label {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.radio-field__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-2);
+  margin-inline-start: -10px;
+}
+
+.radio-field__error {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: var(--text-xs);
+}
+
+.fixed-center {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  color: var(--color-text-strong);
+  font-weight: 600;
+}
+
+.fixed-center--error {
+  background: var(--color-danger-soft);
+  color: #7f1d1d;
+}
+
+.form-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-soft);
+  color: #7f1d1d;
+
+  mat-icon {
+    flex: none;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.form-actions mat-spinner {
+  display: inline-block;
+  margin-inline-end: var(--space-2);
+  vertical-align: middle;
+  --mat-progress-spinner-active-indicator-color: currentColor;
+}

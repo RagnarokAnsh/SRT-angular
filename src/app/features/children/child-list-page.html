@@ -1,0 +1,103 @@
+<div class="page">
+  <app-page-header>
+    <span pageTitle>{{ 'children.title' | transloco }}</span>
+    <span pageSubtitle>
+      @if (loader.data(); as all) {
+        {{ 'children.count' | plural: all.length }}
+      } @else {
+        {{ 'children.subtitle' | transloco }}
+      }
+    </span>
+    <a pageActions mat-flat-button routerLink="/children/new">
+      <mat-icon svgIcon="add" aria-hidden="true" />
+      {{ 'children.add' | transloco }}
+    </a>
+  </app-page-header>
+
+  @if (loader.error(); as error) {
+    <app-error-state [error]="error" (retry)="loader.reload()" />
+  } @else if (loader.loading() && !loader.data()) {
+    <app-skeleton variant="rows" [count]="6" />
+  } @else if (!(loader.data() ?? []).length) {
+    <app-state-message
+      icon="children"
+      [title]="'children.empty' | transloco"
+      [message]="'children.emptyMessage' | transloco"
+    >
+      <a mat-flat-button routerLink="/children/new">
+        <mat-icon svgIcon="add" aria-hidden="true" />
+        {{ 'children.add' | transloco }}
+      </a>
+    </app-state-message>
+  } @else {
+    <div class="toolbar">
+      <mat-form-field class="toolbar__search">
+        <mat-label>{{ 'children.search' | transloco }}</mat-label>
+        <mat-icon matPrefix svgIcon="search" aria-hidden="true" />
+        <input matInput type="search" [value]="query()" (input)="query.set($any($event.target).value)" />
+      </mat-form-field>
+      @if (!isWorker() && centers().length > 1) {
+        <mat-form-field class="toolbar__center">
+          <mat-label>{{ 'children.center' | transloco }}</mat-label>
+          <mat-select [value]="centerFilter() ?? 0" (selectionChange)="centerFilter.set($event.value || null)">
+            <mat-option [value]="0">{{ 'children.allCenters' | transloco }}</mat-option>
+            @for (center of centers(); track center.id) {
+              <mat-option [value]="center.id">{{ center.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+    </div>
+
+    <ul class="list">
+      @for (child of visible(); track child.id) {
+        <li class="row">
+          <span
+            class="avatar"
+            [class.avatar--girl]="genderKey(child.gender) === 'children.gender.girl'"
+            aria-hidden="true"
+          >{{ initials(child.name) }}</span>
+          <div class="row__main">
+            <span class="row__name">{{ child.name }}</span>
+            <span class="row__meta">
+              {{ child.dateOfBirth | age }} · {{ genderKey(child.gender) | transloco }}
+              @if (child.language) {
+                · {{ child.language }}
+              }
+              @if (child.symbol) {
+                · {{ 'children.symbolShort' | transloco: { symbol: child.symbol } }}
+              }
+            </span>
+            @if (!isWorker() && child.centerName) {
+              <span class="row__center">
+                <mat-icon svgIcon="center" aria-hidden="true" />
+                {{ child.centerName }}
+              </span>
+            }
+          </div>
+          <div class="row__actions">
+            <a
+              mat-icon-button
+              [routerLink]="['/children', child.id, 'edit']"
+              [attr.aria-label]="'children.editLabel' | transloco: { name: child.name }"
+            >
+              <mat-icon svgIcon="edit" aria-hidden="true" />
+            </a>
+            <button
+              mat-icon-button
+              type="button"
+              class="row__delete"
+              [disabled]="deleting() === child.id"
+              [attr.aria-label]="'children.deleteLabel' | transloco: { name: child.name }"
+              (click)="remove(child)"
+            >
+              <mat-icon svgIcon="delete" aria-hidden="true" />
+            </button>
+          </div>
+        </li>
+      } @empty {
+        <li class="list__empty">{{ 'children.noMatch' | transloco }}</li>
+      }
+    </ul>
+  }
+</div>

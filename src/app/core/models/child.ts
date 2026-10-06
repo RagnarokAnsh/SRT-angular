@@ -49,3 +49,16 @@ export interface ChildInput {
   weightKg: number;
   anganwadiId: number;
 }
+
+/** Validation limits (the same as the previous version's child form). */
+export const CHILD_LIMITS = {
+  nameMax: 100,
+  symbolMax: 20,
+  languageMax: 30,
+  /** New children must be at least `ageMin` and younger than `ageMax` years. */
+  ageMin: 2,
+  ageMax: 6,
+  heightCm: { min: 30, max: 200 },
+  weightKg: { min: 5, max: 50 },
+  decimals: 2,
+} as const;

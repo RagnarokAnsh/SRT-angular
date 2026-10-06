@@ -8,15 +8,8 @@ import { TranslocoPipe } from '@jsverse/transloco';
 
 import { AuthService } from '@core/auth/auth';
 import { SessionStore } from '@core/auth/session';
+import { initials } from '@shared/initials';
 import { openConfirm } from '@shared/ui/confirm-dialog';
-
-export function initials(name: string | null | undefined): string {
-  const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return '?';
-  const first = Array.from(parts[0])[0] ?? '';
-  const last = parts.length > 1 ? (Array.from(parts[parts.length - 1])[0] ?? '') : '';
-  return (first + last).toUpperCase();
-}
 
 @Component({
   selector: 'app-account-menu',
@@ -31,7 +24,7 @@ export function initials(name: string | null | undefined): string {
     >
       <span class="avatar" aria-hidden="true">{{ initials() }}</span>
       <span class="name">{{ session.user()?.name }}</span>
-      <mat-icon svgIcon="chevron-down" aria-hidden="true" />
+      <mat-icon svgIcon="chevron-down" iconPositionEnd aria-hidden="true" />
     </button>
     <mat-menu #menu="matMenu" xPosition="before" class="account-menu">
       <div class="summary">

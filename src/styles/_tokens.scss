@@ -50,6 +50,16 @@
   --level-none: #e7e0dd;
   --level-text: #1f2937;
 
+  // Chart marks for the levels: the same hue families, stepped from light to dark so the
+  // order shows and colour-blind readers can still tell neighbours apart (checked with the
+  // dataviz palette validator: CVD ΔE 7.3 with gaps, legend and table view as backup).
+  --chart-level-beginning: #e5a50a;
+  --chart-level-progressing: #e3611a;
+  --chart-level-advancing: #0e7f5a;
+  --chart-level-schoolReady: #3b4fa8;
+  --chart-other: #a8a29e;
+  --chart-none: #e7e0dd;
+
   // Typography
   --font-sans: 'Figtree', 'Noto Sans Devanagari', system-ui, -apple-system, 'Segoe UI', Roboto,
     sans-serif;

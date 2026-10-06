@@ -41,6 +41,14 @@ export const personName: ValidatorFn = (control) => {
   return null;
 };
 
+/** A language name in any script ("Hindi", "हिंदी", "Bhili"): letters and spaces only. */
+export const languageName: ValidatorFn = (control) => {
+  if (isEmpty(control)) return null;
+  return /^[\p{L}\p{M}][\p{L}\p{M} ]*$/u.test(text(control))
+    ? null
+    : { languageName: { key: 'validation.languageName' } };
+};
+
 /** Rejects control characters (pasted from other apps) in free text. */
 export const plainText: ValidatorFn = (control) =>
   typeof control.value === 'string' && hasControlCharacters(control.value)

@@ -28,6 +28,7 @@ import { AuthService } from '@core/auth/auth';
 import { ROLE_NAV } from '@core/auth/roles';
 import { SessionStore } from '@core/auth/session';
 import { demoBanner } from '@core/demo/demo-providers';
+import { clearChunkReloadFlag } from '@core/network/chunk-reload';
 import { Connectivity } from '@core/network/connectivity';
 import { LoadingTracker } from '@core/network/loading-tracker';
 
@@ -105,6 +106,7 @@ export class App {
       )
       .subscribe((event) => {
         const path = pathOf(event.urlAfterRedirects);
+        if (lastPath === null) clearChunkReloadFlag(this.document.defaultView);
         if (lastPath !== null && path !== lastPath) {
           afterNextRender({ read: () => this.focusMain() }, { injector: this.injector });
         }

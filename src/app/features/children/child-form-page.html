@@ -1,0 +1,141 @@
+<div class="page page--narrow">
+  <app-page-header backLink="/children" [backLabel]="'childForm.back' | transloco">
+    <span pageTitle>{{ (isEdit() ? 'childForm.editTitle' : 'childForm.addTitle') | transloco }}</span>
+    <span pageSubtitle>{{ 'childForm.subtitle' | transloco }}</span>
+  </app-page-header>
+
+  @if (existing.error(); as error) {
+    <app-error-state [error]="error" (retry)="existing.reload()" />
+  } @else if (isEdit() && existing.loading()) {
+    <app-skeleton variant="lines" [count]="8" />
+  } @else if (forbidden()) {
+    <app-state-message
+      icon="lock"
+      tone="error"
+      [title]="'childForm.forbiddenTitle' | transloco"
+      [message]="'childForm.forbiddenMessage' | transloco"
+    />
+  } @else {
+    <form class="form surface-card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      @if (formError(); as message) {
+        <div class="form-error" role="alert">
+          <mat-icon svgIcon="error" aria-hidden="true" />
+          {{ message }}
+        </div>
+      }
+
+      <fieldset class="group">
+        <legend class="group__title">{{ 'childForm.aboutChild' | transloco }}</legend>
+        <div class="form-grid">
+          <mat-form-field class="span-all">
+            <mat-label>{{ 'childForm.name' | transloco }}</mat-label>
+            <input matInput formControlName="name" autocomplete="off" [maxlength]="limits.nameMax" />
+            <mat-hint>{{ 'childForm.nameHint' | transloco }}</mat-hint>
+            <mat-error>{{ form.controls.name.errors | validationMessage }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>{{ 'childForm.dateOfBirth' | transloco }}</mat-label>
+            <input matInput type="date" formControlName="dateOfBirth" [max]="today" [min]="earliestBirth" />
+            @if (ageToday(); as age) {
+              <mat-hint>{{ 'childForm.ageToday' | transloco: { age: (age | age) } }}</mat-hint>
+            }
+            <mat-error>{{ form.controls.dateOfBirth.errors | validationMessage }}</mat-error>
+          </mat-form-field>
+
+          <div class="radio-field">
+            <span class="radio-field__label" id="gender-label">{{ 'childForm.gender' | transloco }}</span>
+            <mat-radio-group formControlName="gender" aria-labelledby="gender-label" class="radio-field__options">
+              @for (gender of genders; track gender) {
+                <mat-radio-button [value]="gender">{{ genderKey(gender) | transloco }}</mat-radio-button>
+              }
+            </mat-radio-group>
+            @if (form.controls.gender.touched && form.controls.gender.invalid) {
+              <p class="radio-field__error" role="alert">{{ form.controls.gender.errors | validationMessage }}</p>
+            }
+          </div>
+
+          <mat-form-field>
+            <mat-label>{{ 'childForm.language' | transloco }}</mat-label>
+            <input
+              matInput
+              formControlName="language"
+              list="language-suggestions"
+              autocomplete="off"
+              [maxlength]="limits.languageMax"
+            />
+            <datalist id="language-suggestions">
+              @for (language of languages; track language) {
+                <option [value]="language"></option>
+              }
+            </datalist>
+            <mat-error>{{ form.controls.language.errors | validationMessage }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>{{ 'childForm.symbol' | transloco }}</mat-label>
+            <input matInput formControlName="symbol" autocomplete="off" [maxlength]="limits.symbolMax" />
+            <mat-hint>{{ 'childForm.symbolHint' | transloco }}</mat-hint>
+            <mat-error>{{ form.controls.symbol.errors | validationMessage }}</mat-error>
+          </mat-form-field>
+        </div>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend class="group__title">{{ 'childForm.measurements' | transloco }}</legend>
+        <div class="form-grid">
+          <mat-form-field>
+            <mat-label>{{ 'childForm.height' | transloco }}</mat-label>
+            <input matInput formControlName="heightCm" inputmode="decimal" autocomplete="off" />
+            <span matTextSuffix>{{ 'units.cm' | transloco }}</span>
+            <mat-error>{{ form.controls.heightCm.errors | validationMessage }}</mat-error>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>{{ 'childForm.weight' | transloco }}</mat-label>
+            <input matInput formControlName="weightKg" inputmode="decimal" autocomplete="off" />
+            <span matTextSuffix>{{ 'units.kg' | transloco }}</span>
+            <mat-error>{{ form.controls.weightKg.errors | validationMessage }}</mat-error>
+          </mat-form-field>
+        </div>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend class="group__title">{{ 'childForm.center' | transloco }}</legend>
+        @if (isWorker() && ownCenterId() !== null) {
+          <p class="fixed-center">
+            <mat-icon svgIcon="center" aria-hidden="true" />
+            {{ ownCenterName() ?? ('childForm.yourCenter' | transloco) }}
+          </p>
+        } @else if (isWorker()) {
+          <p class="fixed-center fixed-center--error" role="alert">{{ 'childForm.noCenter' | transloco }}</p>
+        } @else if (centers.error(); as error) {
+          <app-error-state [error]="error" (retry)="centers.reload()" />
+        } @else {
+          <mat-form-field>
+            <mat-label>{{ 'childForm.chooseCenter' | transloco }}</mat-label>
+            <mat-select formControlName="anganwadiId">
+              @for (center of centers.data() ?? []; track center.id) {
+                <mat-option [value]="center.id">{{ center.name }} ({{ center.code }})</mat-option>
+              }
+            </mat-select>
+            <mat-error>{{ form.controls.anganwadiId.errors | validationMessage }}</mat-error>
+          </mat-form-field>
+        }
+      </fieldset>
+
+      <div class="form-actions">
+        <button mat-stroked-button type="button" [disabled]="saving()" (click)="cancel()">
+          {{ 'common.cancel' | transloco }}
+        </button>
+        <button mat-flat-button type="submit" [disabled]="saving()">
+          @if (saving()) {
+            <mat-spinner diameter="20" aria-hidden="true" />
+          } @else {
+            <mat-icon svgIcon="check" aria-hidden="true" />
+          }
+          {{ (saving() ? 'childForm.saving' : isEdit() ? 'childForm.save' : 'childForm.add') | transloco }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

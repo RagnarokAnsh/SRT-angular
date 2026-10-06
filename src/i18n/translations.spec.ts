@@ -4,7 +4,9 @@ import { ROLE_NAMES } from '@core/models/role';
 import en from './en.json';
 import hi from './hi.json';
 
-type Tree = { [key: string]: string | Tree };
+interface Tree {
+  [key: string]: string | Tree;
+}
 
 function flatten(tree: Tree, prefix = ''): Record<string, string> {
   const result: Record<string, string> = {};

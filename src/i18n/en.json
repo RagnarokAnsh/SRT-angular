@@ -37,7 +37,9 @@
     "loading": "Loading…",
     "retry": "Try again",
     "next": "Next",
-    "previous": "Previous"
+    "previous": "Previous",
+    "center": "Centre",
+    "pickCenter": "Choose a centre to continue."
   },
   "logout": {
     "title": "Sign out?",
@@ -81,7 +83,8 @@
     "dateInFuture": "The date can't be in the future.",
     "ageRange": "The child must be between {{min}} and {{max}} years old.",
     "decimal": "Enter a number with up to {{decimals}} decimal place(s).",
-    "range": "Enter a value from {{min}} to {{max}}."
+    "range": "Enter a value from {{min}} to {{max}}.",
+    "languageName": "Use letters and spaces only."
   },
   "age": {
     "yearsMonths": "{{years}} y {{months}} m"
@@ -161,31 +164,445 @@
   },
   "catalog": {
     "domains": {
-      "cognitive-development": { "name": "Cognitive Development", "wheel": "Cognitive" },
-      "language--literacy-development": { "name": "Language & Literacy Development", "wheel": "Language &\nLiteracy" },
-      "physical--motor-development": { "name": "Physical & Motor Development", "wheel": "Physical &\nMotor" },
-      "socio-emotional-development": { "name": "Socio-Emotional Development", "wheel": "Socio-\nEmotional" },
-      "approaches-towards-learning": { "name": "Approaches towards Learning", "wheel": "Approaches\nto Learning" },
-      "creativity-development": { "name": "Creativity Development", "wheel": "Creativity" }
+      "cognitive-development": {
+        "name": "Cognitive Development",
+        "wheel": "Cognitive"
+      },
+      "language--literacy-development": {
+        "name": "Language & Literacy Development",
+        "wheel": "Language &\nLiteracy"
+      },
+      "physical--motor-development": {
+        "name": "Physical & Motor Development",
+        "wheel": "Physical &\nMotor"
+      },
+      "socio-emotional-development": {
+        "name": "Socio-Emotional Development",
+        "wheel": "Socio-\nEmotional"
+      },
+      "approaches-towards-learning": {
+        "name": "Approaches towards Learning",
+        "wheel": "Approaches\nto Learning"
+      },
+      "creativity-development": {
+        "name": "Creativity Development",
+        "wheel": "Creativity"
+      }
     },
     "competencies": {
-      "classification": { "name": "Classification", "wheel": "Classification", "description": "Sorting and grouping objects by shared features such as colour, shape and size." },
-      "patterns": { "name": "Patterns", "wheel": "Patterns", "description": "Noticing, copying and continuing repeating patterns in objects, sounds and movements." },
-      "number-concept": { "name": "Number Concept", "wheel": "Number\nConcept", "description": "Understanding quantity, counting with meaning and recognising numerals." },
-      "seriation": { "name": "Seriation", "wheel": "Seriation", "description": "Comparing and arranging objects in order of size, length or quantity." },
-      "vocabulary-and-expression": { "name": "Vocabulary and Expression", "wheel": "Vocabulary &\nExpression", "description": "Using a growing range of words and sentences to share ideas and describe events." },
-      "listening-comprehension": { "name": "Listening Comprehension", "wheel": "Listening\nComprehension", "description": "Listening with attention and understanding stories and conversations." },
-      "emergent-reading--book-handling": { "name": "Emergent Reading & Book Handling", "wheel": "Emergent\nReading", "description": "Exploring books, telling pictures from text and following print in the right direction." },
-      "emergent-writing": { "name": "Emergent Writing", "wheel": "Emergent\nWriting", "description": "Moving from scribbles and drawings towards writing letters and words to express ideas." },
-      "gross-motor-development": { "name": "Gross Motor Development", "wheel": "Gross Motor", "description": "Balance, coordination and control of the large muscles while running, jumping and throwing." },
-      "fine-motor-development": { "name": "Fine Motor Development", "wheel": "Fine Motor", "description": "Control and coordination of the small muscles of the hands and fingers." },
-      "interaction": { "name": "Interaction", "wheel": "Interaction", "description": "Playing and working together with other children and adults." },
-      "sharing-with-others": { "name": "Sharing with Others", "wheel": "Sharing", "description": "Willingly sharing materials, space and attention with peers." },
-      "emotional-expression-and-regulation": { "name": "Emotional Expression and Regulation", "wheel": "Emotional\nExpression", "description": "Recognising feelings and responding to them in appropriate ways." },
-      "initiative": { "name": "Initiative", "wheel": "Initiative", "description": "Starting activities and trying new things without being asked." },
-      "task-persistence": { "name": "Task Persistence", "wheel": "Task\nPersistence", "description": "Staying focused on an activity until it is finished, even with distractions." },
-      "creative-expression": { "name": "Creative Expression", "wheel": "Creative\nExpression", "description": "Expressing ideas through art, craft, music, dance and play." },
-      "imagination": { "name": "Imagination", "wheel": "Imagination", "description": "Pretend play, storytelling and thinking about what could happen next." }
+      "classification": {
+        "name": "Classification",
+        "wheel": "Classification",
+        "description": "Sorting and grouping objects by shared features such as colour, shape and size.",
+        "levels": {
+          "beginning": "Unable to sort objects based on any characteristic",
+          "progressing": "Sorts objects based on any one characteristic",
+          "advancing": "Classifies objects based on any two characteristics",
+          "schoolReady": "Classifies objects based on three characteristics"
+        }
+      },
+      "patterns": {
+        "name": "Patterns",
+        "wheel": "Patterns",
+        "description": "Noticing, copying and continuing repeating patterns in objects, sounds and movements.",
+        "levels": {
+          "beginning": "Unable to copy patterns",
+          "progressing": "Copies patterns",
+          "advancing": "Completes simple alternating patterns",
+          "schoolReady": "Completes complex patterns"
+        }
+      },
+      "number-concept": {
+        "name": "Number Concept",
+        "wheel": "Number\nConcept",
+        "description": "Understanding quantity, counting with meaning and recognising numerals.",
+        "levels": {
+          "beginning": "Unable to compare quantities",
+          "progressing": "Connects a number with an object and counts each object with understanding",
+          "advancing": "Identifies numerals and can link them with concrete objects",
+          "schoolReady": "Identifies both the smallest and the largest numerals within 1 to 10"
+        }
+      },
+      "seriation": {
+        "name": "Seriation",
+        "wheel": "Seriation",
+        "description": "Comparing and arranging objects in order of size, length or quantity.",
+        "levels": {
+          "beginning": "Unable to compare two objects in terms of size, length, or quantity",
+          "progressing": "Compares two similar objects based on size, length, or quantity",
+          "advancing": "Arranges up to three objects by size, length, or quantity",
+          "schoolReady": "Arranges up to five objects by size, length, or quantity"
+        }
+      },
+      "vocabulary-and-expression": {
+        "name": "Vocabulary and Expression",
+        "wheel": "Vocabulary &\nExpression",
+        "description": "Using a growing range of words and sentences to share ideas and describe events.",
+        "levels": {
+          "beginning": "Uses gestures to express/describe any event",
+          "progressing": "Uses words to express/describe any event",
+          "advancing": "Uses incomplete sentences to express/describe any event",
+          "schoolReady": "Uses complete sentences to express/describe any event"
+        }
+      },
+      "listening-comprehension": {
+        "name": "Listening Comprehension",
+        "wheel": "Listening\nComprehension",
+        "description": "Listening with attention and understanding stories and conversations.",
+        "levels": {
+          "beginning": "Does not pay attention to a story/conversation",
+          "progressing": "Listens actively to a story/conversation",
+          "advancing": "Understands a story/conversation – responds to simple/close-ended questions (e.g., what, when, who)",
+          "schoolReady": "Understands a story/conversation – responds to complex/open-ended questions (e.g., why and how)"
+        }
+      },
+      "emergent-reading--book-handling": {
+        "name": "Emergent Reading & Book Handling",
+        "wheel": "Emergent\nReading",
+        "description": "Exploring books, telling pictures from text and following print in the right direction.",
+        "levels": {
+          "beginning": "Picks up books and explores them",
+          "progressing": "Identifies the cover page of a book",
+          "advancing": "Differentiates text from pictures",
+          "schoolReady": "Understands directionality of the text"
+        }
+      },
+      "emergent-writing": {
+        "name": "Emergent Writing",
+        "wheel": "Emergent\nWriting",
+        "description": "Moving from scribbles and drawings towards writing letters and words to express ideas.",
+        "levels": {
+          "beginning": "Scribbles to represent writing",
+          "progressing": "Draws shapes to represent writing",
+          "advancing": "Engages in make-believe writing by using a combination of drawing and writing to express an idea",
+          "schoolReady": "Uses inventive spelling (based on phonics) to write words that are connected to a given topic"
+        }
+      },
+      "gross-motor-development": {
+        "name": "Gross Motor Development",
+        "wheel": "Gross Motor",
+        "description": "Balance, coordination and control of the large muscles while running, jumping and throwing.",
+        "levels": {
+          "beginning": "Limited balance in gross motor activities, e.g., jumping",
+          "progressing": "Maintains balance in gross motor activities",
+          "advancing": "Maintains balance and controls body while moving quickly",
+          "schoolReady": "Balances and coordinates well in a variety of activities, such as throwing a ball with aim or kicking a ball at a given target"
+        }
+      },
+      "fine-motor-development": {
+        "name": "Fine Motor Development",
+        "wheel": "Fine Motor",
+        "description": "Control and coordination of the small muscles of the hands and fingers.",
+        "levels": {
+          "beginning": "Limited coordination of small muscles in fine motor activities",
+          "progressing": "Maintains coordination of small muscles in fine motor activities",
+          "advancing": "Maintains coordination of small muscles while manipulating objects",
+          "schoolReady": "Controls and coordinates well in a variety of small muscle activities"
+        }
+      },
+      "interaction": {
+        "name": "Interaction",
+        "wheel": "Interaction",
+        "description": "Playing and working together with other children and adults.",
+        "levels": {
+          "beginning": "Plays alongside or near others but not with others",
+          "progressing": "Starts to play with others",
+          "advancing": "Plays with others to make/create something jointly",
+          "schoolReady": "Engages in games with rules with other children"
+        }
+      },
+      "sharing-with-others": {
+        "name": "Sharing with Others",
+        "wheel": "Sharing",
+        "description": "Willingly sharing materials, space and attention with peers.",
+        "levels": {
+          "beginning": "Shares unwillingly with peers and only when asked",
+          "progressing": "Begins to share selectively when encouraged",
+          "advancing": "Comes forward and shares with selected/few peers",
+          "schoolReady": "Comes forward and shares with all/any peers on her/his own"
+        }
+      },
+      "emotional-expression-and-regulation": {
+        "name": "Emotional Expression and Regulation",
+        "wheel": "Emotional\nExpression",
+        "description": "Recognising feelings and responding to them in appropriate ways.",
+        "levels": {
+          "beginning": "Unable to identify emotions",
+          "progressing": "Identifies own emotions",
+          "advancing": "Understands what triggers emotions",
+          "schoolReady": "Gives appropriate response to her/his emotions"
+        }
+      },
+      "initiative": {
+        "name": "Initiative",
+        "wheel": "Initiative",
+        "description": "Starting activities and trying new things without being asked.",
+        "levels": {
+          "beginning": "Does not take action even after being asked to do something",
+          "progressing": "Begins to take initiative when encouraged",
+          "advancing": "Takes initiative in some activities which she/he likes",
+          "schoolReady": "Takes initiative readily in most/all of the classroom activities"
+        }
+      },
+      "task-persistence": {
+        "name": "Task Persistence",
+        "wheel": "Task\nPersistence",
+        "description": "Staying focused on an activity until it is finished, even with distractions.",
+        "levels": {
+          "beginning": "Focuses on play activities for a short period of time (about 5 minutes)",
+          "progressing": "Engages in play activities for about 10 minutes",
+          "advancing": "Sustains focus in play activities for about 15 minutes",
+          "schoolReady": "Sustains focus in play activities for at least 20-25 minutes, even if there are distractions"
+        }
+      },
+      "creative-expression": {
+        "name": "Creative Expression",
+        "wheel": "Creative\nExpression",
+        "description": "Expressing ideas through art, craft, music, dance and play.",
+        "levels": {
+          "beginning": "Unable to create something to represent an idea or object (e.g., by using arts and crafts, dance or music)",
+          "progressing": "Creates something with an adult assistance",
+          "advancing": "Creates something on her/his own",
+          "schoolReady": "Creates something innovative to represent an idea or object"
+        }
+      },
+      "imagination": {
+        "name": "Imagination",
+        "wheel": "Imagination",
+        "description": "Pretend play, storytelling and thinking about what could happen next.",
+        "levels": {
+          "beginning": "Unable to answer questions about what would happen next in a story",
+          "progressing": "Answers questions about what would happen next in a story",
+          "advancing": "Role-plays characters in a story or uses props to tell a story",
+          "schoolReady": "Makes up and tells own story"
+        }
+      }
+    }
+  },
+  "levels": {
+    "beginning": {
+      "label": "Beginning",
+      "generic": "The child shows initial attempts with limited success. Assess based on effort and support needed."
+    },
+    "progressing": {
+      "label": "Progressing",
+      "generic": "The child shows improvement with some support. Assess based on progress and guidance needed."
+    },
+    "advancing": {
+      "label": "Advancing",
+      "generic": "The child shows good understanding and application. Assess based on mastery and independence."
+    },
+    "schoolReady": {
+      "label": "School Ready",
+      "generic": "The child masters the task and applies it in context. Assess based on readiness for next stage."
+    }
+  },
+  "units": {
+    "cm": "cm",
+    "kg": "kg"
+  },
+  "competencies": {
+    "title": "Competencies",
+    "subtitle": "Choose a competency to see what to look for, watch activity ideas, and assess children.",
+    "search": "Search competencies",
+    "count": {
+      "one": "{{count}} competency",
+      "other": "{{count}} competencies"
+    },
+    "empty": "No competencies yet",
+    "noMatch": "Nothing matches “{{query}}”."
+  },
+  "competencyDetail": {
+    "pageTitle": "Competency",
+    "back": "All competencies",
+    "assess": "Assess children",
+    "prepare": "Get ready to assess",
+    "levelsTitle": "Learning process",
+    "levelsIntro": "Children move through four levels. Use these descriptions to decide which level best matches what you observe.",
+    "videosTitle": "Suggested activities",
+    "videosIntro": "Activities to try with children at the Anganwadi centre.",
+    "videoLabel": "Activity video {{n}}",
+    "checklistTitle": "Before you assess",
+    "checklistIntro": "Tick each statement when it is true for you. This is remembered on this device.",
+    "checklist": {
+      "understand": "I understand the competency and how children learn.",
+      "videos": "I have watched all the suggested activity videos.",
+      "practised": "I have tried all these and similar activities in the Anganwadi centre.",
+      "ready": "I am ready to use these activities to assess children."
+    },
+    "checklistHint": "Tick all four statements to continue.",
+    "continue": "Continue to assessment",
+    "notFound": "Competency not found",
+    "notFoundMessage": "It may have been removed. Go back to the list and choose another one."
+  },
+  "assessment": {
+    "pageTitle": "Assessment",
+    "title": "Assess: {{name}}",
+    "titleGeneric": "Assessment",
+    "subtitle": "Each child can be assessed in up to four sessions. The next session number is chosen for you.",
+    "backToCompetency": "Back to the competency",
+    "steps": "Steps",
+    "stepChoose": "Choose children",
+    "stepRecord": "Record the level",
+    "noCenterTitle": "Your account isn't linked to a centre",
+    "noCenterMessage": "Ask your administrator to link your account to your Anganwadi centre.",
+    "pickCenterIntro": "Choose the centre whose children you want to assess.",
+    "center": "Centre",
+    "noChildren": "No children in this centre yet",
+    "noChildrenMessage": "Add children on the Children page, then come back to assess them.",
+    "search": "Search children",
+    "filterLabel": "Show",
+    "filterAll": "All ({{count}})",
+    "filterTodo": "To assess ({{count}})",
+    "filterDone": "Finished ({{count}})",
+    "selectAll": "Select all {{count}} shown",
+    "nextSession": "Next: session {{n}}",
+    "allDone": "All 4 sessions done",
+    "sessionsDone": "{{done}} of {{total}} sessions done",
+    "sessionN": "Session {{n}}",
+    "sessionShort": "S{{n}}",
+    "notYet": "not yet",
+    "history": "Earlier sessions for {{name}}",
+    "measurementsShort": "{{height}} cm, {{weight}} kg",
+    "noMatch": "No children match your search.",
+    "selectedCount": {
+      "one": "{{count}} child selected",
+      "other": "{{count}} children selected"
+    },
+    "continue": "Continue",
+    "recordingFor": {
+      "one": "Recording for {{count}} child",
+      "other": "Recording for {{count}} children"
+    },
+    "removeChild": "Remove {{name}}",
+    "dateLine": "Assessment date: {{date}}",
+    "chooseLevel": "Which level best describes what you observed?",
+    "levelRequired": "Choose a level to continue.",
+    "measurementsTitle": "Height and weight",
+    "measurementsIntro": "Measure each child today and enter the results.",
+    "height": "Height",
+    "weight": "Weight",
+    "lastValue": "Last recorded: {{value}}",
+    "remarksTitle": "Remarks (optional)",
+    "remarks": "What did you notice?",
+    "remarksHint": "Saved with every selected child's result.",
+    "confirmTitle": "Save this assessment?",
+    "confirmMessage": "{{level}} will be recorded for {{count}} child(ren). Saved results can't be changed here later.",
+    "save": "Save assessment",
+    "saving": "Saving…",
+    "retry": "Try again",
+    "saved": "Assessment saved for {{count}} child(ren).",
+    "partlySaved": "Saved for {{saved}}; {{failed}} couldn't be saved.",
+    "failedTitle": {
+      "one": "{{count}} result couldn't be saved",
+      "other": "{{count}} results couldn't be saved"
+    },
+    "failedHint": "The other results were saved. Check your connection and try again for the children listed."
+  },
+  "children": {
+    "title": "Children",
+    "subtitle": "Children registered at the centre",
+    "count": {
+      "one": "{{count}} child",
+      "other": "{{count}} children"
+    },
+    "add": "Add child",
+    "search": "Search by name",
+    "center": "Centre",
+    "allCenters": "All centres",
+    "empty": "No children yet",
+    "emptyMessage": "Add the children of your centre to start assessing them.",
+    "noMatch": "No children match your search.",
+    "symbolShort": "Symbol: {{symbol}}",
+    "editLabel": "Edit {{name}}",
+    "deleteLabel": "Delete {{name}}",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteMessage": "Their details will be removed. This can't be undone.",
+    "delete": "Delete",
+    "deleted": "{{name}} was deleted.",
+    "gender": {
+      "boy": "Boy",
+      "girl": "Girl",
+      "other": "Not specified"
+    }
+  },
+  "childForm": {
+    "addTitle": "Add a child",
+    "editTitle": "Edit child",
+    "subtitle": "All fields are required.",
+    "back": "Children",
+    "aboutChild": "About the child",
+    "name": "Full name",
+    "nameHint": "As used at the centre. Any language is fine.",
+    "dateOfBirth": "Date of birth",
+    "ageToday": "Age today: {{age}}",
+    "gender": "Gender",
+    "language": "Home language",
+    "symbol": "Symbol",
+    "symbolHint": "The picture or sign the child uses to find their things, e.g. Sun.",
+    "measurements": "Height and weight",
+    "height": "Height",
+    "weight": "Weight",
+    "center": "Anganwadi centre",
+    "yourCenter": "Your centre",
+    "noCenter": "Your account isn't linked to a centre, so children can't be added. Ask your administrator.",
+    "chooseCenter": "Choose a centre",
+    "add": "Add child",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "added": "{{name}} was added.",
+    "saved": "Changes to {{name}} were saved.",
+    "forbiddenTitle": "You can't edit this child",
+    "forbiddenMessage": "This child belongs to another centre."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Progress of the children at your centre",
+    "pickCenterIntro": "Choose the centre whose progress you want to see.",
+    "overview": "Overview",
+    "children": "Children",
+    "boys": "Boys",
+    "girls": "Girls",
+    "boysGirls": "{{boys}} boys · {{girls}} girls",
+    "sessionsRecorded": "Sessions recorded",
+    "sessionsOf": "of {{total}} possible ({{percent}}%)",
+    "schoolReady": "School ready (latest results)",
+    "readyOf": "{{count}} of {{total}} latest results",
+    "filterDomain": "Domain",
+    "allDomains": "All domains",
+    "filterSession": "Session",
+    "sessionLatest": "Latest result",
+    "sessionLatestShort": "Latest",
+    "chartTitle": "Children by level, per competency",
+    "chartLatest": "Each child's most recent result for each competency.",
+    "chartSession": "Results from {{session}} only.",
+    "showTable": "Show as table",
+    "showChart": "Show as chart",
+    "legend": "Legend",
+    "notAssessed": "Not assessed",
+    "otherResult": "Other result",
+    "assessedOf": "{{assessed}} of {{total}} assessed",
+    "segmentTooltip": "{{count}} ({{percent}}%) · {{level}}",
+    "exporting": "Preparing…",
+    "exported": "The Excel file was downloaded.",
+    "exportFailed": "Couldn't create the Excel file. Please try again.",
+    "table": {
+      "competency": "Competency",
+      "domain": "Domain",
+      "total": "Total"
+    },
+    "export": {
+      "button": "Download Excel",
+      "title": "School readiness dashboard",
+      "generated": "Generated on",
+      "center": "Centre",
+      "sessionsDone": "Sessions recorded",
+      "sessionsPossible": "Sessions possible",
+      "age": "Age",
+      "date": "date",
+      "sheetSummary": "Summary",
+      "sheetChildren": "Children",
+      "sheetAssessments": "Assessments"
     }
   }
 }
