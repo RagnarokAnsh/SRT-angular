@@ -5,23 +5,32 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { Observable, map } from 'rxjs';
 
 import type { TranslationParams } from '@core/i18n/params';
+import { PluralPipe } from '@shared/pipes/plural-pipe';
 
 export interface ConfirmDialogData {
   titleKey: string;
   messageKey?: string;
   params?: TranslationParams;
+  /** Makes `messageKey` a plural key (`.one` / `.other`) with this `{{count}}`. */
+  count?: number;
   confirmKey?: string;
   tone?: 'default' | 'danger';
 }
 
 @Component({
   selector: 'app-confirm-dialog',
-  imports: [MatDialogModule, MatButtonModule, TranslocoPipe],
+  imports: [MatDialogModule, MatButtonModule, TranslocoPipe, PluralPipe],
   template: `
     <h2 mat-dialog-title>{{ data.titleKey | transloco: data.params }}</h2>
     @if (data.messageKey) {
       <mat-dialog-content>
-        <p>{{ data.messageKey | transloco: data.params }}</p>
+        <p>
+          @if (data.count === undefined) {
+            {{ data.messageKey | transloco: data.params }}
+          } @else {
+            {{ data.messageKey | plural: data.count : data.params }}
+          }
+        </p>
       </mat-dialog-content>
     }
     <mat-dialog-actions align="end">
@@ -34,7 +43,7 @@ export interface ConfirmDialogData {
         [class.danger]="data.tone === 'danger'"
         [mat-dialog-close]="true"
       >
-        {{ (data.confirmKey || 'common.confirm') | transloco }}
+        {{ data.confirmKey || 'common.confirm' | transloco }}
       </button>
     </mat-dialog-actions>
   `,

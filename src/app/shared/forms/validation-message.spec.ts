@@ -10,9 +10,18 @@ describe('validationMessage', () => {
   });
 
   it('uses the key returned by custom validators', () => {
-    expect(validationMessage({ ageRange: { key: 'validation.ageRange', params: { min: 2 } } })).toEqual({
+    expect(
+      validationMessage({ ageRange: { key: 'validation.ageRange', params: { min: 2 } } }),
+    ).toEqual({
       key: 'validation.ageRange',
       params: { min: 2 },
+    });
+  });
+
+  it('keeps the plural count of custom validators', () => {
+    expect(validationMessage({ decimal: { key: 'validation.decimal', count: 2 } })).toEqual({
+      key: 'validation.decimal',
+      count: 2,
     });
   });
 

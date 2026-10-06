@@ -8,12 +8,14 @@
     "build": "ng build",
     "build:mock": "ng build --configuration mock",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test --watch=false",
+    "test": "node scripts/check-translations.mjs && ng test --watch=false",
     "test:watch": "ng test --watch",
     "lint": "ng lint",
     "format": "prettier --write \"src/**/*.{ts,html,scss,json}\" \"e2e/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.{ts,html,scss,json}\" \"e2e/**/*.ts\"",
-    "build:demo": "ng build --configuration demo"
+    "build:demo": "ng build --configuration demo",
+    "i18n:check": "node scripts/check-translations.mjs",
+    "e2e": "playwright test -c e2e/playwright.config.ts"
   },
   "private": true,
   "dependencies": {
@@ -37,7 +39,9 @@
     "@angular/build": "^21.2.25",
     "@angular/cli": "^21.2.25",
     "@angular/compiler-cli": "^21.2.25",
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.56.1",
     "@types/node": "^22.20.5",
     "angular-eslint": "21.4.0",
     "eslint": "^10.3.0",

@@ -82,7 +82,10 @@
     "date": "Enter a valid date.",
     "dateInFuture": "The date can't be in the future.",
     "ageRange": "The child must be between {{min}} and {{max}} years old.",
-    "decimal": "Enter a number with up to {{decimals}} decimal place(s).",
+    "decimal": {
+      "one": "Enter a number with up to {{count}} decimal place.",
+      "other": "Enter a number with up to {{count}} decimal places."
+    },
     "range": "Enter a value from {{min}} to {{max}}.",
     "languageName": "Use letters and spaces only.",
     "centerCode": "Use letters, numbers and - _ / only, like AWC-JP-001."
@@ -488,11 +491,17 @@
     "remarks": "What did you notice?",
     "remarksHint": "Saved with every selected child's result.",
     "confirmTitle": "Save this assessment?",
-    "confirmMessage": "{{level}} will be recorded for {{count}} child(ren). Saved results can't be changed here later.",
+    "confirmMessage": {
+      "one": "{{level}} will be recorded for {{count}} child. Saved results can't be changed here later.",
+      "other": "{{level}} will be recorded for {{count}} children. Saved results can't be changed here later."
+    },
     "save": "Save assessment",
     "saving": "Saving…",
     "retry": "Try again",
-    "saved": "Assessment saved for {{count}} child(ren).",
+    "saved": {
+      "one": "Assessment saved for {{count}} child.",
+      "other": "Assessment saved for {{count}} children."
+    },
     "partlySaved": "Saved for {{saved}}; {{failed}} couldn't be saved.",
     "failedTitle": {
       "one": "{{count}} result couldn't be saved",

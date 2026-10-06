@@ -40,3 +40,7 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# End-to-end test output
+e2e/test-results/
+e2e/report/

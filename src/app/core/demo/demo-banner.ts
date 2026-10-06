@@ -48,6 +48,9 @@ import { DemoDb } from './demo-db';
       flex: 1 1 auto;
       margin: 0;
     }
+    .reset {
+      --mat-button-text-label-text-color: var(--color-on-warning-soft);
+    }
     .detail {
       display: none;
       margin-inline-start: var(--space-1);

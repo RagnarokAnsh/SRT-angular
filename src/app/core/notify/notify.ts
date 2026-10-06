@@ -2,7 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslocoService } from '@jsverse/transloco';
 
+import { LanguageService } from '../i18n/language';
 import type { TranslationParams } from '../i18n/params';
+import { translatePlural } from '../i18n/plural';
 import { type AppError, toAppError } from '../network/app-error';
 
 type Kind = 'success' | 'info' | 'error';
@@ -12,9 +14,18 @@ type Kind = 'success' | 'info' | 'error';
 export class NotifyService {
   private readonly snackBar = inject(MatSnackBar);
   private readonly transloco = inject(TranslocoService);
+  private readonly language = inject(LanguageService);
 
   success(key: string, params?: TranslationParams): void {
     this.open(this.transloco.translate(key, params), 'success');
+  }
+
+  /** `success` for a plural key (`key.one` / `key.other`, with `{{count}}`). */
+  successCount(key: string, count: number, params?: TranslationParams): void {
+    this.open(
+      translatePlural(this.transloco, this.language.locale(), key, count, params),
+      'success',
+    );
   }
 
   info(key: string, params?: TranslationParams): void {

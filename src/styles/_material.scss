@@ -2,6 +2,13 @@
 
 // Small adjustments on top of the Material theme.
 
+// Text and outlined buttons put brand-coloured text on the page background (#f8f4f3), where
+// the filled-button shade is only 4.3:1; the darker shade keeps it above 4.5:1 (WCAG AA).
+html {
+  --mat-button-text-label-text-color: var(--color-primary-stronger);
+  --mat-button-outlined-label-text-color: var(--color-primary-stronger);
+}
+
 .mat-mdc-form-field {
   width: 100%;
 }

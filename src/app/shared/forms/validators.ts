@@ -18,7 +18,9 @@ function text(control: AbstractControl): string {
 
 function isEmpty(control: AbstractControl): boolean {
   const value: unknown = control.value;
-  return value === null || value === undefined || (typeof value === 'string' && value.trim() === '');
+  return (
+    value === null || value === undefined || (typeof value === 'string' && value.trim() === '')
+  );
 }
 
 /** Like `Validators.required`, but whitespace alone does not count. */
@@ -121,7 +123,7 @@ export function decimalInRange(min: number, max: number, decimals = 1): Validato
     if (isEmpty(control)) return null;
     const raw = String(control.value).trim();
     if (!pattern.test(raw)) {
-      return { decimal: { key: 'validation.decimal', params: { decimals } } };
+      return { decimal: { key: 'validation.decimal', count: decimals } };
     }
     const value = Number(raw);
     return value < min || value > max

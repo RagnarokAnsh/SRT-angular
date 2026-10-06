@@ -12,7 +12,13 @@ import {
   untracked,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, FormRecord, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  FormRecord,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -51,7 +57,13 @@ import { PageHeader } from '@shared/ui/page-header';
 import { Skeleton } from '@shared/ui/skeleton';
 import { StateMessage } from '@shared/ui/state-message';
 
-import { type ChildProgress, MAX_SESSIONS, buildSubmissions, matchProgress, submitEach } from './assessment-model';
+import {
+  type ChildProgress,
+  MAX_SESSIONS,
+  buildSubmissions,
+  matchProgress,
+  submitEach,
+} from './assessment-model';
 
 type Step = 'select' | 'record';
 type ListFilter = 'all' | 'todo' | 'done';
@@ -192,7 +204,9 @@ export class AssessmentPage implements HasUnsavedChanges {
     });
   });
 
-  protected readonly selectable = computed(() => this.visible().filter((p) => p.nextSession !== null));
+  protected readonly selectable = computed(() =>
+    this.visible().filter((p) => p.nextSession !== null),
+  );
   protected readonly allSelected = computed(() => {
     const options = this.selectable();
     return options.length > 0 && options.every((p) => this.selected().has(p.child.id));
@@ -301,7 +315,8 @@ export class AssessmentPage implements HasUnsavedChanges {
     openConfirm(this.dialog, {
       titleKey: 'assessment.confirmTitle',
       messageKey: 'assessment.confirmMessage',
-      params: { count, level: this.transloco.translate(`levels.${level}.label`) },
+      count,
+      params: { level: this.transloco.translate(`levels.${level}.label`) },
       confirmKey: 'assessment.save',
     })
       .pipe(
@@ -338,7 +353,7 @@ export class AssessmentPage implements HasUnsavedChanges {
         if (savedIds.length) this.data.reload();
 
         if (!failed.length) {
-          this.notify.success('assessment.saved', { count: savedIds.length });
+          this.notify.successCount('assessment.saved', savedIds.length);
           this.resetForm();
           return;
         }
@@ -351,7 +366,10 @@ export class AssessmentPage implements HasUnsavedChanges {
           })),
         );
         if (savedIds.length) {
-          this.notify.info('assessment.partlySaved', { saved: savedIds.length, failed: failed.length });
+          this.notify.info('assessment.partlySaved', {
+            saved: savedIds.length,
+            failed: failed.length,
+          });
         }
       });
   }

@@ -4,11 +4,14 @@ import { TranslocoService } from '@jsverse/transloco';
 
 import { LanguageService } from '@core/i18n/language';
 import type { TranslationParams } from '@core/i18n/params';
+import { translatePlural } from '@core/i18n/plural';
 
 /** Translation key (and params) for a validator error, or raw server text. */
 export interface ValidationMessage {
   key?: string;
   params?: TranslationParams;
+  /** Makes `key` a plural key (`.one` / `.other`) with this `{{count}}`. */
+  count?: number;
   /** Message from the server (already in words), shown as is. */
   text?: string;
 }
@@ -24,7 +27,9 @@ const BUILT_IN: Record<string, (value: Record<string, unknown>) => ValidationMes
 };
 
 /** The message for the first error of a control (custom validators return `{ key, params }`). */
-export function validationMessage(errors: ValidationErrors | null | undefined): ValidationMessage | null {
+export function validationMessage(
+  errors: ValidationErrors | null | undefined,
+): ValidationMessage | null {
   if (!errors) return null;
   const entries = Object.entries(errors);
   if (!entries.length) return null;
@@ -49,6 +54,10 @@ export class ValidationMessagePipe implements PipeTransform {
     const message = validationMessage(errors);
     if (!message) return '';
     if (message.text) return message.text;
-    return this.transloco.translate(message.key ?? 'validation.invalid', { ...params, ...message.params });
+    const values = { ...params, ...message.params };
+    const key = message.key ?? 'validation.invalid';
+    return message.count === undefined
+      ? this.transloco.translate(key, values)
+      : translatePlural(this.transloco, this.language.locale(), key, message.count, values);
   }
 }
