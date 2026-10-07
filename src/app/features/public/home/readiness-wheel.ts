@@ -163,8 +163,16 @@ export class ReadinessWheel {
 
   protected readonly size = SIZE;
   protected readonly center = CENTER;
-  protected readonly layout = signal<Layout>('compact');
+  /**
+   * A first guess from the window width (the wheel is at least 482 px wide on any screen of
+   * 600 px or more), so desktops don't flash the phone layout before the wheel is measured.
+   */
+  protected readonly layout = signal<Layout>(
+    (this.document.defaultView?.innerWidth ?? 0) >= 600 ? 'full' : 'compact',
+  );
   protected readonly selected = signal<number | null>(null);
+  /** Read out by screen readers when Previous / Next changes the domain. */
+  protected readonly announcement = signal('');
   /** Bumped when web fonts finish loading, so labels are re-measured with the real font. */
   private readonly fontsVersion = signal(0);
 
@@ -199,6 +207,7 @@ export class ReadinessWheel {
   protected select(index: number | null): void {
     const previous = this.selected();
     this.selected.set(index);
+    this.announcement.set('');
     // The panel's content is replaced, so move focus to its new heading (or back to the
     // domain that was open) and bring the panel into view on phones, where it sits below.
     afterNextRender(
@@ -218,10 +227,19 @@ export class ReadinessWheel {
     );
   }
 
+  /**
+   * Previous / Next: focus stays on the button, so it can be pressed again, and the new
+   * domain is announced instead.
+   */
   protected step(delta: number): void {
     const current = this.selected() ?? 0;
     const count = FRAMEWORK.length;
-    this.select((current + delta + count) % count);
+    const next = (current + delta + count) % count;
+    this.selected.set(next);
+    const domain = this.model().domains[next];
+    this.announcement.set(
+      `${domain.name}. ${this.transloco.translate('home.wheel.domainOf', { current: next + 1, total: count })}`,
+    );
   }
 
   /** Pointer shortcut; keyboard and screen reader users use the domain list instead. */

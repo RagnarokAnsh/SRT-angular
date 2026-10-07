@@ -195,7 +195,9 @@
                       type="button"
                       class="child__history"
                       [attr.aria-expanded]="expanded() === p.child.id"
-                      [attr.aria-controls]="'history-' + p.child.id"
+                      [attr.aria-controls]="
+                        expanded() === p.child.id ? 'history-' + p.child.id : null
+                      "
                       [attr.aria-label]="'assessment.history' | transloco: { name: p.child.name }"
                       (click)="toggleHistory(p.child.id)"
                     >

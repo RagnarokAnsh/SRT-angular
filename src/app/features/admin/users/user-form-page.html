@@ -69,7 +69,6 @@
               [attr.aria-label]="
                 (showPassword() ? 'login.hidePassword' : 'login.showPassword') | transloco
               "
-              [attr.aria-pressed]="showPassword()"
               (click)="showPassword.set(!showPassword())"
             >
               <mat-icon [svgIcon]="showPassword() ? 'eye-off' : 'eye'" aria-hidden="true" />

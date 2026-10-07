@@ -19,7 +19,7 @@
   },
   "language": {
     "change": "Change language",
-    "loadFailed": "Couldn't load that language. Check your connection and try again."
+    "loadFailed": "Couldn't load that language. Check your connection, then reload the page."
   },
   "roles": {
     "admin": "Administrator",
@@ -37,6 +37,7 @@
     "loading": "Loading…",
     "retry": "Try again",
     "refresh": "Refresh",
+    "reload": "Reload",
     "next": "Next",
     "previous": "Previous",
     "center": "Centre",

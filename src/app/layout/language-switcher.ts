@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -70,10 +71,20 @@ import { NotifyService } from '@core/notify/notify';
 export class LanguageSwitcher {
   protected readonly language = inject(LanguageService);
   private readonly notify = inject(NotifyService);
+  private readonly document = inject(DOCUMENT);
 
   protected switchTo(lang: LanguageCode): void {
     void this.language.use(lang).then((switched) => {
-      if (!switched) this.notify.errorKey('language.loadFailed');
+      if (switched || this.language.current() === lang) return;
+      // The browser won't fetch a file again after it failed once in this page: only a
+      // reload can, and it starts in the chosen language.
+      this.notify.errorKey('language.loadFailed', undefined, {
+        labelKey: 'common.reload',
+        run: () => {
+          this.language.remember(lang);
+          this.document.location.reload();
+        },
+      });
     });
   }
 }

@@ -17,6 +17,8 @@ test.describe('public pages', () => {
     ).toBeVisible();
     await page.getByRole('button', { name: 'Next' }).click();
     await expect(page.getByRole('heading', { name: 'Physical & Motor Development' })).toBeVisible();
+    // Focus stays on Next, so it can be pressed again; the new domain is announced.
+    await expect(page.getByRole('button', { name: 'Next' })).toBeFocused();
     await page.getByRole('button', { name: 'All domains' }).click();
     await expect(page.getByRole('heading', { name: 'Six domains of development' })).toBeVisible();
 
@@ -75,6 +77,9 @@ test.describe('public pages', () => {
     await page.locator('input[formcontrolname=password]').fill('wrong-password');
     await page.locator('button[type=submit]').click();
     await expect(page.getByRole('alert')).toContainText('The email or password is incorrect.');
+    // The password is cleared, without a "required" message under the real problem.
+    await expect(page.locator('input[formcontrolname=password]')).toHaveValue('');
+    await expect(page.getByText('This field is required.')).toHaveCount(0);
     await expectAccessible(page);
   });
 

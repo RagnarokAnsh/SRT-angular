@@ -90,6 +90,7 @@
               "sourceMap": true
             },
             "mock": {
+              "outputPath": "dist/mock",
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,

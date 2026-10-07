@@ -73,6 +73,7 @@
 </div>
 
 <section class="panel" #panel [attr.aria-label]="'home.wheel.panelLabel' | transloco">
+  <p class="visually-hidden" aria-live="polite">{{ announcement() }}</p>
   @if (selectedDomain(); as domain) {
     <button mat-button type="button" class="panel__back" (click)="select(null)">
       <mat-icon svgIcon="arrow-left" aria-hidden="true" />

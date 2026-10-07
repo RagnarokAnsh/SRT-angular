@@ -11,6 +11,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import type { ErrorStateMatcher } from '@angular/material/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -64,6 +65,14 @@ export class LoginPage {
   protected readonly submitting = signal(false);
   protected readonly showPassword = signal(false);
   protected readonly capsLock = signal(false);
+  /**
+   * The password is cleared after a failed sign-in: that must not show "This field is
+   * required." under "The email or password is incorrect.". Its error shows once the field
+   * is touched again, or on the next try (which marks every field touched).
+   */
+  protected readonly passwordErrors: ErrorStateMatcher = {
+    isErrorState: (control) => !!control && control.invalid && control.touched,
+  };
   /** Translated message for a failed attempt (or the server's own words). */
   protected readonly failure = signal<{ key: string; detail: string | null } | null>(null);
 

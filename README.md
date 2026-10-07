@@ -21,12 +21,12 @@ Demo mode answers every API call in the browser from sample data. Sign in with o
 accounts, all with the password `demo1234` (the login page lists the first three; tapping one
 fills in the form):
 
-| Role | Email |
-|---|---|
-| Anganwadi worker | `aww@demo.in` (a second centre: `aww2@demo.in`; not linked to any centre: `aww3@demo.in`) |
-| Admin | `admin@demo.in` |
-| Supervisor | `supervisor@demo.in` |
-| CDPO / DPO / State official | `cdpo@demo.in` / `dpo@demo.in` / `state@demo.in` |
+| Role                        | Email                                                                                     |
+| --------------------------- | ----------------------------------------------------------------------------------------- |
+| Anganwadi worker            | `aww@demo.in` (a second centre: `aww2@demo.in`; not linked to any centre: `aww3@demo.in`) |
+| Admin                       | `admin@demo.in`                                                                           |
+| Supervisor                  | `supervisor@demo.in`                                                                      |
+| CDPO / DPO / State official | `cdpo@demo.in` / `dpo@demo.in` / `state@demo.in`                                          |
 
 Changes are kept in this browser's localStorage. The yellow demo banner has **Reset demo data**,
 and a **Simulate server down** switch for trying out the error screens.
@@ -35,27 +35,27 @@ and a **Simulate server down** switch for trying out the error screens.
 
 ## Scripts
 
-| Command | What it does |
-|---|---|
-| `npm start` | Dev server against the real API |
-| `npm run start:mock` | Dev server in demo mode |
-| `npm run build` | Production build into `dist/sri/browser` |
-| `npm run build:demo` | Optimised demo-mode build into `dist/demo/browser`: a static demo you can host anywhere, no backend needed |
-| `npm run build:mock` | Development build in demo mode |
-| `npm test` | Translation-key check, then the unit tests (Vitest) |
-| `npm run test:watch` | Unit tests in watch mode |
-| `npm run e2e` | End-to-end tests (Playwright) at phone and desktop sizes |
-| `npm run lint` | ESLint for TypeScript and templates |
-| `npm run format` / `npm run format:check` | Prettier |
-| `npm run i18n:check` | Fails if the code uses a translation key that isn't in `en.json` |
+| Command                                   | What it does                                                                                               |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `npm start`                               | Dev server against the real API                                                                            |
+| `npm run start:mock`                      | Dev server in demo mode                                                                                    |
+| `npm run build`                           | Production build into `dist/sri/browser`                                                                   |
+| `npm run build:demo`                      | Optimised demo-mode build into `dist/demo/browser`: a static demo you can host anywhere, no backend needed |
+| `npm run build:mock`                      | Development build in demo mode, into `dist/mock` (never into the production folder)                        |
+| `npm test`                                | Translation-key check, then the unit tests (Vitest)                                                        |
+| `npm run test:watch`                      | Unit tests in watch mode                                                                                   |
+| `npm run e2e`                             | End-to-end tests (Playwright) at phone and desktop sizes                                                   |
+| `npm run lint`                            | ESLint for TypeScript and templates                                                                        |
+| `npm run format` / `npm run format:check` | Prettier                                                                                                   |
+| `npm run i18n:check`                      | Fails if the code uses a translation key that isn't in `en.json`                                           |
 
 ## Who sees what
 
-| Role | Screens |
-|---|---|
-| Anganwadi worker | Competencies and assessments, the students of their centre, the centre dashboard |
-| Admin | Overview, users, centres and students |
-| Supervisor | Home page, and the students of the centres in their sector |
+| Role                      | Screens                                                                                 |
+| ------------------------- | --------------------------------------------------------------------------------------- |
+| Anganwadi worker          | Competencies and assessments, the students of their centre, the centre dashboard        |
+| Admin                     | Overview, users, centres and students                                                   |
+| Supervisor                | Home page, and the students of the centres in their sector                              |
 | CDPO, DPO, State official | A home page for their area (reports for these roles need summary data from the backend) |
 
 Roles, navigation and home pages are configured in one place: `src/app/core/auth/roles.ts`.

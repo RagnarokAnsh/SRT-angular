@@ -37,8 +37,13 @@ export class NotifyService {
     this.open(this.describe(toAppError(error)), 'error');
   }
 
-  errorKey(key: string, params?: TranslationParams): void {
-    this.open(this.transloco.translate(key, params), 'error');
+  /** An error message; `action` replaces the Dismiss button (e.g. "Reload"). */
+  errorKey(
+    key: string,
+    params?: TranslationParams,
+    action?: { labelKey: string; run: () => void },
+  ): void {
+    this.open(this.transloco.translate(key, params), 'error', action);
   }
 
   describe(error: AppError): string {
@@ -46,11 +51,16 @@ export class NotifyService {
     return error.serverMessage ? `${message} (${error.serverMessage})` : message;
   }
 
-  private open(message: string, kind: Kind): void {
-    this.snackBar.open(message, this.transloco.translate('common.dismiss'), {
-      duration: kind === 'error' ? 8000 : 4000,
-      panelClass: ['app-snack', `app-snack--${kind}`],
-      politeness: kind === 'error' ? 'assertive' : 'polite',
-    });
+  private open(message: string, kind: Kind, action?: { labelKey: string; run: () => void }): void {
+    const ref = this.snackBar.open(
+      message,
+      this.transloco.translate(action?.labelKey ?? 'common.dismiss'),
+      {
+        duration: kind === 'error' ? 8000 : 4000,
+        panelClass: ['app-snack', `app-snack--${kind}`],
+        politeness: kind === 'error' ? 'assertive' : 'polite',
+      },
+    );
+    if (action) ref.onAction().subscribe(() => action.run());
   }
 }

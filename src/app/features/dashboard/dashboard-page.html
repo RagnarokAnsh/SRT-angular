@@ -144,7 +144,6 @@
               mat-button
               type="button"
               class="chart__toggle"
-              [attr.aria-pressed]="showTable()"
               (click)="showTable.set(!showTable())"
             >
               <mat-icon [svgIcon]="showTable() ? 'chart' : 'notes'" aria-hidden="true" />
@@ -231,7 +230,9 @@
                       type="button"
                       class="row__head"
                       [attr.aria-expanded]="expanded() === row.competency.id"
-                      [attr.aria-controls]="'who-' + row.competency.id"
+                      [attr.aria-controls]="
+                        expanded() === row.competency.id ? 'who-' + row.competency.id : null
+                      "
                       (click)="toggle(row.competency.id)"
                     >
                       <span class="row__name">{{ row.competency | competencyName }}</span>
