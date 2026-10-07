@@ -87,7 +87,7 @@ src/
   testing/         helpers for the unit tests
 public/assets/     images and video
 e2e/               Playwright tests
-docs/              AUDIT.md, SECURITY.md, DEPLOYMENT.md
+docs/              AUDIT.md, CODE-REVIEW.md, SECURITY.md, DEPLOYMENT.md
 scripts/           check-translations.mjs
 ```
 
@@ -128,7 +128,8 @@ To add a language, for example Tamil:
 - **End-to-end tests** (Playwright, run with `npm run e2e`) start the demo app on port 4300. They
   run each flow on a 360 px phone, a Pixel 7 and a 1366 px desktop, plus in Hindi, and check
   that every page fits a 320 px screen. Pages are scanned with axe for WCAG 2.1 AA problems.
-  `e2e/access.spec.ts` checks what every demo role can see and open. On a new machine,
+  `e2e/access.spec.ts` checks what every demo role can see and open, and
+  `e2e/session.spec.ts` how several open tabs follow a sign-in or sign-out. On a new machine,
   install the browser once with `npx playwright install chromium`. The HTML report is written to
   `e2e/report/`.
 
@@ -144,8 +145,8 @@ it can be deployed without backend changes. Before it goes live, the backend sti
 3. **Role checks on every endpoint.** The app hides screens, but only the server can enforce
    access.
 
-See `docs/SECURITY.md` for the full list and section I of `docs/AUDIT.md` for optional
-improvements.
+See `docs/SECURITY.md` for the full list, "Needs the backend" in `docs/CODE-REVIEW.md` for
+what the latest review added, and section I of `docs/AUDIT.md` for optional improvements.
 
 ## Deployment
 

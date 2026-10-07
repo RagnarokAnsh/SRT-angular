@@ -65,15 +65,15 @@ export class SessionWatcher {
     }
     const idleCheck = setInterval(() => this.checkIdle(), IDLE_CHECK_MS);
     // Who was signed in when the other tab started changing the session.
-    let before: number | null | undefined;
+    let before: { userId: number | null } | null = null;
     let settle: ReturnType<typeof setTimeout> | undefined;
     const onStorage = (event: StorageEvent) => {
       if (!SESSION_KEYS.includes(event.key)) return;
-      before ??= this.userId();
+      before ??= { userId: this.userId() };
       clearTimeout(settle);
       settle = setTimeout(() => {
-        const previous = before ?? null;
-        before = undefined;
+        const previous = before?.userId ?? null;
+        before = null;
         void this.onSessionChangedElsewhere(previous);
       }, SETTLE_MS);
     };
