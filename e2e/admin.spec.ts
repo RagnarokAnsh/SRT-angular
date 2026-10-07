@@ -51,6 +51,29 @@ test.describe('administrator', () => {
     await expect(page.getByText('AWC-JP-020')).toBeVisible();
   });
 
+  test('picks a centre for the dashboard and can switch to another', async ({ page }) => {
+    await page.goto('/dashboard');
+    await pick(page, 'Centre', /Sanganer Gaon AWC/);
+    // The centre's name shows even though it has hardly any results yet.
+    await expect(page.locator('app-page-header')).toContainText('Sanganer Gaon AWC');
+    await expect(page.locator('.kpi', { hasText: 'Students' })).toContainText('1');
+
+    await page.getByRole('button', { name: 'Change centre' }).click();
+    await pick(page, 'Centre', /Gandhi Colony AWC/);
+    await expect(page.locator('app-page-header')).toContainText('Gandhi Colony AWC');
+    await expect(page.locator('.kpi', { hasText: 'Students' })).toContainText('4');
+  });
+
+  test('picks a centre to assess and can switch before recording', async ({ page }) => {
+    await page.goto('/competencies/1/assess');
+    await pick(page, 'Centre', /Gandhi Colony AWC/);
+    await expect(page.getByRole('checkbox', { name: /Saanvi Gupta/ })).toBeVisible();
+    await page.getByRole('button', { name: 'Change centre' }).click();
+    await pick(page, 'Centre', /Shivaji Nagar AWC/);
+    await expect(page.getByRole('checkbox', { name: /Aarav Kumar/ })).toBeVisible();
+    await expect(page.getByRole('checkbox', { name: /Saanvi Gupta/ })).toHaveCount(0);
+  });
+
   test('workers cannot open admin pages', async ({ page }) => {
     await page.locator('app-account-menu button').click();
     await page.getByRole('menuitem', { name: 'Sign out' }).click();

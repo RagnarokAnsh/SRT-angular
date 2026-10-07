@@ -20,6 +20,7 @@ import { AssessmentApi } from '@core/api/assessment-api';
 import { ChildApi } from '@core/api/child-api';
 import { CompetencyApi } from '@core/api/competency-api';
 import { AccessService } from '@core/auth/access';
+import type { ApiCenter } from '@core/models/center';
 import { SessionStore } from '@core/auth/session';
 import { CatalogText } from '@core/catalog/catalog-text';
 import { domainColors } from '@core/catalog/framework';
@@ -96,9 +97,9 @@ export class DashboardPage {
 
   /** Workers see their own centre; administrators choose one of the centres they may see. */
   protected readonly isWorker = this.access.worksInOwnCenter;
-  protected readonly pickedCenterId = signal<number | null>(null);
+  protected readonly pickedCenter = signal<ApiCenter | null>(null);
   protected readonly centerId = computed(() =>
-    this.isWorker() ? this.access.ownCenterId() : this.pickedCenterId(),
+    this.isWorker() ? this.access.ownCenterId() : (this.pickedCenter()?.id ?? null),
   );
 
   protected readonly loader = createLoader(
@@ -135,9 +136,10 @@ export class DashboardPage {
 
   protected readonly data = computed(() => this.loader.data() ?? null);
 
+  /** The centre shown: the worker's own, or the one an administrator chose. */
   protected readonly centerName = computed(() => {
-    const data = this.data();
-    const fromChild = data?.children.find((c) => c.centerName)?.centerName;
+    if (!this.isWorker()) return this.pickedCenter()?.name ?? null;
+    const fromChild = this.data()?.children.find((c) => c.centerName)?.centerName;
     return this.session.user()?.anganwadi?.name ?? fromChild ?? null;
   });
 

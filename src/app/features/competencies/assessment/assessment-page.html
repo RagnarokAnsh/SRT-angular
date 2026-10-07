@@ -10,7 +10,18 @@
         {{ 'assessment.titleGeneric' | transloco }}
       }
     </span>
-    <span pageSubtitle>{{ 'assessment.subtitle' | transloco }}</span>
+    <span pageSubtitle>
+      @if (pickedCenter(); as center) {
+        {{ center.name }} ·
+      }
+      {{ 'assessment.subtitle' | transloco }}
+    </span>
+    @if (!isWorker() && centerId() !== null && step() === 'select' && !submitting()) {
+      <button pageActions mat-button type="button" (click)="pickedCenter.set(null)">
+        <mat-icon svgIcon="center" aria-hidden="true" />
+        {{ 'common.changeCenter' | transloco }}
+      </button>
+    }
   </app-page-header>
 
   @if (competency.error(); as error) {
@@ -32,8 +43,8 @@
     } @else {
       <app-center-picker
         intro="assessment.pickCenterIntro"
-        [value]="pickedCenterId()"
-        (picked)="pickedCenterId.set($event)"
+        [value]="pickedCenter()?.id ?? null"
+        (picked)="pickedCenter.set($event)"
       />
     }
   } @else {

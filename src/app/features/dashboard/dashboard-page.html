@@ -2,6 +2,12 @@
   <app-page-header>
     <span pageTitle>{{ 'dashboard.title' | transloco }}</span>
     <span pageSubtitle>{{ centerName() ?? ('dashboard.subtitle' | transloco) }}</span>
+    @if (!isWorker() && centerId() !== null) {
+      <button pageActions mat-button type="button" (click)="pickedCenter.set(null)">
+        <mat-icon svgIcon="center" aria-hidden="true" />
+        {{ 'common.changeCenter' | transloco }}
+      </button>
+    }
     @if (data()) {
       <button
         pageActions
@@ -27,8 +33,8 @@
     } @else {
       <app-center-picker
         intro="dashboard.pickCenterIntro"
-        [value]="pickedCenterId()"
-        (picked)="pickedCenterId.set($event)"
+        [value]="pickedCenter()?.id ?? null"
+        (picked)="pickedCenter.set($event)"
       />
     }
   } @else if (loader.error(); as error) {

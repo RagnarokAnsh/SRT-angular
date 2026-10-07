@@ -4,6 +4,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 import { AccessService } from '@core/auth/access';
+import type { ApiCenter } from '@core/models/center';
 import { createLoader } from '@shared/loader';
 
 import { ErrorState } from './error-state';
@@ -20,7 +21,7 @@ import { ErrorState } from './error-state';
       } @else {
         <mat-form-field>
           <mat-label>{{ 'common.center' | transloco }}</mat-label>
-          <mat-select [value]="value()" (selectionChange)="picked.emit($event.value)">
+          <mat-select [value]="value()" (selectionChange)="choose($event.value)">
             @for (center of centers.data() ?? []; track center.id) {
               <mat-option [value]="center.id">{{ center.name }} ({{ center.code }})</mat-option>
             }
@@ -44,8 +45,13 @@ import { ErrorState } from './error-state';
 export class CenterPicker {
   readonly intro = input('common.pickCenter');
   readonly value = input<number | null>(null);
-  readonly picked = output<number>();
+  readonly picked = output<ApiCenter>();
 
   private readonly access = inject(AccessService);
   protected readonly centers = createLoader(() => this.access.visibleCenters());
+
+  protected choose(id: number): void {
+    const center = this.centers.data()?.find((c) => c.id === id);
+    if (center) this.picked.emit(center);
+  }
 }

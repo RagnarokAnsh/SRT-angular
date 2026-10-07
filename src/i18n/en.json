@@ -39,7 +39,8 @@
     "next": "Next",
     "previous": "Previous",
     "center": "Centre",
-    "pickCenter": "Choose a centre to continue."
+    "pickCenter": "Choose a centre to continue.",
+    "changeCenter": "Change centre"
   },
   "logout": {
     "title": "Sign out?",

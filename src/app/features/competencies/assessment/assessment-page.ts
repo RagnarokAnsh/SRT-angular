@@ -34,6 +34,7 @@ import { AssessmentApi } from '@core/api/assessment-api';
 import { ChildApi } from '@core/api/child-api';
 import { CompetencyApi } from '@core/api/competency-api';
 import { AccessService } from '@core/auth/access';
+import type { ApiCenter } from '@core/models/center';
 import { isKnownCompetency, needsMeasurements } from '@core/catalog/media';
 import { CHILD_LIMITS } from '@core/models/child';
 import { LEVELS, type Level } from '@core/models/level';
@@ -131,9 +132,9 @@ export class AssessmentPage implements HasUnsavedChanges {
 
   // Which centre: the worker's own, or one an administrator chose from the centres they may see.
   protected readonly isWorker = this.access.worksInOwnCenter;
-  protected readonly pickedCenterId = signal<number | null>(null);
+  protected readonly pickedCenter = signal<ApiCenter | null>(null);
   protected readonly centerId = computed(() =>
-    this.isWorker() ? this.access.ownCenterId() : this.pickedCenterId(),
+    this.isWorker() ? this.access.ownCenterId() : (this.pickedCenter()?.id ?? null),
   );
 
   protected readonly competency = createLoader(() => this.competencyApi.competency(this.id()), {
