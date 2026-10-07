@@ -41,6 +41,29 @@ test.describe('Anganwadi worker', () => {
     ).toBeVisible();
   });
 
+  test('keeps failed results for another try, and saves them once', async ({ page }) => {
+    await page.goto('/competencies/3/assess');
+    await page.getByRole('checkbox', { name: /Aarav Kumar/ }).check();
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await expect(page.locator('#who-title')).toBeFocused(); // focus follows the step
+    await page.getByText('Identifies numerals and can link them with concrete objects').click();
+
+    const serverDown = page.getByRole('switch', { name: 'Simulate server down' });
+    await serverDown.click();
+    await page.getByRole('button', { name: 'Save assessment' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Save assessment' }).click();
+    await expect(page.getByText("1 result couldn't be saved")).toBeVisible();
+    // The list couldn't be refreshed either; the failed student stays ready for another try.
+    await expect(page.getByText("Couldn't refresh the list")).toBeVisible();
+
+    await serverDown.click();
+    await page.getByRole('button', { name: 'Try again' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Save assessment' }).click();
+    await expect(page.getByText('Assessment saved for 1 student.')).toBeVisible();
+    const aarav = page.locator('.child', { hasText: 'Aarav Kumar' });
+    await expect(aarav.getByText('Next: session 2')).toBeVisible();
+  });
+
   test('records height and weight for gross motor', async ({ page }) => {
     await page.goto('/competencies/10/assess');
     await page.getByRole('checkbox', { name: /Ishaan Verma/ }).check();

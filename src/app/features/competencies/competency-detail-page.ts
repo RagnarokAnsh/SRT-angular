@@ -101,7 +101,7 @@ export class CompetencyDetailPage {
     effect(() => {
       const id = this.id();
       untracked(() => {
-        this.checked.set(this.readConfirmation(id) ? new Set(CHECKLIST) : new Set());
+        this.checked.set(this.readTicks(id));
         this.loader.reload();
       });
     });
@@ -120,7 +120,7 @@ export class CompetencyDetailPage {
     if (checked) next.add(item);
     else next.delete(item);
     this.checked.set(next);
-    this.saveConfirmation(this.id(), next.size === CHECKLIST.length);
+    this.saveTicks(this.id(), next);
   }
 
   /** Workers confirm the checklist once per competency; it is remembered on this device. */
@@ -128,17 +128,21 @@ export class CompetencyDetailPage {
     return `srt-ready:${this.session.user()?.id ?? 0}:${id}`;
   }
 
-  private readConfirmation(id: number): boolean {
+  /** The ticked statements, remembered on this device (even when not all are ticked yet). */
+  private readTicks(id: number): ReadonlySet<string> {
     try {
-      return localStorage.getItem(this.storageKey(id)) === '1';
+      const stored = localStorage.getItem(this.storageKey(id));
+      if (stored === '1') return new Set(CHECKLIST); // saved by an earlier version: all ticked
+      const known = new Set<string>(CHECKLIST);
+      return new Set((stored ?? '').split(',').filter((item) => known.has(item)));
     } catch {
-      return false;
+      return new Set();
     }
   }
 
-  private saveConfirmation(id: number, confirmed: boolean): void {
+  private saveTicks(id: number, ticks: ReadonlySet<string>): void {
     try {
-      if (confirmed) localStorage.setItem(this.storageKey(id), '1');
+      if (ticks.size) localStorage.setItem(this.storageKey(id), [...ticks].join(','));
       else localStorage.removeItem(this.storageKey(id));
     } catch {
       /* not remembered; fine */

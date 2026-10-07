@@ -72,3 +72,33 @@ export function submitEach(
     toArray(),
   );
 }
+
+/** A student whose result failed to save, and the session that was being saved. */
+export interface FailedAttempt {
+  childId: number;
+  session: number;
+}
+
+/**
+ * After a failed save the list is reloaded. A request that timed out may still have been
+ * stored, so: `stored` are failures whose session now exists (never send them again), `retry`
+ * are the ones that can still be tried, and `dropped` lists every student taken off the list
+ * (stored, no longer listed, or with every session done).
+ */
+export function reconcileFailures<T extends FailedAttempt>(
+  failures: readonly T[],
+  progress: readonly ChildProgress[],
+): { retry: T[]; stored: number; dropped: number[] } {
+  const byChild = new Map(progress.map((p) => [p.child.id, p]));
+  const retry: T[] = [];
+  const dropped: number[] = [];
+  let stored = 0;
+  for (const failure of failures) {
+    const p = byChild.get(failure.childId);
+    const wasStored = !!p && p.sessions.some((s) => s.session === failure.session);
+    if (wasStored) stored++;
+    if (!wasStored && p && p.nextSession !== null) retry.push(failure);
+    else dropped.push(failure.childId);
+  }
+  return { retry, stored, dropped };
+}

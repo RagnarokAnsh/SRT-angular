@@ -36,11 +36,13 @@
     "dismiss": "Dismiss",
     "loading": "Loading…",
     "retry": "Try again",
+    "refresh": "Refresh",
     "next": "Next",
     "previous": "Previous",
     "center": "Centre",
     "pickCenter": "Choose a centre to continue.",
-    "changeCenter": "Change centre"
+    "changeCenter": "Change centre",
+    "noCenters": "There are no centres you can choose. Ask your administrator."
   },
   "logout": {
     "title": "Sign out?",
@@ -49,7 +51,9 @@
   "unsaved": {
     "title": "Leave without saving?",
     "message": "Your changes on this page haven't been saved and will be lost.",
-    "leave": "Leave page"
+    "leave": "Leave page",
+    "savingTitle": "Still saving",
+    "savingMessage": "Your results are still being saved. If you leave now, some may not be saved."
   },
   "network": {
     "offlineBanner": "You're offline. You can keep reading, but changes can't be saved until you're back online."
@@ -510,7 +514,13 @@
       "other": "{{count}} results couldn't be saved"
     },
     "failedHint": "The other results were saved. Check your connection and try again for the students listed.",
-    "refreshFailed": "Couldn't refresh the list, so it may be out of date."
+    "refreshFailed": "Couldn't refresh the list, so it may be out of date.",
+    "savedAfterAll": {
+      "one": "{{count}} result that seemed to fail had been saved after all.",
+      "other": "{{count}} results that seemed to fail had been saved after all."
+    },
+    "changeCenterTitle": "Change centre?",
+    "changeCenterMessage": "The students you selected and the level you chose will be cleared."
   },
   "children": {
     "title": "Students",

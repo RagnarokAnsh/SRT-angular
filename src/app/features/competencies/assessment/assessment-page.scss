@@ -495,3 +495,15 @@
     flex: 1 1 12rem;
   }
 }
+
+.record-step {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+#step-select:focus,
+#who-title:focus {
+  outline: none;
+}

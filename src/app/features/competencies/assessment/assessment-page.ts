@@ -3,6 +3,8 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  Injector,
+  afterNextRender,
   computed,
   effect,
   inject,
@@ -49,7 +51,7 @@ import { AppDatePipe } from '@shared/pipes/app-date-pipe';
 import { CompetencyNamePipe } from '@shared/pipes/catalog-pipes';
 import { PluralPipe } from '@shared/pipes/plural-pipe';
 import { scrollToElement } from '@shared/scroll';
-import type { HasUnsavedChanges } from '@shared/unsaved-changes-guard';
+import { type HasUnsavedChanges, warnBeforeUnload } from '@shared/unsaved-changes-guard';
 import { CenterPicker } from '@shared/ui/center-picker';
 import { openConfirm } from '@shared/ui/confirm-dialog';
 import { ErrorState } from '@shared/ui/error-state';
@@ -63,6 +65,7 @@ import {
   MAX_SESSIONS,
   buildSubmissions,
   matchProgress,
+  reconcileFailures,
   submitEach,
 } from './assessment-model';
 
@@ -79,6 +82,8 @@ interface Failure {
   childId: number;
   name: string;
   message: string;
+  /** The session number that was being saved. */
+  session: number;
 }
 
 @Component({
@@ -120,6 +125,7 @@ export class AssessmentPage implements HasUnsavedChanges {
   private readonly transloco = inject(TranslocoService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
 
   /** Competency id (route parameter). */
   readonly id = input.required({ transform: numberAttribute });
@@ -221,6 +227,10 @@ export class AssessmentPage implements HasUnsavedChanges {
   );
 
   constructor() {
+    effect(() => {
+      const data = this.data.data();
+      if (data && !this.data.loading()) untracked(() => this.reconcileFailures());
+    });
     // A new competency or centre starts a fresh assessment; the previous lists are dropped
     // first so they can never be shown (or saved) as the new ones.
     effect(() => {
@@ -236,15 +246,38 @@ export class AssessmentPage implements HasUnsavedChanges {
     });
   }
 
+  /**
+   * A result that failed (e.g. timed out) may have been stored by the server after all. Once the
+   * list has been reloaded, those students are taken off the retry list so that trying again
+   * can never record the same observation twice.
+   */
+  private reconcileFailures(): void {
+    const failures = this.failures();
+    if (!failures.length) return;
+    const { retry, stored, dropped } = reconcileFailures(failures, this.progress());
+    if (!dropped.length) return;
+    for (const id of dropped) this.remove(id);
+    this.failures.set(retry);
+    if (stored) this.notify.successCount('assessment.savedAfterAll', stored);
+    if (!retry.length) this.resetForm();
+  }
+
   hasUnsavedChanges(): boolean {
     return (
-      !this.submitting() &&
-      (this.selected().size > 0 || this.level() !== null || this.remarks.value.trim() !== '')
+      this.submitting() ||
+      this.selected().size > 0 ||
+      this.level() !== null ||
+      this.remarks.value.trim() !== ''
     );
   }
 
+  /** Leaving while results are being sent would stop the ones not sent yet. */
+  isSaving(): boolean {
+    return this.submitting();
+  }
+
   protected onBeforeUnload(event: BeforeUnloadEvent): void {
-    if (this.hasUnsavedChanges()) event.preventDefault();
+    if (this.hasUnsavedChanges()) warnBeforeUnload(event);
   }
 
   // Step 1: choosing children
@@ -273,6 +306,7 @@ export class AssessmentPage implements HasUnsavedChanges {
     if (!this.chosen().length) return;
     this.syncMeasurementControls();
     this.failures.set([]);
+    this.today.set(toIsoDate());
     this.goTo('record');
   }
 
@@ -283,10 +317,36 @@ export class AssessmentPage implements HasUnsavedChanges {
     this.levelError.set(false);
   }
 
-  protected remove(childId: number): void {
+  protected remove(childId: number, moveFocus = false): void {
+    const index = this.chosen().findIndex((p) => p.child.id === childId);
     this.toggle(childId, false);
     this.measurements.removeControl(String(childId));
-    if (!this.chosen().length) this.goTo('select');
+    if (!this.chosen().length) {
+      this.goTo('select');
+    } else if (moveFocus) {
+      // The button that had focus is gone: move to the next chip (or the heading).
+      this.afterRender(() => {
+        const buttons = this.host.nativeElement.querySelectorAll<HTMLElement>('.chip__remove');
+        const next = buttons[Math.min(index, buttons.length - 1)];
+        (next ?? this.host.nativeElement.querySelector<HTMLElement>('#who-title'))?.focus();
+      });
+    }
+  }
+
+  /** Back to the centre picker; asks first when that would throw away work. */
+  protected changeCenter(): void {
+    const work = this.selected().size > 0 || this.failures().length > 0 || this.level() !== null;
+    if (!work) {
+      this.pickedCenter.set(null);
+      return;
+    }
+    openConfirm(this.dialog, {
+      titleKey: 'assessment.changeCenterTitle',
+      messageKey: 'assessment.changeCenterMessage',
+      confirmKey: 'common.changeCenter',
+    })
+      .pipe(filter(Boolean), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.pickedCenter.set(null));
   }
 
   protected back(): void {
@@ -310,7 +370,9 @@ export class AssessmentPage implements HasUnsavedChanges {
       if (formsValid) {
         const fieldset = this.host.nativeElement.querySelector<HTMLElement>('#level-legend');
         if (fieldset) scrollToElement(fieldset, 'center');
-        this.host.nativeElement.querySelector<HTMLInputElement>('input[name="level"]')?.focus();
+        this.host.nativeElement
+          .querySelector<HTMLInputElement>('input[name="level"]')
+          ?.focus({ preventScroll: true });
       }
       return;
     }
@@ -321,6 +383,7 @@ export class AssessmentPage implements HasUnsavedChanges {
       this.goTo('select');
       return;
     }
+    const attempted = new Map(this.chosen().map((p) => [p.child.id, p.nextSession ?? 0]));
     openConfirm(this.dialog, {
       titleKey: 'assessment.confirmTitle',
       messageKey: 'assessment.confirmMessage',
@@ -359,11 +422,14 @@ export class AssessmentPage implements HasUnsavedChanges {
         const savedIds = results.filter((r) => !r.error).map((r) => r.childId);
         const failed = results.filter((r) => r.error);
         for (const id of savedIds) this.remove(id);
-        if (savedIds.length) this.data.reload();
+        // Always reload: saved students move to their next session, and failed ones may have
+        // been stored after all (see reconcileFailures).
+        this.data.reload();
 
         if (!failed.length) {
           this.notify.successCount('assessment.saved', savedIds.length);
           this.resetForm();
+          this.focusStep('select');
           return;
         }
         const names = new Map(this.progress().map((p) => [p.child.id, p.child.name]));
@@ -372,6 +438,7 @@ export class AssessmentPage implements HasUnsavedChanges {
             childId: f.childId,
             name: names.get(f.childId) ?? `#${f.childId}`,
             message: f.error ? this.notify.describe(f.error) : '',
+            session: attempted.get(f.childId) ?? 0,
           })),
         );
         if (savedIds.length) {
@@ -416,6 +483,20 @@ export class AssessmentPage implements HasUnsavedChanges {
   private goTo(step: Step): void {
     this.step.set(step);
     this.host.nativeElement.ownerDocument.defaultView?.scrollTo({ top: 0 });
+    this.focusStep(step);
+  }
+
+  /** The button that was used is replaced by the new step: give focus to its heading. */
+  private focusStep(step: Step): void {
+    this.afterRender(() =>
+      this.host.nativeElement
+        .querySelector<HTMLElement>(step === 'record' ? '#who-title' : '#step-select')
+        ?.focus({ preventScroll: true }),
+    );
+  }
+
+  private afterRender(write: () => void): void {
+    afterNextRender({ write }, { injector: this.injector });
   }
 
   private resetForm(): void {

@@ -64,7 +64,7 @@ export class ConfirmDialog {
 /** Opens the confirm dialog; emits true only when the user confirms. */
 export function openConfirm(dialog: MatDialog, data: ConfirmDialogData): Observable<boolean> {
   return dialog
-    .open(ConfirmDialog, { data, width: 'min(440px, calc(100vw - 32px))', autoFocus: false })
+    .open(ConfirmDialog, { data, width: 'min(440px, calc(100vw - 32px))' })
     .afterClosed()
     .pipe(map((result) => result === true));
 }

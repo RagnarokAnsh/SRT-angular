@@ -4,7 +4,7 @@ import { firstValueFrom, of, throwError } from 'rxjs';
 import type { ChildAssessmentRecord, SessionResult } from '@core/models/assessment';
 import type { Child } from '@core/models/child';
 
-import { buildSubmissions, matchProgress, submitEach } from './assessment-model';
+import { buildSubmissions, matchProgress, reconcileFailures, submitEach } from './assessment-model';
 
 function child(id: number, name: string, dateOfBirth: string | null = '2021-03-14'): Child {
   return {
@@ -157,5 +157,38 @@ describe('submitEach', () => {
     );
     expect(results.find((r) => r.childId === 1)?.error).toBeNull();
     expect(results.find((r) => r.childId === 2)?.error?.kind).toBe('server');
+  });
+});
+
+describe('reconcileFailures', () => {
+  const children = [child(1, 'Aarav'), child(2, 'Diya'), child(3, 'Kabir'), child(4, 'Meera')];
+
+  it('drops failures whose session turned out to be stored, so they are never sent twice', () => {
+    // Reloaded list: Aarav's session 2 was stored although the request timed out.
+    const progress = matchProgress(children, [
+      record(1, 'Aarav', [session(1), session(2)]),
+      record(2, 'Diya', [session(1)]),
+      record(3, 'Kabir', [session(1), session(2), session(3), session(4)]),
+    ]);
+    const failures = [
+      { childId: 1, session: 2 },
+      { childId: 2, session: 2 },
+      { childId: 3, session: 4 },
+      { childId: 99, session: 1 },
+    ];
+    const result = reconcileFailures(failures, progress);
+    expect(result.retry).toEqual([{ childId: 2, session: 2 }]);
+    expect(result.stored).toBe(2); // Aarav's and Kabir's sessions exist
+    expect(result.dropped).toEqual([1, 3, 99]);
+  });
+
+  it('keeps every failure when nothing was stored', () => {
+    const progress = matchProgress(children, []);
+    const failures = [{ childId: 4, session: 1 }];
+    expect(reconcileFailures(failures, progress)).toEqual({
+      retry: failures,
+      stored: 0,
+      dropped: [],
+    });
   });
 });

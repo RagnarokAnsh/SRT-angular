@@ -54,7 +54,7 @@ import {
   strongPassword,
 } from '@shared/forms/validators';
 import { createLoader } from '@shared/loader';
-import type { HasUnsavedChanges } from '@shared/unsaved-changes-guard';
+import { type HasUnsavedChanges, warnBeforeUnload } from '@shared/unsaved-changes-guard';
 import { ErrorState } from '@shared/ui/error-state';
 import { PageHeader } from '@shared/ui/page-header';
 import { Skeleton } from '@shared/ui/skeleton';
@@ -219,12 +219,17 @@ export class UserFormPage implements HasUnsavedChanges {
     });
   }
 
+  /** Also true while saving: leaving then could lose the changes. */
   hasUnsavedChanges(): boolean {
-    return this.form.dirty && !this.saved && !this.saving();
+    return this.form.dirty && !this.saved;
+  }
+
+  isSaving(): boolean {
+    return this.saving();
   }
 
   protected onBeforeUnload(event: BeforeUnloadEvent): void {
-    if (this.hasUnsavedChanges()) event.preventDefault();
+    if (this.hasUnsavedChanges()) warnBeforeUnload(event);
   }
 
   protected submit(): void {

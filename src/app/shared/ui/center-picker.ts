@@ -18,6 +18,8 @@ import { ErrorState } from './error-state';
       <p>{{ intro() | transloco }}</p>
       @if (centers.error(); as error) {
         <app-error-state [error]="error" (retry)="centers.reload()" />
+      } @else if (centers.data()?.length === 0) {
+        <p class="none">{{ 'common.noCenters' | transloco }}</p>
       } @else {
         <mat-form-field>
           <mat-label>{{ 'common.center' | transloco }}</mat-label>
@@ -34,6 +36,9 @@ import { ErrorState } from './error-state';
     </div>
   `,
   styles: `
+    .none {
+      color: var(--color-text-muted);
+    }
     .picker {
       max-width: 520px;
       margin-bottom: var(--space-5);

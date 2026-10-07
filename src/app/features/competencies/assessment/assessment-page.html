@@ -17,7 +17,7 @@
       {{ 'assessment.subtitle' | transloco }}
     </span>
     @if (!isWorker() && centerId() !== null && step() === 'select' && !submitting()) {
-      <button pageActions mat-button type="button" (click)="pickedCenter.set(null)">
+      <button pageActions mat-button type="button" (click)="changeCenter()">
         <mat-icon svgIcon="center" aria-hidden="true" />
         {{ 'common.changeCenter' | transloco }}
       </button>
@@ -50,6 +50,8 @@
   } @else {
     <ol class="stepper" [attr.aria-label]="'assessment.steps' | transloco">
       <li
+        id="step-select"
+        tabindex="-1"
         class="stepper__item"
         [class.is-current]="step() === 'select'"
         [attr.aria-current]="step() === 'select' ? 'step' : null"
@@ -77,7 +79,7 @@
           <mat-icon svgIcon="warning" aria-hidden="true" />
           <span>{{ 'assessment.refreshFailed' | transloco }}</span>
           <button mat-button type="button" (click)="data.reload()">
-            {{ 'common.retry' | transloco }}
+            {{ 'common.refresh' | transloco }}
           </button>
         </div>
       }
@@ -259,137 +261,149 @@
         }
       } @else {
         <!-- Step 2 -->
-        <section class="block" aria-labelledby="who-title">
-          <h2 id="who-title" class="block__title">
-            {{ 'assessment.recordingFor' | plural: chosen().length }}
-          </h2>
-          <ul class="chips">
-            @for (p of chosen(); track p.child.id) {
-              <li class="chip">
-                <span>{{ p.child.name }}</span>
-                <span class="chip__session">{{
-                  'assessment.sessionShort' | transloco: { n: p.nextSession }
-                }}</span>
-                <button
-                  mat-icon-button
-                  type="button"
-                  class="chip__remove"
-                  [attr.aria-label]="'assessment.removeChild' | transloco: { name: p.child.name }"
-                  (click)="remove(p.child.id)"
-                >
-                  <mat-icon svgIcon="close" aria-hidden="true" />
-                </button>
-              </li>
-            }
-          </ul>
-          <p class="date-line">
-            <mat-icon svgIcon="calendar" aria-hidden="true" />
-            {{ 'assessment.dateLine' | transloco: { date: (today() | appDate: 'long') } }}
-          </p>
-        </section>
-
-        <fieldset
-          class="block levels"
-          [class.levels--error]="levelError()"
-          aria-describedby="level-error"
-        >
-          <legend id="level-legend" class="block__title">
-            {{ 'assessment.chooseLevel' | transloco }}
-          </legend>
-          <div class="level-options">
-            @for (lvl of levels; track lvl) {
-              <label
-                class="level-option"
-                [class.is-checked]="level() === lvl"
-                [style.--level-color]="'var(--level-' + lvl + ')'"
-                [style.--level-soft]="'var(--level-' + lvl + '-soft)'"
-              >
-                <input
-                  type="radio"
-                  name="level"
-                  [value]="lvl"
-                  [checked]="level() === lvl"
-                  (change)="chooseLevel(lvl)"
-                />
-                <span class="level-option__head">
-                  <span class="level-option__dot" aria-hidden="true"></span>
-                  {{ 'levels.' + lvl + '.label' | transloco }}
-                </span>
-                <span class="level-option__text">{{ rubricKey()(lvl) | transloco }}</span>
-              </label>
-            }
-          </div>
-          <p id="level-error" class="field-error" role="alert">
-            @if (levelError()) {
-              {{ 'assessment.levelRequired' | transloco }}
-            }
-          </p>
-        </fieldset>
-
-        @if (measured()) {
-          <section class="block" aria-labelledby="measure-title">
-            <h2 id="measure-title" class="block__title">
-              {{ 'assessment.measurementsTitle' | transloco }}
+        <!-- Locked while saving, so nothing changes under a save in progress. -->
+        <fieldset class="record-step" [disabled]="submitting()">
+          <section class="block" aria-labelledby="who-title">
+            <h2 id="who-title" class="block__title" tabindex="-1">
+              {{ 'assessment.recordingFor' | plural: chosen().length }}
             </h2>
-            <p class="block__intro">{{ 'assessment.measurementsIntro' | transloco }}</p>
-            <ul class="measurements">
+            <ul class="chips">
               @for (p of chosen(); track p.child.id) {
-                @if (measurementGroup(p.child.id); as group) {
-                  <li class="measurement" [formGroup]="group">
-                    <span class="measurement__name">{{ p.child.name }}</span>
-                    <mat-form-field>
-                      <mat-label>{{ 'assessment.height' | transloco }}</mat-label>
-                      <input
-                        matInput
-                        formControlName="height"
-                        inputmode="decimal"
-                        autocomplete="off"
-                      />
-                      <span matTextSuffix>{{ 'units.cm' | transloco }}</span>
-                      @if (p.child.heightCm !== null) {
-                        <mat-hint>{{
-                          'assessment.lastValue' | transloco: { value: p.child.heightCm }
-                        }}</mat-hint>
-                      }
-                      <mat-error>{{ group.controls.height.errors | validationMessage }}</mat-error>
-                    </mat-form-field>
-                    <mat-form-field>
-                      <mat-label>{{ 'assessment.weight' | transloco }}</mat-label>
-                      <input
-                        matInput
-                        formControlName="weight"
-                        inputmode="decimal"
-                        autocomplete="off"
-                      />
-                      <span matTextSuffix>{{ 'units.kg' | transloco }}</span>
-                      @if (p.child.weightKg !== null) {
-                        <mat-hint>{{
-                          'assessment.lastValue' | transloco: { value: p.child.weightKg }
-                        }}</mat-hint>
-                      }
-                      <mat-error>{{ group.controls.weight.errors | validationMessage }}</mat-error>
-                    </mat-form-field>
-                  </li>
-                }
+                <li class="chip">
+                  <span>{{ p.child.name }}</span>
+                  <span class="chip__session">{{
+                    'assessment.sessionShort' | transloco: { n: p.nextSession }
+                  }}</span>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="chip__remove"
+                    [attr.aria-label]="'assessment.removeChild' | transloco: { name: p.child.name }"
+                    (click)="remove(p.child.id, true)"
+                  >
+                    <mat-icon svgIcon="close" aria-hidden="true" />
+                  </button>
+                </li>
               }
             </ul>
+            <p class="date-line">
+              <mat-icon svgIcon="calendar" aria-hidden="true" />
+              {{ 'assessment.dateLine' | transloco: { date: (today() | appDate: 'long') } }}
+            </p>
           </section>
-        }
 
-        <section class="block" aria-labelledby="remarks-title">
-          <h2 id="remarks-title" class="block__title">
-            {{ 'assessment.remarksTitle' | transloco }}
-          </h2>
-          <mat-form-field class="remarks">
-            <mat-label>{{ 'assessment.remarks' | transloco }}</mat-label>
-            <textarea matInput [formControl]="remarks" rows="3" [maxlength]="remarksMax"></textarea>
-            <mat-hint>{{ 'assessment.remarksHint' | transloco }}</mat-hint>
-            <mat-hint align="end" class="counter"
-              >{{ remarks.value.length }} / {{ remarksMax }}</mat-hint
-            >
-            <mat-error>{{ remarks.errors | validationMessage }}</mat-error>
-          </mat-form-field>
-        </section>
+          <fieldset
+            class="block levels"
+            [class.levels--error]="levelError()"
+            aria-describedby="level-error"
+          >
+            <legend id="level-legend" class="block__title">
+              {{ 'assessment.chooseLevel' | transloco }}
+            </legend>
+            <div class="level-options">
+              @for (lvl of levels; track lvl) {
+                <label
+                  class="level-option"
+                  [class.is-checked]="level() === lvl"
+                  [style.--level-color]="'var(--level-' + lvl + ')'"
+                  [style.--level-soft]="'var(--level-' + lvl + '-soft)'"
+                >
+                  <input
+                    type="radio"
+                    name="level"
+                    [value]="lvl"
+                    [checked]="level() === lvl"
+                    (change)="chooseLevel(lvl)"
+                  />
+                  <span class="level-option__head">
+                    <span class="level-option__dot" aria-hidden="true"></span>
+                    {{ 'levels.' + lvl + '.label' | transloco }}
+                  </span>
+                  <span class="level-option__text">{{ rubricKey()(lvl) | transloco }}</span>
+                </label>
+              }
+            </div>
+            <p id="level-error" class="field-error" role="alert">
+              @if (levelError()) {
+                {{ 'assessment.levelRequired' | transloco }}
+              }
+            </p>
+          </fieldset>
+
+          @if (measured()) {
+            <section class="block" aria-labelledby="measure-title">
+              <h2 id="measure-title" class="block__title">
+                {{ 'assessment.measurementsTitle' | transloco }}
+              </h2>
+              <p class="block__intro">{{ 'assessment.measurementsIntro' | transloco }}</p>
+              <ul class="measurements">
+                @for (p of chosen(); track p.child.id) {
+                  @if (measurementGroup(p.child.id); as group) {
+                    <li class="measurement" [formGroup]="group">
+                      <span class="measurement__name">{{ p.child.name }}</span>
+                      <mat-form-field>
+                        <mat-label>{{ 'assessment.height' | transloco }}</mat-label>
+                        <input
+                          matInput
+                          formControlName="height"
+                          inputmode="decimal"
+                          autocomplete="off"
+                        />
+                        <span matTextSuffix>{{ 'units.cm' | transloco }}</span>
+                        @if (p.child.heightCm !== null) {
+                          <mat-hint>{{
+                            'assessment.lastValue' | transloco: { value: p.child.heightCm }
+                          }}</mat-hint>
+                        }
+                        <mat-error>{{
+                          group.controls.height.errors | validationMessage
+                        }}</mat-error>
+                      </mat-form-field>
+                      <mat-form-field>
+                        <mat-label>{{ 'assessment.weight' | transloco }}</mat-label>
+                        <input
+                          matInput
+                          formControlName="weight"
+                          inputmode="decimal"
+                          autocomplete="off"
+                        />
+                        <span matTextSuffix>{{ 'units.kg' | transloco }}</span>
+                        @if (p.child.weightKg !== null) {
+                          <mat-hint>{{
+                            'assessment.lastValue' | transloco: { value: p.child.weightKg }
+                          }}</mat-hint>
+                        }
+                        <mat-error>{{
+                          group.controls.weight.errors | validationMessage
+                        }}</mat-error>
+                      </mat-form-field>
+                    </li>
+                  }
+                }
+              </ul>
+            </section>
+          }
+
+          <section class="block" aria-labelledby="remarks-title">
+            <h2 id="remarks-title" class="block__title">
+              {{ 'assessment.remarksTitle' | transloco }}
+            </h2>
+            <mat-form-field class="remarks">
+              <mat-label>{{ 'assessment.remarks' | transloco }}</mat-label>
+              <textarea
+                matInput
+                [formControl]="remarks"
+                rows="3"
+                [maxlength]="remarksMax"
+              ></textarea>
+              <mat-hint>{{ 'assessment.remarksHint' | transloco }}</mat-hint>
+              <mat-hint align="end" class="counter"
+                >{{ remarks.value.length }} / {{ remarksMax }}</mat-hint
+              >
+              <mat-error>{{ remarks.errors | validationMessage }}</mat-error>
+            </mat-form-field>
+          </section>
+        </fieldset>
 
         <div role="alert">
           @if (failures().length) {
@@ -416,7 +430,12 @@
             <mat-icon svgIcon="arrow-left" aria-hidden="true" />
             {{ 'common.back' | transloco }}
           </button>
-          <button mat-flat-button type="button" [disabled]="submitting()" (click)="save()">
+          <button
+            mat-flat-button
+            type="button"
+            [disabled]="submitting() || data.loading()"
+            (click)="save()"
+          >
             @if (submitting()) {
               <mat-spinner diameter="20" aria-hidden="true" />
             } @else {
