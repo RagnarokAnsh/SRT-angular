@@ -45,9 +45,18 @@ export async function pick(
     .first();
   const wanted = page.getByRole('option', { name: option }).first();
   for (let attempt = 0; attempt < 10; attempt++) {
-    await field.locator('.mat-mdc-text-field-wrapper').click();
+    // A short timeout per attempt: one blocked click must not use up the whole test.
+    await field
+      .locator('.mat-mdc-text-field-wrapper')
+      .click({ timeout: 5000 })
+      .catch(() => undefined);
     if (await wanted.isVisible().catch(() => false)) break;
     await page.keyboard.press('Escape');
+    // Wait for the empty panel to close, or its backdrop would swallow the next click.
+    await page
+      .locator('.cdk-overlay-backdrop')
+      .waitFor({ state: 'detached', timeout: 2000 })
+      .catch(() => undefined);
     await page.waitForTimeout(300);
   }
   await wanted.click();

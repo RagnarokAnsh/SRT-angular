@@ -187,6 +187,8 @@ export class DashboardPage {
     effect(() => {
       const centerId = this.centerId();
       untracked(() => {
+        // Never show (or export) the previous centre's figures under the new centre's name.
+        this.loader.clear();
         if (centerId !== null) this.loader.reload();
       });
     });

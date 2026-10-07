@@ -13,7 +13,7 @@
         pageActions
         mat-stroked-button
         type="button"
-        [disabled]="exporting()"
+        [disabled]="exporting() || loader.loading()"
         (click)="export()"
       >
         <mat-icon svgIcon="excel" aria-hidden="true" />

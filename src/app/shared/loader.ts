@@ -12,6 +12,11 @@ export interface Loader<T> {
   reload(): void;
   /** Replaces the data locally, e.g. after a save. */
   set(value: T): void;
+  /**
+   * Forgets the data and cancels a request in flight. Call it when the page switches to
+   * another subject (centre, competency), so the old data is never shown as the new one.
+   */
+  clear(): void;
 }
 
 /**
@@ -54,5 +59,12 @@ export function createLoader<T>(
     loading: loading.asReadonly(),
     reload,
     set: (value: T) => data.set(value),
+    clear: () => {
+      subscription?.unsubscribe();
+      subscription = undefined;
+      data.set(undefined);
+      error.set(null);
+      loading.set(false);
+    },
   };
 }

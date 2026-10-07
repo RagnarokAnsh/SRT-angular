@@ -221,12 +221,15 @@ export class AssessmentPage implements HasUnsavedChanges {
   );
 
   constructor() {
-    // A new competency or centre starts a fresh assessment.
+    // A new competency or centre starts a fresh assessment; the previous lists are dropped
+    // first so they can never be shown (or saved) as the new ones.
     effect(() => {
       this.id();
       const centerId = this.centerId();
       untracked(() => {
+        this.competency.clear();
         this.competency.reload();
+        this.data.clear();
         if (centerId !== null) this.data.reload();
         this.resetForm();
       });
@@ -314,6 +317,10 @@ export class AssessmentPage implements HasUnsavedChanges {
     if (!formsValid) return;
 
     const count = this.chosen().length;
+    if (!count) {
+      this.goTo('select');
+      return;
+    }
     openConfirm(this.dialog, {
       titleKey: 'assessment.confirmTitle',
       messageKey: 'assessment.confirmMessage',

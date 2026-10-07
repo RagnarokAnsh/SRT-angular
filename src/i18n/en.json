@@ -509,7 +509,8 @@
       "one": "{{count}} result couldn't be saved",
       "other": "{{count}} results couldn't be saved"
     },
-    "failedHint": "The other results were saved. Check your connection and try again for the students listed."
+    "failedHint": "The other results were saved. Check your connection and try again for the students listed.",
+    "refreshFailed": "Couldn't refresh the list, so it may be out of date."
   },
   "children": {
     "title": "Students",
