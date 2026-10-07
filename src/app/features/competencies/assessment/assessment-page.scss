@@ -157,6 +157,21 @@
   gap: var(--space-1);
 }
 
+// Small phones: the name and details get the whole width; the session slots and the
+// history button move to a line of their own, lined up with the name.
+@include down(xs) {
+  .child {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0;
+  }
+
+  .child__side {
+    justify-content: space-between;
+    min-height: 40px;
+    padding-inline-start: 40px;
+  }
+}
+
 .slots {
   display: flex;
   gap: 4px;
@@ -454,4 +469,9 @@
   margin-inline-end: var(--space-2);
   vertical-align: middle;
   --mat-progress-spinner-active-indicator-color: currentColor;
+}
+
+.counter {
+  flex: none;
+  white-space: nowrap;
 }

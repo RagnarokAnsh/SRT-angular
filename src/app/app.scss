@@ -147,6 +147,15 @@
 
 .login-link {
   margin-inline-start: var(--space-1);
+
+  // The smallest phones only have room for the words (e.g. "साइन इन करें").
+  @media (max-width: 359.98px) {
+    --mat-button-filled-horizontal-padding: 14px;
+
+    mat-icon {
+      display: none;
+    }
+  }
 }
 
 // Offline notice

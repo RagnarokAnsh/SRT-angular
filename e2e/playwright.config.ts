@@ -21,6 +21,12 @@ export default defineConfig({
   },
   projects: [
     {
+      // The smallest phones still in use: only the layout checks run here.
+      name: 'phone-320',
+      use: { ...devices['Pixel 7'], viewport: { width: 320, height: 640 } },
+      testMatch: /layout\.spec\.ts/,
+    },
+    {
       name: 'phone-360',
       use: { ...devices['Pixel 7'], viewport: { width: 360, height: 740 } },
     },

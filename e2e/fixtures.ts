@@ -53,13 +53,17 @@ export async function pick(
   await wanted.click();
 }
 
-/** The page must never scroll sideways (the app is used on small phones). */
+/**
+ * The page must never be wider than the screen (the app is used on small phones). Compared
+ * with the layout width, not `innerWidth`: phone browsers zoom out to fit wide content, which
+ * grows `innerWidth` and would hide the problem.
+ */
 export async function expectNoHorizontalScroll(page: Page): Promise<void> {
-  const { scrollWidth, innerWidth } = await page.evaluate(() => ({
+  const { scrollWidth, layoutWidth } = await page.evaluate(() => ({
     scrollWidth: document.scrollingElement?.scrollWidth ?? 0,
-    innerWidth: window.innerWidth,
+    layoutWidth: document.documentElement.clientWidth,
   }));
-  expect(scrollWidth, 'page is wider than the screen').toBeLessThanOrEqual(innerWidth + 1);
+  expect(scrollWidth, 'page is wider than the screen').toBeLessThanOrEqual(layoutWidth + 1);
 }
 
 /** No serious or critical accessibility problems (axe-core, WCAG 2.1 A/AA rules). */

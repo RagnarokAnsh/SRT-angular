@@ -86,7 +86,7 @@
                 · {{ 'children.symbolShort' | transloco: { symbol: child.symbol } }}
               }
             </span>
-            @if (!isWorker() && child.centerName) {
+            @if (showCenter() && child.centerName) {
               <span class="row__center">
                 <mat-icon svgIcon="center" aria-hidden="true" />
                 {{ child.centerName }}

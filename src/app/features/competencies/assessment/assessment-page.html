@@ -218,7 +218,11 @@
 
         <div class="sticky-actions">
           <span class="selection-count" aria-live="polite">
-            {{ 'assessment.selectedCount' | plural: chosen().length }}
+            @if (chosen().length) {
+              {{ 'assessment.selectedCount' | plural: chosen().length }}
+            } @else {
+              {{ 'assessment.noneSelected' | transloco }}
+            }
           </span>
           <button mat-flat-button type="button" [disabled]="!chosen().length" (click)="continue()">
             {{ 'assessment.continue' | transloco }}
@@ -351,7 +355,9 @@
           <mat-label>{{ 'assessment.remarks' | transloco }}</mat-label>
           <textarea matInput [formControl]="remarks" rows="3" [maxlength]="remarksMax"></textarea>
           <mat-hint>{{ 'assessment.remarksHint' | transloco }}</mat-hint>
-          <mat-hint align="end">{{ remarks.value.length }} / {{ remarksMax }}</mat-hint>
+          <mat-hint align="end" class="counter"
+            >{{ remarks.value.length }} / {{ remarksMax }}</mat-hint
+          >
           <mat-error>{{ remarks.errors | validationMessage }}</mat-error>
         </mat-form-field>
       </section>

@@ -473,6 +473,7 @@
       "one": "{{count}} student selected",
       "other": "{{count}} students selected"
     },
+    "noneSelected": "No students selected",
     "continue": "Continue",
     "recordingFor": {
       "one": "Recording for {{count}} student",

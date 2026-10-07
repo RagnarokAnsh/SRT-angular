@@ -89,6 +89,11 @@
   mat-button-toggle-group {
     --mat-standard-button-toggle-height: 40px;
   }
+
+  // Session numbers are single digits: keep each one a comfortable target.
+  ::ng-deep .mat-button-toggle-button {
+    min-width: 44px;
+  }
 }
 
 .filters__label {
@@ -292,6 +297,16 @@
   tbody th {
     color: var(--color-text-strong);
     font-weight: 600;
+  }
+
+  // On phones the table scrolls sideways; the competency names stay in view.
+  th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    min-width: 9rem;
+    background: var(--color-surface);
+    box-shadow: inset -1px 0 0 var(--color-border);
   }
 
   .num {

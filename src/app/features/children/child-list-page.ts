@@ -77,6 +77,9 @@ export class ChildListPage {
       .sort((a, b) => a.name.localeCompare(b.name));
   });
 
+  /** Each row names its centre only when the list spans more than one. */
+  protected readonly showCenter = computed(() => !this.isWorker() && this.centers().length > 1);
+
   protected readonly visible = computed(() => {
     const needle = this.query().trim().toLocaleLowerCase();
     const center = this.centerFilter();

@@ -126,8 +126,9 @@ To add a language, for example Tamil:
   They also cover sign-in, guards, interceptors and the translation files. They run in the
   Asia/Kolkata time zone so that date bugs show up.
 - **End-to-end tests** (Playwright, run with `npm run e2e`) start the demo app on port 4300. They
-  run each flow on a 360 px phone, a Pixel 7 and a 1366 px desktop, plus in Hindi. Every page is
-  scanned with axe for WCAG 2.1 AA problems and checked for sideways scrolling. On a new machine,
+  run each flow on a 360 px phone, a Pixel 7 and a 1366 px desktop, plus in Hindi, and check
+  that every page fits a 320 px screen. Pages are scanned with axe for WCAG 2.1 AA problems.
+  `e2e/access.spec.ts` checks what every demo role can see and open. On a new machine,
   install the browser once with `npx playwright install chromium`. The HTML report is written to
   `e2e/report/`.
 
