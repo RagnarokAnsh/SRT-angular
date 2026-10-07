@@ -62,7 +62,7 @@
               mat-icon-button
               type="button"
               class="row__delete"
-              [disabled]="deleting() === row.center.id"
+              [disabled]="deletions.isDeleting(row.center.id)"
               [attr.aria-label]="'admin.centers.deleteLabel' | transloco: { name: row.center.name }"
               (click)="remove(row.center)"
             >

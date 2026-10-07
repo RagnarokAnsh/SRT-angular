@@ -29,6 +29,24 @@ test.describe('administrator', () => {
     await expect(row).toContainText('Shivaji Nagar AWC');
   });
 
+  test("moving a worker to another sector clears the old sector's centre", async ({ page }) => {
+    await page.goto('/admin/users/2/edit');
+    const centre = page
+      .locator('mat-form-field')
+      .filter({ has: page.locator('mat-label', { hasText: 'Anganwadi centre' }) });
+    await expect(centre).toContainText('Shivaji Nagar AWC');
+    await pick(page, /^\s*Sector\s*$/, 'Sector 1');
+    await expect(centre).not.toContainText('Shivaji Nagar AWC');
+    await page.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByText('This field is required.')).toBeVisible();
+    await pick(page, 'Anganwadi centre', /Gandhi Colony AWC/);
+    await page.getByRole('button', { name: 'Save' }).click();
+    await expect(page).toHaveURL(/\/admin\/users$/);
+    await expect(page.locator('.row', { hasText: 'aww@demo.in' })).toContainText(
+      'Gandhi Colony AWC',
+    );
+  });
+
   test("can't delete their own account", async ({ page }) => {
     await page.goto('/admin/users');
     const own = page.locator('.row', { hasText: 'admin@demo.in' });

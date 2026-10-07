@@ -15,7 +15,9 @@ import { ROLE_PRIORITY } from '@core/auth/roles';
 import { type RoleName, toRoleName } from '@core/models/role';
 import type { ApiUser } from '@core/models/user';
 import { NotifyService } from '@core/notify/notify';
+import { searchable } from '@core/util/text';
 import { initials } from '@shared/initials';
+import { createDeletions } from '@shared/deletions';
 import { createLoader } from '@shared/loader';
 import { PluralPipe } from '@shared/pipes/plural-pipe';
 import { openConfirm } from '@shared/ui/confirm-dialog';
@@ -67,13 +69,13 @@ export class UserListPage {
   protected readonly loader = createLoader(() => this.api.list());
   protected readonly query = signal('');
   protected readonly roleFilter = signal<RoleName | ''>('');
-  protected readonly deleting = signal<number | null>(null);
+  protected readonly deletions = createDeletions();
   protected readonly roles = ROLE_PRIORITY;
   protected readonly currentUserId = computed(() => this.session.user()?.id ?? null);
   protected readonly initials = initials;
 
   protected readonly visible = computed(() => {
-    const needle = this.query().trim().toLocaleLowerCase();
+    const needle = searchable(this.query());
     const role = this.roleFilter();
     return [...(this.loader.data() ?? [])]
       .map((user) => ({ user, role: primaryRole(user), place: workplace(user) }))
@@ -81,9 +83,9 @@ export class UserListPage {
       .filter(
         (row) =>
           !needle ||
-          row.user.name.toLocaleLowerCase().includes(needle) ||
-          row.user.email.toLocaleLowerCase().includes(needle) ||
-          row.place.toLocaleLowerCase().includes(needle),
+          [row.user.name, row.user.email, row.place].some((text) =>
+            searchable(text).includes(needle),
+          ),
       )
       .sort((a, b) => a.user.name.localeCompare(b.user.name));
   });
@@ -98,21 +100,17 @@ export class UserListPage {
     })
       .pipe(
         filter(Boolean),
-        switchMap(() => {
-          this.deleting.set(user.id);
-          return this.api.remove(user.id);
-        }),
+        switchMap(() => this.deletions.delete(user.id, () => this.api.remove(user.id))),
       )
       .subscribe({
-        next: () => {
-          this.deleting.set(null);
+        next: (outcome) => {
           this.loader.set((this.loader.data() ?? []).filter((u) => u.id !== user.id));
-          this.notify.success('admin.users.deleted', { name: user.name });
+          this.notify.success(
+            outcome === 'gone' ? 'common.alreadyRemoved' : 'admin.users.deleted',
+            { name: user.name },
+          );
         },
-        error: (error: unknown) => {
-          this.deleting.set(null);
-          this.notify.error(error);
-        },
+        error: (error: unknown) => this.notify.error(error),
       });
   }
 }

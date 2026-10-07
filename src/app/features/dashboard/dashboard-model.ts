@@ -1,6 +1,6 @@
 import { type ChildProgress, MAX_SESSIONS, matchProgress } from '@core/assessment/progress';
 import type { ChildAssessmentRecord, SessionNumber, SessionResult } from '@core/models/assessment';
-import type { Child } from '@core/models/child';
+import { type Child, toChildGender } from '@core/models/child';
 import type { Competency, Domain } from '@core/models/competency';
 import { LEVELS, type Level } from '@core/models/level';
 
@@ -105,7 +105,6 @@ export interface Summary {
 }
 
 export function summarize(children: Child[], rows: CompetencyRow[]): Summary {
-  const gender = (value: string) => value.trim().toLowerCase();
   const counts = emptyCounts();
   let results = 0;
   let sessionsDone = 0;
@@ -116,8 +115,8 @@ export function summarize(children: Child[], rows: CompetencyRow[]): Summary {
   }
   return {
     children: children.length,
-    boys: children.filter((c) => ['boy', 'male'].includes(gender(c.gender))).length,
-    girls: children.filter((c) => ['girl', 'female'].includes(gender(c.gender))).length,
+    boys: children.filter((c) => toChildGender(c.gender) === 'Boy').length,
+    girls: children.filter((c) => toChildGender(c.gender) === 'Girl').length,
     sessionsDone,
     sessionsPossible: children.length * rows.length * MAX_SESSIONS,
     results,

@@ -23,6 +23,26 @@ export interface ApiChild {
 export const CHILD_GENDERS = ['Boy', 'Girl', 'N/A'] as const;
 export type ChildGender = (typeof CHILD_GENDERS)[number];
 
+/** Reads the values older records hold ("boy", "Male", "F", ...) as Boy, Girl or N/A. */
+export function toChildGender(value: string): ChildGender | null {
+  switch (value.trim().toLowerCase()) {
+    case 'boy':
+    case 'male':
+    case 'm':
+      return 'Boy';
+    case 'girl':
+    case 'female':
+    case 'f':
+      return 'Girl';
+    case 'n/a':
+    case 'na':
+    case 'other':
+      return 'N/A';
+    default:
+      return null;
+  }
+}
+
 export interface Child {
   id: number;
   name: string;

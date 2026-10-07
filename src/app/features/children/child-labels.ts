@@ -1,11 +1,11 @@
+import { toChildGender } from '@core/models/child';
+
 /** Translation key for a child's gender as stored by the API ("Boy", "Girl", "N/A"). */
 export function genderKey(gender: string): string {
-  switch (gender.trim().toLowerCase()) {
-    case 'boy':
-    case 'male':
+  switch (toChildGender(gender)) {
+    case 'Boy':
       return 'children.gender.boy';
-    case 'girl':
-    case 'female':
+    case 'Girl':
       return 'children.gender.girl';
     default:
       return 'children.gender.other';

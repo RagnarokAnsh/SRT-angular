@@ -75,7 +75,7 @@
                 mat-icon-button
                 type="button"
                 class="row__delete"
-                [disabled]="deleting() === row.user.id"
+                [disabled]="deletions.isDeleting(row.user.id)"
                 [attr.aria-label]="'admin.users.deleteLabel' | transloco: { name: row.user.name }"
                 (click)="remove(row.user)"
               >

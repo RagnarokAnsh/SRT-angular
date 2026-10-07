@@ -42,6 +42,12 @@ describe('validators', () => {
     }
   });
 
+  it('personName accepts the zero-width joiners Hindi keyboards insert, but not at the start', () => {
+    expect(check(personName, 'क्\u200Dष')).toBeNull();
+    expect(check(personName, 'र\u200Cा')).toBeNull();
+    expect(check(personName, '\u200Dराम')).not.toBeNull();
+  });
+
   it('plainText rejects control characters', () => {
     expect(check(plainText, 'Needs help\nwith counting')).toBeNull();
     expect(check(plainText, 'bad\u0000')).not.toBeNull();
@@ -77,6 +83,12 @@ describe('validators', () => {
     expect(check(validator, '-5')).toHaveProperty('decimal');
     expect(check(validator, '12')).toHaveProperty('range');
     expect(check(validator, 'abc')).toHaveProperty('decimal');
+  });
+
+  it('decimalInRange accepts Devanagari digits', () => {
+    const validator = decimalInRange(40, 150, 1);
+    expect(check(validator, '९६.५')).toBeNull();
+    expect(check(validator, '१२')).toHaveProperty('range');
   });
 
   it('minTextLength counts characters (not bytes) after trimming', () => {

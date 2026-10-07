@@ -3,6 +3,7 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  Injector,
   computed,
   effect,
   inject,
@@ -18,7 +19,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { of } from 'rxjs';
 
 import { CenterApi } from '@core/api/center-api';
@@ -26,7 +27,7 @@ import { LocationCache } from '@core/api/location-cache';
 import type { ApiCenter, CenterInput } from '@core/models/center';
 import { toAppError } from '@core/network/app-error';
 import { NotifyService } from '@core/notify/notify';
-import { applyServerErrors, validateAndFocus } from '@shared/forms/form-utils';
+import { clearServerErrors, reportServerErrors, validateAndFocus } from '@shared/forms/form-utils';
 import { LocationCascade } from '@shared/forms/location-cascade';
 import { LocationFields } from '@shared/forms/location-fields';
 import { ValidationMessagePipe } from '@shared/forms/validation-message-pipe';
@@ -74,6 +75,8 @@ export class CenterFormPage implements HasUnsavedChanges {
   private readonly router = inject(Router);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
+  private readonly transloco = inject(TranslocoService);
 
   /** Route parameter; absent when adding a centre. */
   readonly id = input<number | undefined, unknown>(undefined, {
@@ -145,6 +148,7 @@ export class CenterFormPage implements HasUnsavedChanges {
   protected submit(): void {
     if (this.saving()) return;
     this.formError.set(null);
+    clearServerErrors(this.form);
     if (!validateAndFocus(this.form, this.host)) return;
     const v = this.form.getRawValue();
     const input: CenterInput = {
@@ -174,9 +178,13 @@ export class CenterFormPage implements HasUnsavedChanges {
           this.saving.set(false);
           const appError = toAppError(error);
           if (appError.kind === 'validation') {
-            const unmatched = applyServerErrors(this.form, appError.fieldErrors);
-            this.formError.set(unmatched[0] ?? appError.serverMessage ?? null);
-            validateAndFocus(this.form, this.host);
+            this.formError.set(
+              reportServerErrors(this.form, appError, {
+                host: this.host,
+                injector: this.injector,
+                fallback: this.transloco.translate('errors.rejected'),
+              }),
+            );
           } else {
             this.notify.error(appError);
           }

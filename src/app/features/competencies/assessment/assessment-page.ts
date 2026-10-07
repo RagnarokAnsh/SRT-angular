@@ -42,6 +42,7 @@ import { CHILD_LIMITS } from '@core/models/child';
 import { LEVELS, type Level } from '@core/models/level';
 import { NotifyService } from '@core/notify/notify';
 import { toIsoDate } from '@core/util/dates';
+import { toAsciiDigits } from '@core/util/text';
 import { validateAndFocus } from '@shared/forms/form-utils';
 import { ValidationMessagePipe } from '@shared/forms/validation-message-pipe';
 import { decimalInRange, plainText, requiredText } from '@shared/forms/validators';
@@ -84,6 +85,11 @@ interface Failure {
   message: string;
   /** The session number that was being saved. */
   session: number;
+}
+
+/** A typed height or weight as a number (Hindi keyboards may type Devanagari digits). */
+function measure(value: string): number {
+  return Number(toAsciiDigits(value.trim()));
 }
 
 @Component({
@@ -403,8 +409,8 @@ export class AssessmentPage implements HasUnsavedChanges {
               const group = this.measurementGroup(progress.child.id);
               return {
                 progress,
-                heightCm: group ? Number(group.controls.height.value) : null,
-                weightKg: group ? Number(group.controls.weight.value) : null,
+                heightCm: group ? measure(group.controls.height.value) : null,
+                weightKg: group ? measure(group.controls.weight.value) : null,
               };
             }),
             competencyId: this.id(),

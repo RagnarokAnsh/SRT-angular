@@ -1,4 +1,4 @@
-import { type DestroyRef, type WritableSignal, signal } from '@angular/core';
+import { type DestroyRef, type WritableSignal, computed, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { FormControl } from '@angular/forms';
 import {
@@ -41,7 +41,10 @@ export class LocationCascade {
   readonly districts = signal<District[]>([]);
   readonly projects = signal<string[]>([]);
   readonly sectors = signal<string[]>([]);
-  readonly error = signal<AppError | null>(null);
+  /** Lists that failed to load; one that loads later (or on retry) is taken off. */
+  private readonly failures = signal<ReadonlyMap<WritableSignal<unknown[]>, AppError>>(new Map());
+  /** The first failure, shown above the fields with a retry button. */
+  readonly error = computed(() => this.failures().values().next().value ?? null);
   /** Lists being fetched right now, so the fields can say "Loading…". */
   readonly loading = signal<ReadonlySet<WritableSignal<unknown[]>>>(new Set());
   /** True while existing values are being filled in (nothing is cleared). */
@@ -118,21 +121,45 @@ export class LocationCascade {
     }
   }
 
-  /** Tries the lists again after a failure. */
+  /**
+   * Tries the lists again after a failure. A list is only replaced if its field above still
+   * has the same value when the answer comes: the user may have chosen something else since.
+   */
   reload(): void {
-    this.error.set(null);
+    this.failures.set(new Map());
     const c = this.controls;
+    const unchanged = <V>(control: FormControl<V>) => {
+      const value = control.value;
+      return () => control.value === value;
+    };
     this.fetch(this.cache.countries(), this.countries).subscribe();
-    if (c.country_id.value)
-      this.fetch(this.cache.states(c.country_id.value), this.states).subscribe();
-    if (c.state_id.value)
-      this.fetch(this.cache.districts(c.state_id.value), this.districts).subscribe();
+    if (c.country_id.value) {
+      this.fetch(
+        this.cache.states(c.country_id.value),
+        this.states,
+        unchanged(c.country_id),
+      ).subscribe();
+    }
+    if (c.state_id.value) {
+      this.fetch(
+        this.cache.districts(c.state_id.value),
+        this.districts,
+        unchanged(c.state_id),
+      ).subscribe();
+    }
     if (c.district_id.value) {
-      this.fetch(this.cache.projects(c.district_id.value), this.projects).subscribe();
+      this.fetch(
+        this.cache.projects(c.district_id.value),
+        this.projects,
+        unchanged(c.district_id),
+      ).subscribe();
       if (c.project.value) {
+        const sameDistrict = unchanged(c.district_id);
+        const sameProject = unchanged(c.project);
         this.fetch(
           this.cache.sectors(c.district_id.value, c.project.value),
           this.sectors,
+          () => sameDistrict() && sameProject(),
         ).subscribe();
       }
     }
@@ -165,19 +192,39 @@ export class LocationCascade {
     );
   }
 
+  private setFailure(list: WritableSignal<unknown[]>, error: AppError | null): void {
+    this.failures.update((current) => {
+      if (!error && !current.has(list)) return current;
+      const next = new Map(current);
+      if (error) next.set(list, error);
+      else next.delete(list);
+      return next;
+    });
+  }
+
   /** True while the list behind a field is loading. */
   isLoading(list: 'countries' | 'states' | 'districts' | 'projects' | 'sectors'): boolean {
     return this.loading().has(this[list] as WritableSignal<unknown[]>);
   }
 
-  private fetch<T>(source: Observable<T[]>, target: WritableSignal<T[]>): Observable<T[]> {
+  private fetch<T>(
+    source: Observable<T[]>,
+    target: WritableSignal<T[]>,
+    isCurrent: () => boolean = () => true,
+  ): Observable<T[]> {
     const key = target as WritableSignal<unknown[]>;
     this.loading.update((set) => new Set(set).add(key));
     return source.pipe(
-      tap((list) => target.set(list)),
+      tap((list) => {
+        if (!isCurrent()) return;
+        target.set(list);
+        this.setFailure(key, null);
+      }),
       catchError((error: unknown) => {
-        this.error.set(toAppError(error));
-        target.set([]);
+        if (isCurrent()) {
+          this.setFailure(key, toAppError(error));
+          target.set([]);
+        }
         return of([] as T[]);
       }),
       finalize(() =>

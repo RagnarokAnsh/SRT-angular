@@ -1,7 +1,7 @@
 import type { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 import { type IsoDate, ageOn, isValidIsoDate, toIsoDate } from '@core/util/dates';
-import { hasControlCharacters } from '@core/util/text';
+import { hasControlCharacters, toAsciiDigits } from '@core/util/text';
 
 export const EMAIL_MAX = 254;
 export const PASSWORD_MAX = 128;
@@ -9,8 +9,12 @@ export const PASSWORD_MIN = 8;
 export const NAME_MAX = 100;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
-/** Letters and combining marks of any script, plus spaces and . ' - (e.g. "D'Souza", "अनन्या"). */
-const NAME_PATTERN = /^[\p{L}\p{M}][\p{L}\p{M} .'’-]*$/u;
+/**
+ * Letters and combining marks of any script, plus spaces and . ' - (e.g. "D'Souza", "अनन्या").
+ * Zero-width (non-)joiners are allowed inside: Hindi and Marathi keyboards use them to shape
+ * conjuncts.
+ */
+const NAME_PATTERN = /^[\p{L}\p{M}](?:[\p{L}\p{M} .'’-]|\u200C|\u200D)*$/u;
 
 function text(control: AbstractControl): string {
   return typeof control.value === 'string' ? control.value.trim() : '';
@@ -61,7 +65,7 @@ export const personName: ValidatorFn = (control) => {
 /** A language name in any script ("Hindi", "हिंदी", "Bhili"): letters and spaces only. */
 export const languageName: ValidatorFn = (control) => {
   if (isEmpty(control)) return null;
-  return /^[\p{L}\p{M}][\p{L}\p{M} ]*$/u.test(text(control))
+  return /^[\p{L}\p{M}](?:[\p{L}\p{M} ]|\u200C|\u200D)*$/u.test(text(control))
     ? null
     : { languageName: { key: 'validation.languageName' } };
 };
@@ -116,12 +120,15 @@ export function ageInRange(
   };
 }
 
-/** A number between `min` and `max` with at most `decimals` decimal places. */
+/**
+ * A number between `min` and `max` with at most `decimals` decimal places. Devanagari digits
+ * count too (read them with {@link toAsciiDigits}).
+ */
 export function decimalInRange(min: number, max: number, decimals = 1): ValidatorFn {
   const pattern = new RegExp(`^\\d+(\\.\\d{1,${decimals}})?$`);
   return (control): ValidationErrors | null => {
     if (isEmpty(control)) return null;
-    const raw = String(control.value).trim();
+    const raw = toAsciiDigits(String(control.value).trim());
     if (!pattern.test(raw)) {
       return { decimal: { key: 'validation.decimal', count: decimals } };
     }

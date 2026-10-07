@@ -3,6 +3,7 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  Injector,
   computed,
   effect,
   inject,
@@ -27,7 +28,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { catchError, filter, map, of, startWith, switchMap, tap } from 'rxjs';
 
 import { ChildApi } from '@core/api/child-api';
@@ -39,11 +40,13 @@ import {
   type Child,
   type ChildGender,
   type ChildInput,
+  toChildGender,
 } from '@core/models/child';
 import { toAppError } from '@core/network/app-error';
 import { NotifyService } from '@core/notify/notify';
 import { type IsoDate, addYears, ageOn, isValidIsoDate, toIsoDate } from '@core/util/dates';
-import { applyServerErrors, validateAndFocus } from '@shared/forms/form-utils';
+import { tidyText, toAsciiDigits } from '@core/util/text';
+import { clearServerErrors, reportServerErrors, validateAndFocus } from '@shared/forms/form-utils';
 import { ValidationMessagePipe } from '@shared/forms/validation-message-pipe';
 import {
   ageInRange,
@@ -68,19 +71,23 @@ import { StateMessage } from '@shared/ui/state-message';
 import { LANGUAGE_SUGGESTIONS, genderKey } from './child-labels';
 
 function normalized(name: string): string {
-  return name.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+  return tidyText(name).toLocaleLowerCase();
 }
 
-/** Same name (ignoring case and spacing) and same date of birth. */
-export function isSameChild(child: Child, input: ChildInput): boolean {
+/** Same name (ignoring case, spacing and how the letters were typed) and same date of birth. */
+export function isSameChild(
+  child: Pick<Child, 'name' | 'dateOfBirth'>,
+  input: Pick<ChildInput, 'name' | 'dateOfBirth'>,
+): boolean {
   return (
     child.dateOfBirth === input.dateOfBirth && normalized(child.name) === normalized(input.name)
   );
 }
 
-/** API field names (422 errors) → form controls. */
+/** API field names (422 errors) → form controls. The age is worked out from the birth date. */
 const SERVER_FIELDS: Record<string, string> = {
   date_of_birth: 'dateOfBirth',
+  age: 'dateOfBirth',
   height_cm: 'heightCm',
   weight_kg: 'weightKg',
   anganwadi_id: 'anganwadiId',
@@ -119,6 +126,8 @@ export class ChildFormPage implements HasUnsavedChanges {
   private readonly dialog = inject(MatDialog);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
+  private readonly transloco = inject(TranslocoService);
 
   /** Route parameter; absent when adding a child. */
   readonly id = input<number | undefined, unknown>(undefined, {
@@ -257,42 +266,48 @@ export class ChildFormPage implements HasUnsavedChanges {
   protected submit(): void {
     if (this.saving()) return;
     this.formError.set(null);
+    clearServerErrors(this.form);
     if (!validateAndFocus(this.form, this.host)) return;
 
     const value = this.form.getRawValue();
     const input: ChildInput = {
-      name: value.name.trim().replace(/\s+/g, ' '),
+      name: tidyText(value.name),
       dateOfBirth: value.dateOfBirth,
       gender: value.gender as ChildGender,
-      symbol: value.symbol.trim(),
-      language: value.language.trim().replace(/\s+/g, ' '),
-      heightCm: Number(value.heightCm),
-      weightKg: Number(value.weightKg),
+      symbol: tidyText(value.symbol),
+      language: tidyText(value.language),
+      heightCm: Number(toAsciiDigits(value.heightCm.trim())),
+      weightKg: Number(toAsciiDigits(value.weightKg.trim())),
       anganwadiId: value.anganwadiId as number,
     };
     const id = this.id();
-    const awwId = this.isWorker()
-      ? (this.session.user()?.id ?? null)
-      : (this.existing.data()?.awwId ?? null);
+    const original = this.existing.data() ?? null;
+    const userId = this.session.user()?.id ?? null;
+    // Editing keeps who added the student; a worker adding one is recorded as theirs.
+    const awwId = (id !== undefined ? original?.awwId : null) ?? (this.isWorker() ? userId : null);
     this.saving.set(true);
-    // A new child with the same name and date of birth at the same centre is probably a
-    // duplicate: ask before adding (if the check itself fails, just continue).
-    const duplicate$ =
-      id === undefined
-        ? this.childApi.listForCenter(input.anganwadiId).pipe(
-            map((children) => children.find((c) => isSameChild(c, input)) ?? null),
-            catchError(() => of(null)),
-          )
-        : of(null);
+    // Another student with the same name and date of birth at the same centre is probably a
+    // duplicate: ask before saving (if the check itself fails, just continue). When editing,
+    // only if the name or date of birth changed.
+    const checkDuplicate = id === undefined || !original || !isSameChild(original, input);
+    const duplicate$ = checkDuplicate
+      ? this.childApi.listForCenter(input.anganwadiId).pipe(
+          map((children) => children.find((c) => c.id !== id && isSameChild(c, input)) ?? null),
+          catchError(() => of(null)),
+        )
+      : of(null);
     duplicate$
       .pipe(
         switchMap((duplicate) =>
           duplicate
             ? openConfirm(this.dialog, {
                 titleKey: 'childForm.duplicateTitle',
-                messageKey: 'childForm.duplicateMessage',
+                messageKey:
+                  id === undefined
+                    ? 'childForm.duplicateMessage'
+                    : 'childForm.duplicateEditMessage',
                 params: { name: duplicate.name },
-                confirmKey: 'childForm.addAnyway',
+                confirmKey: id === undefined ? 'childForm.addAnyway' : 'childForm.saveAnyway',
               })
             : of(true),
         ),
@@ -321,9 +336,16 @@ export class ChildFormPage implements HasUnsavedChanges {
           this.saving.set(false);
           const appError = toAppError(error);
           if (appError.kind === 'validation') {
-            const unmatched = applyServerErrors(this.form, appError.fieldErrors, SERVER_FIELDS);
-            this.formError.set(unmatched[0] ?? appError.serverMessage ?? null);
-            validateAndFocus(this.form, this.host);
+            this.formError.set(
+              reportServerErrors(this.form, appError, {
+                host: this.host,
+                injector: this.injector,
+                fallback: this.transloco.translate('errors.rejected'),
+                fieldMap: SERVER_FIELDS,
+                // A worker's centre isn't shown on the form.
+                hidden: this.isWorker() ? ['anganwadiId'] : [],
+              }),
+            );
           } else {
             this.notify.error(appError);
           }
@@ -337,9 +359,8 @@ export class ChildFormPage implements HasUnsavedChanges {
 
   private fill(child: Child): void {
     this.originalDob = child.dateOfBirth;
-    const gender = (CHILD_GENDERS as readonly string[]).includes(child.gender)
-      ? (child.gender as ChildGender)
-      : '';
+    // Older records may say "boy" or "Male": shown as the matching choice, not as missing.
+    const gender = toChildGender(child.gender) ?? '';
     this.form.reset({
       name: child.name,
       dateOfBirth: child.dateOfBirth ?? '',

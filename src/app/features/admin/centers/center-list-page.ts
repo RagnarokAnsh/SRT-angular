@@ -13,6 +13,8 @@ import { CenterApi } from '@core/api/center-api';
 import { LocationCache } from '@core/api/location-cache';
 import type { ApiCenter } from '@core/models/center';
 import { NotifyService } from '@core/notify/notify';
+import { searchable } from '@core/util/text';
+import { createDeletions } from '@shared/deletions';
 import { createLoader } from '@shared/loader';
 import { PluralPipe } from '@shared/pipes/plural-pipe';
 import { openConfirm } from '@shared/ui/confirm-dialog';
@@ -48,7 +50,7 @@ export class CenterListPage {
 
   protected readonly loader = createLoader(() => this.api.list());
   protected readonly query = signal('');
-  protected readonly deleting = signal<number | null>(null);
+  protected readonly deletions = createDeletions();
 
   /** District and state names for the centres shown (each list is fetched once). */
   private readonly names = toSignal(
@@ -60,9 +62,12 @@ export class CenterListPage {
           return of({ states: new Map<number, string>(), districts: new Map<number, string>() });
         // Names are a nicety: a failed lookup just leaves them out.
         const safe = <T>(source: Observable<T[]>) => source.pipe(catchError(() => of([] as T[])));
+        // forkJoin([]) completes without a value, so an empty list is passed as of([]).
+        const all = <T>(sources: Observable<T[]>[]) =>
+          sources.length ? forkJoin(sources) : of([] as T[][]);
         return forkJoin({
-          states: forkJoin(countryIds.map((id) => safe(this.locations.states(id)))),
-          districts: forkJoin(stateIds.map((id) => safe(this.locations.districts(id)))),
+          states: all(countryIds.map((id) => safe(this.locations.states(id)))),
+          districts: all(stateIds.map((id) => safe(this.locations.districts(id)))),
         }).pipe(
           map(({ states, districts }) => ({
             states: new Map(states.flat().map((s) => [s.id, s.name])),
@@ -75,7 +80,7 @@ export class CenterListPage {
   );
 
   protected readonly visible = computed(() => {
-    const needle = this.query().trim().toLocaleLowerCase();
+    const needle = searchable(this.query());
     const names = this.names();
     return [...(this.loader.data() ?? [])]
       .map((center) => ({
@@ -92,9 +97,9 @@ export class CenterListPage {
       .filter(
         (row) =>
           !needle ||
-          row.center.name.toLocaleLowerCase().includes(needle) ||
-          row.center.code.toLocaleLowerCase().includes(needle) ||
-          row.place.toLocaleLowerCase().includes(needle),
+          [row.center.name, row.center.code, row.place].some((text) =>
+            searchable(text).includes(needle),
+          ),
       )
       .sort((a, b) => a.center.name.localeCompare(b.center.name));
   });
@@ -109,21 +114,17 @@ export class CenterListPage {
     })
       .pipe(
         filter(Boolean),
-        switchMap(() => {
-          this.deleting.set(center.id);
-          return this.api.remove(center.id);
-        }),
+        switchMap(() => this.deletions.delete(center.id, () => this.api.remove(center.id))),
       )
       .subscribe({
-        next: () => {
-          this.deleting.set(null);
+        next: (outcome) => {
           this.loader.set((this.loader.data() ?? []).filter((c) => c.id !== center.id));
-          this.notify.success('admin.centers.deleted', { name: center.name });
+          this.notify.success(
+            outcome === 'gone' ? 'common.alreadyRemoved' : 'admin.centers.deleted',
+            { name: center.name },
+          );
         },
-        error: (error: unknown) => {
-          this.deleting.set(null);
-          this.notify.error(error);
-        },
+        error: (error: unknown) => this.notify.error(error),
       });
   }
 }

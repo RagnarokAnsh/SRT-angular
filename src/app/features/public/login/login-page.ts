@@ -22,7 +22,7 @@ import { AuthService, InvalidLoginResponseError } from '@core/auth/auth';
 import { demoAccounts, demoPassword } from '@core/demo/demo-providers';
 import { toAppError } from '@core/network/app-error';
 import { NotifyService } from '@core/notify/notify';
-import { applyServerErrors, validateAndFocus } from '@shared/forms/form-utils';
+import { applyServerErrors, clearServerErrors, validateAndFocus } from '@shared/forms/form-utils';
 import { ValidationMessagePipe } from '@shared/forms/validation-message-pipe';
 import { EMAIL_MAX, PASSWORD_MAX, emailAddress } from '@shared/forms/validators';
 
@@ -83,6 +83,7 @@ export class LoginPage {
   protected submit(): void {
     if (this.submitting()) return;
     this.failure.set(null);
+    clearServerErrors(this.form);
     if (!validateAndFocus(this.form, this.host)) return;
 
     const { email, password, remember } = this.form.getRawValue();

@@ -42,7 +42,8 @@
     "center": "Centre",
     "pickCenter": "Choose a centre to continue.",
     "changeCenter": "Change centre",
-    "noCenters": "There are no centres you can choose. Ask your administrator."
+    "noCenters": "There are no centres you can choose. Ask your administrator.",
+    "alreadyRemoved": "{{name}} had already been removed."
   },
   "logout": {
     "title": "Sign out?",
@@ -68,6 +69,7 @@
     "notFound": "We couldn't find what you were looking for. It may have been removed.",
     "conflict": "This was changed by someone else. Reload and try again.",
     "validation": "Some details need fixing. Check the highlighted fields.",
+    "rejected": "The server didn't accept these details. Check them and try again.",
     "tooManyRequests": "Too many attempts. Wait a minute and try again.",
     "server": "Something went wrong on the server. Please try again later.",
     "unknown": "Something went wrong. Please try again."
@@ -579,7 +581,9 @@
     "forbiddenMessage": "This student belongs to another centre.",
     "duplicateTitle": "This student may already be registered",
     "duplicateMessage": "{{name}}, with the same date of birth, is already registered at this centre. Add another record anyway?",
-    "addAnyway": "Add anyway"
+    "addAnyway": "Add anyway",
+    "duplicateEditMessage": "{{name}}, with the same date of birth, is already registered at this centre. Save these changes anyway?",
+    "saveAnyway": "Save anyway"
   },
   "dashboard": {
     "title": "Dashboard",

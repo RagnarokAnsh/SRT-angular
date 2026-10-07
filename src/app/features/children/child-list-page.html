@@ -54,7 +54,7 @@
         <mat-form-field class="toolbar__center">
           <mat-label>{{ 'children.center' | transloco }}</mat-label>
           <mat-select
-            [value]="centerFilter() ?? 0"
+            [value]="activeCenter() ?? 0"
             (selectionChange)="centerFilter.set($event.value || null)"
           >
             <mat-option [value]="0">{{ 'children.allCenters' | transloco }}</mat-option>
@@ -105,7 +105,7 @@
               mat-icon-button
               type="button"
               class="row__delete"
-              [disabled]="deleting() === child.id"
+              [disabled]="deletions.isDeleting(child.id)"
               [attr.aria-label]="'children.deleteLabel' | transloco: { name: child.name }"
               (click)="remove(child)"
             >

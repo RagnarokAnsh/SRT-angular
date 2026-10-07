@@ -13,7 +13,9 @@ import { ChildApi } from '@core/api/child-api';
 import { AccessService } from '@core/auth/access';
 import type { Child } from '@core/models/child';
 import { NotifyService } from '@core/notify/notify';
+import { searchable } from '@core/util/text';
 import { initials } from '@shared/initials';
+import { createDeletions } from '@shared/deletions';
 import { createLoader } from '@shared/loader';
 import { AgePipe } from '@shared/pipes/age-pipe';
 import { PluralPipe } from '@shared/pipes/plural-pipe';
@@ -63,7 +65,7 @@ export class ChildListPage {
 
   protected readonly query = signal('');
   protected readonly centerFilter = signal<number | null>(null);
-  protected readonly deleting = signal<number | null>(null);
+  protected readonly deletions = createDeletions();
 
   /** Centres present in the list, for the filter (administrators and supervisors). */
   protected readonly centers = computed(() => {
@@ -80,12 +82,18 @@ export class ChildListPage {
   /** Each row names its centre only when the list spans more than one. */
   protected readonly showCenter = computed(() => !this.isWorker() && this.centers().length > 1);
 
+  /** The chosen centre, while it is still in the list (its last student may have gone). */
+  protected readonly activeCenter = computed(() => {
+    const id = this.centerFilter();
+    return id !== null && this.centers().some((center) => center.id === id) ? id : null;
+  });
+
   protected readonly visible = computed(() => {
-    const needle = this.query().trim().toLocaleLowerCase();
-    const center = this.centerFilter();
+    const needle = searchable(this.query());
+    const center = this.activeCenter();
     return [...(this.loader.data() ?? [])]
       .filter((c) => center === null || c.anganwadiId === center)
-      .filter((c) => !needle || c.name.toLocaleLowerCase().includes(needle))
+      .filter((c) => !needle || searchable(c.name).includes(needle))
       .sort((a, b) => a.name.localeCompare(b.name));
   });
 
@@ -102,21 +110,16 @@ export class ChildListPage {
     })
       .pipe(
         filter(Boolean),
-        switchMap(() => {
-          this.deleting.set(child.id);
-          return this.api.remove(child.id);
-        }),
+        switchMap(() => this.deletions.delete(child.id, () => this.api.remove(child.id))),
       )
       .subscribe({
-        next: () => {
-          this.deleting.set(null);
+        next: (outcome) => {
           this.loader.set((this.loader.data() ?? []).filter((c) => c.id !== child.id));
-          this.notify.success('children.deleted', { name: child.name });
+          this.notify.success(outcome === 'gone' ? 'common.alreadyRemoved' : 'children.deleted', {
+            name: child.name,
+          });
         },
-        error: (error: unknown) => {
-          this.deleting.set(null);
-          this.notify.error(error);
-        },
+        error: (error: unknown) => this.notify.error(error),
       });
   }
 }

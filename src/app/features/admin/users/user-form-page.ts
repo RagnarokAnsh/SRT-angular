@@ -3,6 +3,7 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  Injector,
   computed,
   effect,
   inject,
@@ -25,7 +26,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { Router } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { map, of, startWith } from 'rxjs';
 
 import { CenterApi } from '@core/api/center-api';
@@ -38,7 +39,7 @@ import type { RoleName } from '@core/models/role';
 import { type ApiUser, USER_GENDERS, type UserInput } from '@core/models/user';
 import { toAppError } from '@core/network/app-error';
 import { NotifyService } from '@core/notify/notify';
-import { applyServerErrors, validateAndFocus } from '@shared/forms/form-utils';
+import { clearServerErrors, reportServerErrors, validateAndFocus } from '@shared/forms/form-utils';
 import { LocationCascade } from '@shared/forms/location-cascade';
 import { LocationFields } from '@shared/forms/location-fields';
 import { ValidationMessagePipe } from '@shared/forms/validation-message-pipe';
@@ -96,6 +97,8 @@ export class UserFormPage implements HasUnsavedChanges {
   private readonly router = inject(Router);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
+  private readonly transloco = inject(TranslocoService);
 
   /** Route parameter; absent when adding a user. */
   readonly id = input<number | undefined, unknown>(undefined, {
@@ -193,7 +196,9 @@ export class UserFormPage implements HasUnsavedChanges {
         if (needsCenter && !this.centers.data() && !this.centers.loading()) this.centers.reload();
       });
     });
+    // Reloads for every user id: the page stays open when going from one user to another.
     effect(() => {
+      this.id();
       const isEdit = this.isEdit();
       untracked(() => {
         const password = this.form.controls.password;
@@ -209,6 +214,18 @@ export class UserFormPage implements HasUnsavedChanges {
     effect(() => {
       const user = this.existing.data();
       if (user) untracked(() => this.fill(user));
+    });
+    // A worker's centre must be in the chosen sector: after the district, project or sector
+    // changes, the old centre (no longer listed, but still set) is cleared.
+    effect(() => {
+      const options = this.centerOptions();
+      const loaded = this.centers.data() !== undefined;
+      untracked(() => {
+        const center = this.form.controls.anganwadi_id;
+        if (loaded && center.value !== null && !options.some((c) => c.id === center.value)) {
+          center.setValue(null);
+        }
+      });
     });
     effect(() => {
       const self = this.editingSelf();
@@ -235,6 +252,7 @@ export class UserFormPage implements HasUnsavedChanges {
   protected submit(): void {
     if (this.saving()) return;
     this.formError.set(null);
+    clearServerErrors(this.form);
     if (!validateAndFocus(this.form, this.host)) return;
 
     const v = this.form.getRawValue();
@@ -272,9 +290,13 @@ export class UserFormPage implements HasUnsavedChanges {
           this.saving.set(false);
           const appError = toAppError(error);
           if (appError.kind === 'validation') {
-            const unmatched = applyServerErrors(this.form, appError.fieldErrors);
-            this.formError.set(unmatched[0] ?? appError.serverMessage ?? null);
-            validateAndFocus(this.form, this.host);
+            this.formError.set(
+              reportServerErrors(this.form, appError, {
+                host: this.host,
+                injector: this.injector,
+                fallback: this.transloco.translate('errors.rejected'),
+              }),
+            );
           } else {
             this.notify.error(appError);
           }
