@@ -32,6 +32,12 @@ describe('toAppError', () => {
     expect(long.length).toBeLessThanOrEqual(301);
   });
 
+  it("drops a 404's server text, which describes the server, not the problem", () => {
+    const error = toAppError(http(404, { message: 'No query results for model [Child] 12' }));
+    expect(error.serverMessage).toBeNull();
+    expect(error.messageKey).toBe('errors.notFound');
+  });
+
   it('reads Laravel validation errors', () => {
     const error = toAppError(
       http(422, {
@@ -48,5 +54,14 @@ describe('toAppError', () => {
     expect(isRetryable(toAppError(http(503)))).toBe(true);
     expect(isRetryable(toAppError(http(403)))).toBe(false);
     expect(isRetryable(toAppError(http(422)))).toBe(false);
+    expect(isRetryable(toAppError(new Error('boom')))).toBe(true);
+  });
+
+  it('does not offer to retry other client errors, which would fail the same way', () => {
+    for (const status of [400, 405, 413]) {
+      const error = toAppError(http(status));
+      expect(error.kind).toBe('unknown');
+      expect(isRetryable(error)).toBe(false);
+    }
   });
 });

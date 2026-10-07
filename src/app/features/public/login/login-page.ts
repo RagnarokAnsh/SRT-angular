@@ -52,6 +52,8 @@ export class LoginPage {
   /** Query params: where to go after signing in, and why the user was signed out. */
   readonly returnUrl = input<string>();
   readonly reason = input<string>();
+  /** Who was signed out (with `returnUrl`): only they are sent back to that page. */
+  readonly uid = input<string>();
 
   protected readonly form = inject(NonNullableFormBuilder).group({
     email: ['', [Validators.required, emailAddress, Validators.maxLength(EMAIL_MAX)]],
@@ -91,7 +93,7 @@ export class LoginPage {
       .subscribe({
         next: (user) => {
           this.notify.success('login.welcome', { name: user.name });
-          void this.auth.navigateAfterLogin(this.returnUrl());
+          void this.auth.navigateAfterLogin(this.returnUrl(), this.uid());
         },
         error: (error: unknown) => {
           this.submitting.set(false);

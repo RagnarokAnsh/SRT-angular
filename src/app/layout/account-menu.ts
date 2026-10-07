@@ -113,7 +113,7 @@ export class AccountMenu {
       messageKey: 'logout.message',
       confirmKey: 'nav.logout',
     }).subscribe((confirmed) => {
-      if (confirmed) this.auth.logout('manual');
+      if (confirmed) void this.auth.logout('manual');
     });
   }
 }

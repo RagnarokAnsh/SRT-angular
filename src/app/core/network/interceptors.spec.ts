@@ -95,6 +95,17 @@ describe('HTTP interceptors', () => {
     expect(logout).toHaveBeenCalledWith('expired');
   });
 
+  it('a late 401 for a request sent before signing in again leaves the new session alone', async () => {
+    const session = TestBed.inject(SessionStore);
+    session.start(validToken(), testUser());
+    const old = firstValueFrom(http.get(`${TEST_API}/children`));
+    const req = backend.expectOne(`${TEST_API}/children`);
+    session.start(validToken(7200), testUser());
+    req.flush({}, { status: 401, statusText: 'Unauthorized' });
+    await expect(old).rejects.toBeTruthy();
+    expect(logout).not.toHaveBeenCalled();
+  });
+
   it('gives up on a request that takes too long', async () => {
     vi.useFakeTimers();
     const result = firstValueFrom(http.get(`${TEST_API}/slow`));

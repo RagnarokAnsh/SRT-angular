@@ -74,7 +74,8 @@ function readFieldErrors(body: unknown): Record<string, string[]> {
 }
 
 function make(kind: AppErrorKind, status: number | null, body?: unknown): AppError {
-  const keepServerText = status !== null && status >= 400 && status < 500;
+  // 4xx messages are meant for users; a 404's ("No query results for model ...") is not.
+  const keepServerText = status !== null && status >= 400 && status < 500 && status !== 404;
   return {
     kind,
     status,
@@ -104,6 +105,15 @@ export function toAppError(
 
 /** True for failures that may succeed if simply tried again. */
 export function isRetryable(error: AppError): boolean {
+  // Other client errors (400, 405, 413, ...) will fail the same way again.
+  if (
+    error.kind === 'unknown' &&
+    error.status !== null &&
+    error.status >= 400 &&
+    error.status < 500
+  ) {
+    return false;
+  }
   return ['offline', 'network', 'timeout', 'server', 'tooManyRequests', 'unknown'].includes(
     error.kind,
   );

@@ -52,13 +52,18 @@ export const unauthorizedInterceptor: HttpInterceptorFn = (req, next) => {
   const session = inject(SessionStore);
   return next(req).pipe(
     catchError((error: unknown) => {
+      // Only if the request was made with the current token: a slow answer to a request sent
+      // before signing in again must not end the new session.
+      const sentWithCurrentToken =
+        req.headers.get('Authorization') === `Bearer ${session.token() ?? ''}`;
       if (
         error instanceof HttpErrorResponse &&
         error.status === 401 &&
         !authApi.isLoginRequest(req.url) &&
-        session.isAuthenticated()
+        session.isAuthenticated() &&
+        sentWithCurrentToken
       ) {
-        auth.logout('expired');
+        void auth.logout('expired');
       }
       return throwError(() => error);
     }),
