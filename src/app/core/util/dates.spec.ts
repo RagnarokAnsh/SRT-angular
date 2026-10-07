@@ -48,6 +48,14 @@ describe('dates', () => {
       expect(normalizeIsoDate('2020-05-10')).toBe('2020-05-10');
       expect(normalizeIsoDate('2020-05-10T00:00:00.000000Z')).toBe('2020-05-10');
       expect(normalizeIsoDate(' 2020-05-10 ')).toBe('2020-05-10');
+      expect(normalizeIsoDate('2020-05-10 00:00:00')).toBe('2020-05-10');
+    });
+
+    it('reads midnight in India stored as UTC as the right day, in any time zone', () => {
+      expect(normalizeIsoDate('2020-05-09T18:30:00.000000Z')).toBe('2020-05-10');
+      expect(normalizeIsoDate('2020-05-10T00:00:00+05:30')).toBe('2020-05-10');
+      expect(normalizeIsoDate('2020-05-10T00:00:00+0530')).toBe('2020-05-10');
+      expect(normalizeIsoDate('2020-12-31T18:30:00Z')).toBe('2021-01-01');
     });
 
     it('returns null for anything else', () => {

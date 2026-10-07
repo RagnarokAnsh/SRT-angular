@@ -37,13 +37,32 @@ export function isoToLocalDate(iso: IsoDate): Date | null {
 }
 
 /**
- * Normalises a calendar-date value from the API (`2020-05-10` or
- * `2020-05-10T00:00:00.000000Z`) by taking its date part. Use for dates of birth,
- * which must never be shifted by a time zone.
+ * Parses an ISO timestamp with a time zone. Laravel sends microseconds
+ * (`.000000Z`) and some servers `+0530`, which not every browser reads, so both are
+ * rewritten into the standard form first.
+ */
+function parseZonedTimestamp(value: string): number {
+  const standard = value.replace(/(\.\d{3})\d+/, '$1').replace(/([+-]\d{2})(\d{2})$/, '$1:$2');
+  return Date.parse(standard);
+}
+
+/**
+ * Normalises a calendar-date value from the API: `2020-05-10`, `2020-05-10 00:00:00` or a
+ * timestamp. A timestamp with a time zone is rounded to the nearest UTC midnight, so
+ * `2020-05-10T00:00:00.000000Z` (a date column) and `2020-05-09T18:30:00Z` (midnight in
+ * India, stored in UTC) both give 10 May on every phone. Use for dates of birth, which must
+ * never be shifted by the viewer's time zone.
  */
 export function normalizeIsoDate(value: unknown): IsoDate | null {
   if (typeof value !== 'string') return null;
-  const m = DATE_PREFIX.exec(value.trim());
+  const trimmed = value.trim();
+  if (HAS_TIME_ZONE.test(trimmed)) {
+    const ms = parseZonedTimestamp(trimmed);
+    if (Number.isNaN(ms)) return null;
+    const nearest = new Date(ms + 12 * 3600_000);
+    return `${nearest.getUTCFullYear()}-${pad(nearest.getUTCMonth() + 1)}-${pad(nearest.getUTCDate())}`;
+  }
+  const m = DATE_PREFIX.exec(trimmed);
   if (!m) return null;
   return isRealDate(Number(m[1]), Number(m[2]), Number(m[3])) ? `${m[1]}-${m[2]}-${m[3]}` : null;
 }
@@ -57,10 +76,12 @@ export function timestampToIsoDate(value: unknown): IsoDate | null {
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();
   if (HAS_TIME_ZONE.test(trimmed)) {
-    const parsed = new Date(trimmed);
-    return Number.isNaN(parsed.getTime()) ? null : toIsoDate(parsed);
+    const ms = parseZonedTimestamp(trimmed);
+    return Number.isNaN(ms) ? null : toIsoDate(new Date(ms));
   }
-  return normalizeIsoDate(trimmed);
+  const m = DATE_PREFIX.exec(trimmed);
+  if (!m) return null;
+  return isRealDate(Number(m[1]), Number(m[2]), Number(m[3])) ? `${m[1]}-${m[2]}-${m[3]}` : null;
 }
 
 export function isValidIsoDate(value: unknown): value is IsoDate {

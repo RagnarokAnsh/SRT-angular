@@ -2,20 +2,28 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, shareReplay, throwError } from 'rxjs';
 
-import type { ApiCompetency, Competency, Domain } from '../models/competency';
+import type { ApiCompetency, ApiDomain, Competency, Domain } from '../models/competency';
 import { slugify } from '../util/slug';
 import { API_BASE_URL } from './api-base-url';
-import { unwrapList } from './parse';
+import { text, toId, unwrapList } from './parse';
 
-export function toCompetency(api: ApiCompetency): Competency {
-  const domainName = api.domain?.domain_name?.trim() ?? '';
+/** A competency from the API (ids as numbers, text trimmed); null without a usable id. */
+export function toCompetency(value: unknown): Competency | null {
+  if (!value || typeof value !== 'object') return null;
+  const api = value as Partial<Record<keyof ApiCompetency, unknown>>;
+  const id = toId(api.id);
+  if (id === null) return null;
+  const domain = (api.domain && typeof api.domain === 'object' ? api.domain : {}) as Partial<
+    Record<keyof ApiDomain, unknown>
+  >;
+  const name = text(api.name);
   return {
-    id: api.id,
-    name: (api.name ?? '').trim(),
-    description: (api.description ?? '').trim(),
-    domainId: api.domain_id ?? api.domain?.id,
-    domainName,
-    slug: slugify(api.name ?? ''),
+    id,
+    name,
+    description: text(api.description),
+    domainId: toId(api.domain_id) ?? toId(domain.id) ?? 0,
+    domainName: text(domain.domain_name),
+    slug: slugify(name),
   };
 }
 
@@ -47,7 +55,13 @@ export class CompetencyApi {
   /** GET /competencies, grouped by domain. Cached for the session; a failure is retried next time. */
   domains(): Observable<Domain[]> {
     this.cache$ ??= this.http.get<unknown>(`${this.base}/competencies`).pipe(
-      map((body) => groupByDomain(unwrapList<ApiCompetency>(body).map(toCompetency))),
+      map((body) =>
+        groupByDomain(
+          unwrapList<unknown>(body)
+            .map(toCompetency)
+            .filter((competency): competency is Competency => competency !== null),
+        ),
+      ),
       catchError((error: unknown) => {
         this.cache$ = undefined;
         return throwError(() => error);

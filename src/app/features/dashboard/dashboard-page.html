@@ -50,7 +50,8 @@
             <span class="kpi__label">{{ 'dashboard.children' | transloco }}</span>
             <span class="kpi__value">{{ o.children }}</span>
             <span class="kpi__detail">
-              {{ 'dashboard.boysGirls' | transloco: { boys: o.boys, girls: o.girls } }}
+              {{ 'dashboard.boysCount' | plural: o.boys }} ·
+              {{ 'dashboard.girlsCount' | plural: o.girls }}
             </span>
           </div>
           <div class="kpi">
@@ -161,6 +162,12 @@
                 >{{ 'levels.' + level + '.label' | transloco }}
               </li>
             }
+            @if (hasOther()) {
+              <li>
+                <span class="legend__swatch" style="background: var(--chart-other)"></span
+                >{{ 'dashboard.otherResult' | transloco }}
+              </li>
+            }
             <li>
               <span class="legend__swatch" style="background: var(--chart-none)"></span
               >{{ 'dashboard.notAssessed' | transloco }}
@@ -183,6 +190,9 @@
                         {{ 'levels.' + level + '.label' | transloco }}
                       </th>
                     }
+                    @if (hasOther()) {
+                      <th scope="col" class="num">{{ 'dashboard.otherResult' | transloco }}</th>
+                    }
                     <th scope="col" class="num">{{ 'dashboard.notAssessed' | transloco }}</th>
                     <th scope="col" class="num">{{ 'dashboard.table.total' | transloco }}</th>
                   </tr>
@@ -194,7 +204,10 @@
                       @for (level of levels; track level) {
                         <td class="num">{{ row.counts[level] }}</td>
                       }
-                      <td class="num">{{ row.notAssessed + row.other }}</td>
+                      @if (hasOther()) {
+                        <td class="num">{{ row.other }}</td>
+                      }
+                      <td class="num">{{ row.notAssessed }}</td>
                       <td class="num">{{ row.total }}</td>
                     </tr>
                   }
@@ -255,7 +268,14 @@
                             </div>
                           }
                         }
-                        @let pending = childrenAt(row, null);
+                        @let others = childrenAt(row, 'other');
+                        @if (others.length) {
+                          <div class="who__group">
+                            <span class="who__none">{{ 'dashboard.otherResult' | transloco }}</span>
+                            <span class="who__names">{{ others.join(', ') }}</span>
+                          </div>
+                        }
+                        @let pending = childrenAt(row, 'none');
                         @if (pending.length) {
                           <div class="who__group">
                             <span class="who__none">{{ 'dashboard.notAssessed' | transloco }}</span>

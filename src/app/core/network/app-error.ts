@@ -1,6 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { TimeoutError } from 'rxjs';
 
+import { UnexpectedResponseError } from '../api/parse';
+
 export type AppErrorKind =
   | 'offline'
   | 'network'
@@ -96,6 +98,8 @@ export function toAppError(
 ): AppError {
   if (isAppError(error)) return error;
   if (error instanceof TimeoutError) return make('timeout', null);
+  // A 2xx answer that reports a failure or has the wrong shape: a problem on the server's side.
+  if (error instanceof UnexpectedResponseError) return make('server', null);
   if (error instanceof HttpErrorResponse) {
     if (error.status === 0) return make(online ? 'network' : 'offline', 0);
     return make(kindForStatus(error.status), error.status, error.error);

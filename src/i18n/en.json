@@ -589,7 +589,14 @@
     "children": "Students",
     "boys": "Boys",
     "girls": "Girls",
-    "boysGirls": "{{boys}} boys · {{girls}} girls",
+    "boysCount": {
+      "one": "{{count}} boy",
+      "other": "{{count}} boys"
+    },
+    "girlsCount": {
+      "one": "{{count}} girl",
+      "other": "{{count}} girls"
+    },
     "sessionsRecorded": "Sessions recorded",
     "sessionsOf": "of {{total}} possible ({{percent}}%)",
     "schoolReady": "School ready (latest results)",

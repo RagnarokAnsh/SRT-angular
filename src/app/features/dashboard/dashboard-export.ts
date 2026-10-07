@@ -27,19 +27,35 @@ export interface ExportInput {
   today: IsoDate;
 }
 
-const bold = (value: string | number): Cell => ({ value, fontWeight: 'bold' });
-const text = (value: string | null | undefined): Cell => ({ value: value ?? '', type: String });
+/** Control characters make the file unreadable for Excel; tabs and line breaks are fine. */
+// eslint-disable-next-line no-control-regex
+const CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+const clean = (value: string) => value.replace(CONTROL_CHARS, '');
+
+const bold = (value: string | number): Cell => ({
+  value: typeof value === 'string' ? clean(value) : value,
+  fontWeight: 'bold',
+});
+const text = (value: string | null | undefined): Cell => ({
+  value: clean(value ?? ''),
+  type: String,
+});
 const num = (value: number | null | undefined): Cell =>
   value === null || value === undefined ? null : { value, type: Number };
 
-/** A file-name-safe version of a label. */
+/**
+ * A file-name-safe version of a label. Letters of any script are kept with their marks
+ * (Devanagari vowel signs are marks), so "शिवाजी नगर" stays readable.
+ */
 export function fileSafe(label: string): string {
   return (
     label
-      .normalize('NFKD')
-      .replace(/[^\p{L}\p{N}]+/gu, '-')
+      .normalize('NFKC')
+      .replace(/[^\p{L}\p{M}\p{N}]+/gu, '-')
       .replace(/^-+|-+$/g, '')
-      .toLowerCase() || 'centre'
+      .toLowerCase()
+      .slice(0, 60)
+      .replace(/-+$/, '') || 'centre'
   );
 }
 
@@ -65,6 +81,7 @@ export function buildSheets(input: ExportInput, txt: ExportText): Cell[][][] {
       bold(t('dashboard.table.competency')),
       bold(t('dashboard.table.domain')),
       ...LEVELS.map((level) => bold(levelLabel(level))),
+      bold(t('dashboard.otherResult')),
       bold(t('dashboard.notAssessed')),
       bold(t('dashboard.table.total')),
     ],
@@ -72,6 +89,7 @@ export function buildSheets(input: ExportInput, txt: ExportText): Cell[][][] {
       text(txt.competencyName(row)),
       text(txt.domainName(row)),
       ...LEVELS.map((level) => num(row.counts[level])),
+      num(row.other),
       num(row.notAssessed),
       num(row.total),
     ]),

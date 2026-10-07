@@ -34,5 +34,6 @@ const ALIASES: Record<string, Level> = {
 export function parseLevel(value: unknown): Level | null {
   if (value === null || value === undefined) return null;
   const key = String(value).trim().toLowerCase().replace(/\s+/g, ' ');
-  return ALIASES[key] ?? null;
+  // Own keys only: "constructor" or "__proto__" must not read Object.prototype.
+  return Object.hasOwn(ALIASES, key) ? ALIASES[key] : null;
 }

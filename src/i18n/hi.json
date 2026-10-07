@@ -589,7 +589,14 @@
     "children": "विद्यार्थी",
     "boys": "लड़के",
     "girls": "लड़कियाँ",
-    "boysGirls": "{{boys}} लड़के · {{girls}} लड़कियाँ",
+    "boysCount": {
+      "one": "{{count}} लड़का",
+      "other": "{{count}} लड़के"
+    },
+    "girlsCount": {
+      "one": "{{count}} लड़की",
+      "other": "{{count}} लड़कियाँ"
+    },
     "sessionsRecorded": "दर्ज किए गए सत्र",
     "sessionsOf": "कुल संभव {{total}} में से ({{percent}}%)",
     "schoolReady": "स्कूल के लिए तैयार (ताज़ा परिणाम)",

@@ -5,21 +5,41 @@ import { Observable, map } from 'rxjs';
 import type { ApiChild, Child, ChildInput } from '../models/child';
 import { type IsoDate, ageOn, normalizeIsoDate, toIsoDate } from '../util/dates';
 import { API_BASE_URL } from './api-base-url';
-import { toNumberOrNull, unwrapItem, unwrapList } from './parse';
+import {
+  UnexpectedResponseError,
+  expectSuccess,
+  text,
+  toId,
+  toMeasure,
+  unwrapItem,
+  unwrapList,
+} from './parse';
 
-export function toChild(api: ApiChild): Child {
+/**
+ * A child from the API, with ids as numbers (some PHP setups send strings) and text trimmed.
+ * Null without a usable id: such a record can't be opened or matched to its results.
+ */
+export function toChild(value: unknown): Child | null {
+  if (!value || typeof value !== 'object') return null;
+  const api = value as Partial<Record<keyof ApiChild, unknown>>;
+  const id = toId(api.id);
+  if (id === null) return null;
+  const center =
+    api.anganwadi && typeof api.anganwadi === 'object'
+      ? (api.anganwadi as Record<string, unknown>)
+      : null;
   return {
-    id: api.id,
-    name: (api.name ?? '').trim(),
+    id,
+    name: text(api.name),
     dateOfBirth: normalizeIsoDate(api.date_of_birth),
-    symbol: api.symbol ?? '',
-    heightCm: toNumberOrNull(api.height_cm),
-    weightKg: toNumberOrNull(api.weight_kg),
-    language: api.language ?? '',
-    anganwadiId: api.anganwadi_id ?? null,
-    centerName: api.anganwadi?.name ?? null,
-    gender: api.gender ?? '',
-    awwId: api.aww_id ?? null,
+    symbol: text(api.symbol),
+    heightCm: toMeasure(api.height_cm),
+    weightKg: toMeasure(api.weight_kg),
+    language: text(api.language),
+    anganwadiId: toId(api.anganwadi_id) ?? toId(center?.['id']),
+    centerName: text(center?.['name']) || null,
+    gender: text(api.gender),
+    awwId: toId(api.aww_id),
   };
 }
 
@@ -52,9 +72,13 @@ export class ChildApi {
 
   /** GET /children. Note: the API returns children from every centre. */
   list(): Observable<Child[]> {
-    return this.http
-      .get<unknown>(`${this.base}/children`)
-      .pipe(map((body) => unwrapList<ApiChild>(body).map(toChild)));
+    return this.http.get<unknown>(`${this.base}/children`).pipe(
+      map((body) =>
+        unwrapList<unknown>(body)
+          .map(toChild)
+          .filter((child): child is Child => child !== null),
+      ),
+    );
   }
 
   /** The children of one centre. Filtered here because the API does not filter (see AUDIT C2). */
@@ -65,24 +89,29 @@ export class ChildApi {
   }
 
   get(id: number): Observable<Child> {
-    return this.http
-      .get<unknown>(`${this.base}/children/${id}`)
-      .pipe(map((body) => toChild(unwrapItem<ApiChild>(body))));
+    return this.http.get<unknown>(`${this.base}/children/${id}`).pipe(
+      map((body) => {
+        const child = toChild(unwrapItem<unknown>(body));
+        if (!child) throw new UnexpectedResponseError();
+        return child;
+      }),
+    );
   }
 
-  create(input: ChildInput, awwId: number | null): Observable<Child> {
+  /** The answer is not used: an empty one (as some backends send) must not look like a failure. */
+  create(input: ChildInput, awwId: number | null): Observable<void> {
     return this.http
       .post<unknown>(`${this.base}/children`, toChildPayload(input, { awwId }))
-      .pipe(map((body) => toChild(unwrapItem<ApiChild>(body))));
+      .pipe(map(expectSuccess));
   }
 
-  update(id: number, input: ChildInput, awwId: number | null): Observable<Child> {
+  update(id: number, input: ChildInput, awwId: number | null): Observable<void> {
     return this.http
       .put<unknown>(`${this.base}/children/${id}`, toChildPayload(input, { id, awwId }))
-      .pipe(map((body) => toChild(unwrapItem<ApiChild>(body))));
+      .pipe(map(expectSuccess));
   }
 
   remove(id: number): Observable<void> {
-    return this.http.delete<unknown>(`${this.base}/children/${id}`).pipe(map(() => undefined));
+    return this.http.delete<unknown>(`${this.base}/children/${id}`).pipe(map(expectSuccess));
   }
 }

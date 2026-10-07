@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { TEST_API, setupHttpTesting } from '../../../testing/http';
 import type { ApiChild, ChildInput } from '../models/child';
 import { ChildApi, toChild, toChildPayload } from './child-api';
+import { UnexpectedResponseError } from './parse';
 
 const apiChild: ApiChild = {
   id: 3,
@@ -111,6 +112,30 @@ describe('ChildApi', () => {
     http.expectOne(`${TEST_API}/children/3`).flush({ data: apiChild });
     expect((await result).id).toBe(3);
   });
+
+  it('treats a save as done even when the answer is empty', async () => {
+    const created = firstValueFrom(api.create(input, 8));
+    http.expectOne(`${TEST_API}/children`).flush(null);
+    await expect(created).resolves.toBeUndefined();
+  });
+
+  it('treats a 200 answer that reports a failure as a failure', async () => {
+    const updated = firstValueFrom(api.update(3, input, null));
+    http.expectOne(`${TEST_API}/children/3`).flush({ status: false, message: 'Not saved' });
+    await expect(updated).rejects.toBeInstanceOf(UnexpectedResponseError);
+  });
+
+  it('reports an unexpected list instead of showing no students', async () => {
+    const result = firstValueFrom(api.list());
+    http.expectOne(`${TEST_API}/children`).flush({ message: 'Something odd' });
+    await expect(result).rejects.toBeInstanceOf(UnexpectedResponseError);
+  });
+
+  it('drops records without a usable id', async () => {
+    const result = firstValueFrom(api.list());
+    http.expectOne(`${TEST_API}/children`).flush([apiChild, { ...apiChild, id: null }]);
+    expect((await result).map((c) => c.id)).toEqual([3]);
+  });
 });
 
 describe('child mapping', () => {
@@ -119,13 +144,34 @@ describe('child mapping', () => {
       ...apiChild,
       date_of_birth: '',
       anganwadi_id: null,
+      anganwadi: null,
       height_cm: null,
       weight_kg: '',
     });
-    expect(child.dateOfBirth).toBeNull();
-    expect(child.anganwadiId).toBeNull();
-    expect(child.heightCm).toBeNull();
-    expect(child.weightKg).toBeNull();
+    expect(child?.dateOfBirth).toBeNull();
+    expect(child?.anganwadiId).toBeNull();
+    expect(child?.heightCm).toBeNull();
+    expect(child?.weightKg).toBeNull();
+  });
+
+  it('reads ids sent as strings, so results and centres still match', () => {
+    const child = toChild({ ...apiChild, id: '3', anganwadi_id: '1', aww_id: '8' });
+    expect(child).toMatchObject({ id: 3, anganwadiId: 1, awwId: 8 });
+    expect(toChild({ ...apiChild, anganwadi_id: null })?.anganwadiId).toBe(1);
+  });
+
+  it("reads the old app's 0 cm / 0 kg as not measured", () => {
+    const child = toChild({ ...apiChild, height_cm: '0', weight_kg: 0 });
+    expect(child?.heightCm).toBeNull();
+    expect(child?.weightKg).toBeNull();
+    expect(toChild({ ...apiChild, height_cm: '   ' })?.heightCm).toBeNull();
+  });
+
+  it('copes with text fields of the wrong type', () => {
+    const child = toChild({ ...apiChild, name: 42, symbol: null, language: { x: 1 } });
+    expect(child).toMatchObject({ name: '42', symbol: '', language: '' });
+    expect(toChild(null)).toBeNull();
+    expect(toChild({ ...apiChild, id: 'abc' })).toBeNull();
   });
 
   it('sends age in completed years on the given day', () => {

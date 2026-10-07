@@ -1,9 +1,9 @@
 import { Injectable, computed, signal } from '@angular/core';
 
 import { toNumberOrNull } from '../api/parse';
-import type { ApiCenter } from '../models/center';
+import { normalizeUser } from '../api/user-api';
 import { type RoleName, toRoleName } from '../models/role';
-import type { ApiRole, ApiUser } from '../models/user';
+import type { ApiUser } from '../models/user';
 import { isTokenUsable, jwtExpiry } from './jwt';
 import { ROLE_PRIORITY } from './roles';
 
@@ -56,41 +56,6 @@ function removeSession(storage: Storage): void {
   storage.removeItem(TOKEN_KEY);
   storage.removeItem(USER_KEY);
   storage.removeItem(SKEW_KEY);
-}
-
-/**
- * A user from the API or from storage, made safe to use: ids as numbers (some PHP setups send
- * them as strings), roles as `{ id, name }` (some send plain names), and the centre id taken
- * from the embedded centre when `anganwadi_id` is missing. Null when there is no usable id.
- */
-export function normalizeUser(value: unknown): ApiUser | null {
-  if (!value || typeof value !== 'object') return null;
-  const raw = value as Record<string, unknown>;
-  const id = toNumberOrNull(raw['id']);
-  if (id === null || !Number.isInteger(id) || id <= 0) return null;
-  const roles = (Array.isArray(raw['roles']) ? (raw['roles'] as unknown[]) : [])
-    .map((role, index): ApiRole | null => {
-      if (typeof role === 'string') return { id: index + 1, name: role };
-      const name = (role as { name?: unknown } | null)?.name;
-      return typeof name === 'string' ? { ...(role as ApiRole), name } : null;
-    })
-    .filter((role): role is ApiRole => role !== null);
-  const anganwadi =
-    raw['anganwadi'] && typeof raw['anganwadi'] === 'object'
-      ? (raw['anganwadi'] as ApiCenter)
-      : null;
-  return {
-    ...(raw as unknown as ApiUser),
-    id,
-    name: typeof raw['name'] === 'string' ? raw['name'] : '',
-    email: typeof raw['email'] === 'string' ? raw['email'] : '',
-    roles,
-    country_id: toNumberOrNull(raw['country_id']),
-    state_id: toNumberOrNull(raw['state_id']),
-    district_id: toNumberOrNull(raw['district_id']),
-    anganwadi_id: toNumberOrNull(raw['anganwadi_id']) ?? toNumberOrNull(anganwadi?.id),
-    anganwadi,
-  };
 }
 
 /** The signed-in user and token, as signals. */

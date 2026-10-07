@@ -14,7 +14,7 @@ import {
 import { parseLevel } from '../models/level';
 import { timestampToIsoDate } from '../util/dates';
 import { API_BASE_URL } from './api-base-url';
-import { toNumberOrNull, unwrapList } from './parse';
+import { expectSuccess, text, toId, toMeasure, unwrapList } from './parse';
 
 /**
  * Reads one session slot. Empty slots are "-" (or missing). An object only counts as a
@@ -37,32 +37,35 @@ export function toSessionResult(raw: unknown, session: SessionNumber): SessionRe
     };
   }
   if (typeof raw !== 'object') return null;
-  const data = raw as ApiSessionData;
+  const data = raw as Partial<Record<keyof ApiSessionData, unknown>>;
   if (data.observation === null || data.observation === undefined) return null;
   if (data.created_at === null || data.created_at === undefined) return null;
   return {
     session,
     level: parseLevel(data.observation),
-    rawObservation: String(data.observation),
+    rawObservation: text(data.observation),
     date: timestampToIsoDate(data.created_at),
-    remarks: data.remarks?.trim() ?? '',
-    age: data.age?.trim() || null,
-    heightCm: toNumberOrNull(data.height),
-    weightKg: toNumberOrNull(data.weight),
+    remarks: text(data.remarks),
+    age: text(data.age) || null,
+    heightCm: toMeasure(data.height),
+    weightKg: toMeasure(data.weight),
   };
 }
 
-export function toAssessmentRecord(row: ApiAssessmentRow): ChildAssessmentRecord {
+export function toAssessmentRecord(value: unknown): ChildAssessmentRecord {
+  const row = (value && typeof value === 'object' ? value : {}) as Partial<
+    Record<keyof ApiAssessmentRow, unknown>
+  >;
   const sessions: SessionResult[] = [];
   for (const n of SESSION_NUMBERS) {
     const result = toSessionResult(row[`session_${n}`], n);
     if (result) sessions.push(result);
   }
   return {
-    childId: typeof row.child_id === 'number' ? row.child_id : null,
-    name: (row.name ?? '').trim(),
+    childId: toId(row.child_id),
+    name: text(row.name),
     sessions,
-    remarks: row.remarks?.trim() ?? '',
+    remarks: text(row.remarks),
   };
 }
 
@@ -75,11 +78,13 @@ export class AssessmentApi {
   forCompetency(anganwadiId: number, competencyId: number): Observable<ChildAssessmentRecord[]> {
     return this.http
       .get<unknown>(`${this.base}/assessments/anganwadi/${anganwadiId}/competency/${competencyId}`)
-      .pipe(map((body) => unwrapList<ApiAssessmentRow>(body).map(toAssessmentRecord)));
+      .pipe(map((body) => unwrapList<unknown>(body).map(toAssessmentRecord)));
   }
 
   /** POST /assessments/ (with the trailing slash the backend route uses). */
-  submit(submission: AssessmentSubmission): Observable<unknown> {
-    return this.http.post<unknown>(`${this.base}/assessments/`, submission);
+  submit(submission: AssessmentSubmission): Observable<void> {
+    return this.http
+      .post<unknown>(`${this.base}/assessments/`, submission)
+      .pipe(map(expectSuccess));
   }
 }

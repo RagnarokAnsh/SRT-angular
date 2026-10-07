@@ -31,6 +31,7 @@ import { NotifyService } from '@core/notify/notify';
 import { formatIsoDate, toIsoDate } from '@core/util/dates';
 import { createLoader } from '@shared/loader';
 import { CompetencyNamePipe, DomainNamePipe } from '@shared/pipes/catalog-pipes';
+import { PluralPipe } from '@shared/pipes/plural-pipe';
 import { CenterPicker } from '@shared/ui/center-picker';
 import { ErrorState } from '@shared/ui/error-state';
 import { LevelBadge } from '@shared/ui/level-badge';
@@ -70,6 +71,7 @@ interface Segment {
     TranslocoPipe,
     CompetencyNamePipe,
     DomainNamePipe,
+    PluralPipe,
     CenterPicker,
     ErrorState,
     LevelBadge,
@@ -160,6 +162,9 @@ export class DashboardPage {
     return data ? buildRows(data, this.sessionFilter(), this.domainFilter()) : [];
   });
 
+  /** Results stored with a value that isn't one of the four levels (older data). */
+  protected readonly hasOther = computed(() => this.rows().some((row) => row.other > 0));
+
   protected readonly groups = computed(() => {
     const groups: {
       domainId: number;
@@ -240,9 +245,16 @@ export class DashboardPage {
       .join(', ');
   }
 
-  protected childrenAt(row: CompetencyRow, level: Level | null): string[] {
+  /** Names with a result at `level`, with a result that isn't a level, or with none yet. */
+  protected childrenAt(row: CompetencyRow, level: Level | 'other' | 'none'): string[] {
     return row.children
-      .filter((c) => (level === null ? !c.result?.level : c.result?.level === level))
+      .filter(({ result }) =>
+        level === 'none'
+          ? !result
+          : level === 'other'
+            ? !!result && !result.level
+            : result?.level === level,
+      )
       .map((c) => c.child.name)
       .sort((a, b) => a.localeCompare(b));
   }

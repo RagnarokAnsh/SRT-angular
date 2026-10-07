@@ -22,6 +22,12 @@ describe('levels', () => {
     expect(parseLevel('-')).toBeNull();
   });
 
+  it('never reads names that every object has', () => {
+    for (const key of ['constructor', '__proto__', 'toString', 'hasOwnProperty']) {
+      expect(parseLevel(key)).toBeNull();
+    }
+  });
+
   it('round-trips every level through its API value', () => {
     for (const level of LEVELS) {
       expect(parseLevel(LEVEL_API_VALUE[level])).toBe(level);

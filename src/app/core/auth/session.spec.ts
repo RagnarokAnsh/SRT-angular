@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 
 import { fakeJwt, testUser, validToken } from '../../../testing/auth';
-import { SKEW_KEY, SessionStore, TOKEN_KEY, USER_KEY, normalizeUser } from './session';
+import { normalizeUser } from '../api/user-api';
+import { SKEW_KEY, SessionStore, TOKEN_KEY, USER_KEY } from './session';
 
 describe('SessionStore', () => {
   beforeEach(() => {

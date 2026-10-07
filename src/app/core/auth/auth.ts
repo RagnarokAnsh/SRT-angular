@@ -5,11 +5,12 @@ import { Observable, map } from 'rxjs';
 import { AuthApi } from '../api/auth-api';
 import { CompetencyApi } from '../api/competency-api';
 import { LocationCache } from '../api/location-cache';
+import { normalizeUser } from '../api/user-api';
 import type { ApiUser, LoginResponse } from '../models/user';
 import { clockSkewMs, isTokenUsable } from './jwt';
 import { safeReturnUrl } from './return-url';
 import { ROLE_HOME } from './roles';
-import { SessionStore, normalizeUser } from './session';
+import { SessionStore } from './session';
 
 export type LogoutReason = 'manual' | 'expired' | 'idle';
 

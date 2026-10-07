@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { TEST_API, setupHttpTesting } from '../../../testing/http';
 import type { ApiAssessmentRow, AssessmentSubmission } from '../models/assessment';
 import { AssessmentApi, toAssessmentRecord, toSessionResult } from './assessment-api';
+import { UnexpectedResponseError } from './parse';
 
 const row: ApiAssessmentRow = {
   name: 'Aarav Kumar',
@@ -61,6 +62,20 @@ describe('AssessmentApi', () => {
     expect(req.request.body).toEqual(submission);
     req.flush({ success: true });
   });
+
+  it('a 200 answer that says the save failed counts as a failure', async () => {
+    const result = firstValueFrom(api.submit({} as AssessmentSubmission));
+    http.expectOne(`${TEST_API}/assessments/`).flush({ status: false, message: 'Duplicate' });
+    await expect(result).rejects.toBeInstanceOf(UnexpectedResponseError);
+  });
+
+  it('accepts rows keyed 0, 1, 2… the way PHP sends an array with gaps', async () => {
+    const result = firstValueFrom(api.forCompetency(1, 2));
+    http
+      .expectOne(`${TEST_API}/assessments/anganwadi/1/competency/2`)
+      .flush({ '0': row, '2': { ...row, child_id: 3 } });
+    expect((await result).map((r) => r.childId)).toEqual([1, 3]);
+  });
 });
 
 describe('assessment mapping', () => {
@@ -79,6 +94,35 @@ describe('assessment mapping', () => {
 
   it('treats rows without child_id as unmatched', () => {
     expect(toAssessmentRecord({ ...row, child_id: undefined }).childId).toBeNull();
+  });
+
+  it('reads a child_id sent as a string, so the results still match the student', () => {
+    expect(toAssessmentRecord({ ...row, child_id: '12' }).childId).toBe(12);
+  });
+
+  it('copes with odd values without failing the whole list', () => {
+    const record = toAssessmentRecord({
+      ...row,
+      name: null,
+      remarks: 7,
+      session_1: {
+        observation: 'Beginning',
+        created_at: '2026-01-01',
+        remarks: 5,
+        age: {},
+        height: '0',
+        weight: '',
+      },
+    });
+    expect(record.name).toBe('');
+    expect(record.remarks).toBe('7');
+    expect(record.sessions[0]).toMatchObject({
+      remarks: '5',
+      age: null,
+      heightCm: null,
+      weightKg: null,
+    });
+    expect(toAssessmentRecord(null).sessions).toEqual([]);
   });
 
   it('ignores session objects missing an observation or timestamp', () => {
