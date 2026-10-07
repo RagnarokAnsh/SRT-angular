@@ -15,7 +15,7 @@ npm run build:demo     # → dist/demo/browser
 
 ## What the server must do
 
-1. **Send every unknown path to `index.html`**, so links like `/children/12/edit` work after a
+1. **Send every unknown path to `index.html`**, so links like `/students/12/edit` work after a
    refresh. Files that exist (scripts, images, fonts) are served as they are.
 2. **Cache correctly.** File names of scripts and styles contain a hash, so they can be cached
    for a year. `index.html` must not be cached, or users keep an old version after a deploy.

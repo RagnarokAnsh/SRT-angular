@@ -5,7 +5,7 @@ test.describe('dashboard', () => {
     await signIn(page, 'aww@demo.in');
     await page.goto('/dashboard');
     await expect(page.getByRole('img', { name: /Beginning: \d+/ }).first()).toBeVisible();
-    await expect(page.locator('.kpi', { hasText: 'Children' })).toContainText(/\d+/);
+    await expect(page.locator('.kpi', { hasText: 'Students' })).toContainText(/\d+/);
     await expectNoHorizontalScroll(page);
     await expectAccessible(page);
 

@@ -54,7 +54,7 @@ import { Skeleton } from '@shared/ui/skeleton';
             <span class="tile__value">{{ s.centers }}</span>
             <span class="tile__action">{{ 'admin.overview.manageCenters' | transloco }}</span>
           </a>
-          <a class="tile" routerLink="/children">
+          <a class="tile" routerLink="/students">
             <mat-icon class="tile__icon" svgIcon="children" aria-hidden="true" />
             <span class="tile__label">{{ 'admin.overview.children' | transloco }}</span>
             <span class="tile__value">{{ s.children }}</span>

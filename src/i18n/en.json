@@ -7,7 +7,7 @@
     "main": "Main",
     "home": "Home",
     "competencies": "Competencies",
-    "children": "Children",
+    "children": "Students",
     "dashboard": "Dashboard",
     "overview": "Overview",
     "users": "Users",
@@ -136,7 +136,7 @@
   "login": {
     "pageTitle": "Sign in",
     "artTitle": "Every child, ready for school",
-    "artSubtitle": "Observe, record and follow each child's progress across the domains of development.",
+    "artSubtitle": "Observe, record and follow each student's progress across the domains of development.",
     "heading": "Sign in",
     "subheading": "Use the email and password given to you by your administrator.",
     "email": "Email",
@@ -152,7 +152,7 @@
     "invalidCredentials": "The email or password is incorrect.",
     "invalidResponse": "The server's reply was incomplete, so you couldn't be signed in. Please try again.",
     "reasonExpired": "Your session expired. Please sign in again.",
-    "reasonIdle": "You were signed out after a period of inactivity, to keep children's data safe."
+    "reasonIdle": "You were signed out after a period of inactivity, to keep students' data safe."
   },
   "unauthorized": {
     "pageTitle": "No access",
@@ -407,7 +407,7 @@
   },
   "competencies": {
     "title": "Competencies",
-    "subtitle": "Choose a competency to see what to look for, watch activity ideas, and assess children.",
+    "subtitle": "Choose a competency to see what to look for, watch activity ideas, and assess students.",
     "search": "Search competencies",
     "count": {
       "one": "{{count}} competency",
@@ -419,7 +419,7 @@
   "competencyDetail": {
     "pageTitle": "Competency",
     "back": "All competencies",
-    "assess": "Assess children",
+    "assess": "Assess students",
     "prepare": "Get ready to assess",
     "levelsTitle": "Learning process",
     "levelsIntro": "Children move through four levels. Use these descriptions to decide which level best matches what you observe.",
@@ -443,18 +443,18 @@
     "pageTitle": "Assessment",
     "title": "Assess: {{name}}",
     "titleGeneric": "Assessment",
-    "subtitle": "Each child can be assessed in up to four sessions. The next session number is chosen for you.",
+    "subtitle": "Each student can be assessed in up to four sessions. The next session number is chosen for you.",
     "backToCompetency": "Back to the competency",
     "steps": "Steps",
-    "stepChoose": "Choose children",
+    "stepChoose": "Select students",
     "stepRecord": "Record the level",
     "noCenterTitle": "Your account isn't linked to a centre",
     "noCenterMessage": "Ask your administrator to link your account to your Anganwadi centre.",
-    "pickCenterIntro": "Choose the centre whose children you want to assess.",
+    "pickCenterIntro": "Choose the centre whose students you want to assess.",
     "center": "Centre",
-    "noChildren": "No children in this centre yet",
-    "noChildrenMessage": "Add children on the Children page, then come back to assess them.",
-    "search": "Search children",
+    "noChildren": "No students in this centre yet",
+    "noChildrenMessage": "Add students on the Students page, then come back to assess them.",
+    "search": "Search students",
     "filterLabel": "Show",
     "filterAll": "All ({{count}})",
     "filterTodo": "To assess ({{count}})",
@@ -468,61 +468,61 @@
     "notYet": "not yet",
     "history": "Earlier sessions for {{name}}",
     "measurementsShort": "{{height}} cm, {{weight}} kg",
-    "noMatch": "No children match your search.",
+    "noMatch": "No students match your search.",
     "selectedCount": {
-      "one": "{{count}} child selected",
-      "other": "{{count}} children selected"
+      "one": "{{count}} student selected",
+      "other": "{{count}} students selected"
     },
     "continue": "Continue",
     "recordingFor": {
-      "one": "Recording for {{count}} child",
-      "other": "Recording for {{count}} children"
+      "one": "Recording for {{count}} student",
+      "other": "Recording for {{count}} students"
     },
     "removeChild": "Remove {{name}}",
     "dateLine": "Assessment date: {{date}}",
     "chooseLevel": "Which level best describes what you observed?",
     "levelRequired": "Choose a level to continue.",
     "measurementsTitle": "Height and weight",
-    "measurementsIntro": "Measure each child today and enter the results.",
+    "measurementsIntro": "Measure each student today and enter the results.",
     "height": "Height",
     "weight": "Weight",
     "lastValue": "Last recorded: {{value}}",
     "remarksTitle": "Remarks (optional)",
     "remarks": "What did you notice?",
-    "remarksHint": "Saved with every selected child's result.",
+    "remarksHint": "Saved with every selected student's result.",
     "confirmTitle": "Save this assessment?",
     "confirmMessage": {
-      "one": "{{level}} will be recorded for {{count}} child. Saved results can't be changed here later.",
-      "other": "{{level}} will be recorded for {{count}} children. Saved results can't be changed here later."
+      "one": "{{level}} will be recorded for {{count}} student. Saved results can't be changed here later.",
+      "other": "{{level}} will be recorded for {{count}} students. Saved results can't be changed here later."
     },
     "save": "Save assessment",
     "saving": "Saving…",
     "retry": "Try again",
     "saved": {
-      "one": "Assessment saved for {{count}} child.",
-      "other": "Assessment saved for {{count}} children."
+      "one": "Assessment saved for {{count}} student.",
+      "other": "Assessment saved for {{count}} students."
     },
     "partlySaved": "Saved for {{saved}}; {{failed}} couldn't be saved.",
     "failedTitle": {
       "one": "{{count}} result couldn't be saved",
       "other": "{{count}} results couldn't be saved"
     },
-    "failedHint": "The other results were saved. Check your connection and try again for the children listed."
+    "failedHint": "The other results were saved. Check your connection and try again for the students listed."
   },
   "children": {
-    "title": "Children",
-    "subtitle": "Children registered at the centre",
+    "title": "Students",
+    "subtitle": "Students registered at the centre",
     "count": {
-      "one": "{{count}} child",
-      "other": "{{count}} children"
+      "one": "{{count}} student",
+      "other": "{{count}} students"
     },
-    "add": "Add child",
+    "add": "Add student",
     "search": "Search by name",
     "center": "Centre",
     "allCenters": "All centres",
-    "empty": "No children yet",
-    "emptyMessage": "Add the children of your centre to start assessing them.",
-    "noMatch": "No children match your search.",
+    "empty": "No students yet",
+    "emptyMessage": "Add the students of your centre to start assessing them.",
+    "noMatch": "No students match your search.",
     "symbolShort": "Symbol: {{symbol}}",
     "editLabel": "Edit {{name}}",
     "deleteLabel": "Delete {{name}}",
@@ -537,11 +537,11 @@
     }
   },
   "childForm": {
-    "addTitle": "Add a child",
-    "editTitle": "Edit child",
+    "addTitle": "Add a student",
+    "editTitle": "Edit student",
     "subtitle": "All fields are required.",
-    "back": "Children",
-    "aboutChild": "About the child",
+    "back": "Students",
+    "aboutChild": "About the student",
     "name": "Full name",
     "nameHint": "As used at the centre. Any language is fine.",
     "dateOfBirth": "Date of birth",
@@ -549,31 +549,31 @@
     "gender": "Gender",
     "language": "Home language",
     "symbol": "Symbol",
-    "symbolHint": "The picture or sign the child uses to find their things, e.g. Sun.",
+    "symbolHint": "The picture or sign the student uses to find their things, e.g. Sun.",
     "measurements": "Height and weight",
     "height": "Height",
     "weight": "Weight",
     "center": "Anganwadi centre",
     "yourCenter": "Your centre",
-    "noCenter": "Your account isn't linked to a centre, so children can't be added. Ask your administrator.",
+    "noCenter": "Your account isn't linked to a centre, so students can't be added. Ask your administrator.",
     "chooseCenter": "Choose a centre",
-    "add": "Add child",
+    "add": "Add student",
     "save": "Save changes",
     "saving": "Saving…",
     "added": "{{name}} was added.",
     "saved": "Changes to {{name}} were saved.",
-    "forbiddenTitle": "You can't edit this child",
-    "forbiddenMessage": "This child belongs to another centre.",
-    "duplicateTitle": "This child may already be registered",
+    "forbiddenTitle": "You can't edit this student",
+    "forbiddenMessage": "This student belongs to another centre.",
+    "duplicateTitle": "This student may already be registered",
     "duplicateMessage": "{{name}}, with the same date of birth, is already registered at this centre. Add another record anyway?",
     "addAnyway": "Add anyway"
   },
   "dashboard": {
     "title": "Dashboard",
-    "subtitle": "Progress of the children at your centre",
+    "subtitle": "Progress of the students at your centre",
     "pickCenterIntro": "Choose the centre whose progress you want to see.",
     "overview": "Overview",
-    "children": "Children",
+    "children": "Students",
     "boys": "Boys",
     "girls": "Girls",
     "boysGirls": "{{boys}} boys · {{girls}} girls",
@@ -586,8 +586,8 @@
     "filterSession": "Session",
     "sessionLatest": "Latest result",
     "sessionLatestShort": "Latest",
-    "chartTitle": "Children by level, per competency",
-    "chartLatest": "Each child's most recent result for each competency.",
+    "chartTitle": "Students by level, per competency",
+    "chartLatest": "Each student's most recent result for each competency.",
     "chartSession": "Results from {{session}} only.",
     "showTable": "Show as table",
     "showChart": "Show as chart",
@@ -614,7 +614,7 @@
       "age": "Age",
       "date": "date",
       "sheetSummary": "Summary",
-      "sheetChildren": "Children",
+      "sheetChildren": "Students",
       "sheetAssessments": "Assessments"
     }
   },
@@ -636,19 +636,19 @@
     "yourArea": "Your area",
     "reportsTitle": "Reports for your area",
     "reportsMessage": "Area-wide reports aren't available in the app yet. They will appear here once they are ready.",
-    "viewChildren": "View children",
+    "viewChildren": "View students",
     "viewFramework": "See the readiness framework"
   },
   "admin": {
     "overview": {
       "title": "Overview",
-      "subtitle": "Welcome, {{name}}. Manage accounts, centres and children.",
+      "subtitle": "Welcome, {{name}}. Manage accounts, centres and students.",
       "users": "Users",
       "centers": "Anganwadi centres",
-      "children": "Children",
+      "children": "Students",
       "manageUsers": "Manage users",
       "manageCenters": "Manage centres",
-      "viewChildren": "View children",
+      "viewChildren": "View students",
       "byRole": "Users by role"
     },
     "users": {
@@ -694,7 +694,7 @@
     },
     "centers": {
       "title": "Anganwadi centres",
-      "subtitle": "Centres where children are assessed",
+      "subtitle": "Centres where students are assessed",
       "count": {
         "one": "{{count}} centre",
         "other": "{{count}} centres"
@@ -708,7 +708,7 @@
       "editLabel": "Edit {{name}}",
       "deleteLabel": "Delete {{name}}",
       "deleteTitle": "Delete {{name}}?",
-      "deleteMessage": "Children and workers linked to this centre may lose their link to it. This can't be undone.",
+      "deleteMessage": "Students and workers linked to this centre may lose their link to it. This can't be undone.",
       "delete": "Delete centre",
       "deleted": "{{name}} was deleted.",
       "details": "Centre details",

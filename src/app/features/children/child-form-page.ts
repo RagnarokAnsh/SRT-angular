@@ -138,7 +138,7 @@ export class ChildFormPage implements HasUnsavedChanges {
   protected readonly ownCenterId = this.session.anganwadiId;
   protected readonly ownCenterName = computed(() => this.session.user()?.anganwadi?.name ?? null);
 
-  /** An address like /children/abc/edit points at nothing; don't ask the server. */
+  /** An address like /students/abc/edit points at nothing; don't ask the server. */
   protected readonly invalidId = computed(
     () => this.id() !== undefined && !isPositiveId(this.id()),
   );
@@ -294,7 +294,7 @@ export class ChildFormPage implements HasUnsavedChanges {
           this.notify.success(id === undefined ? 'childForm.added' : 'childForm.saved', {
             name: input.name,
           });
-          void this.router.navigate(['/children']);
+          void this.router.navigate(['/students']);
         },
         error: (error: unknown) => {
           this.saving.set(false);
@@ -311,7 +311,7 @@ export class ChildFormPage implements HasUnsavedChanges {
   }
 
   protected cancel(): void {
-    void this.router.navigate(['/children']);
+    void this.router.navigate(['/students']);
   }
 
   private fill(child: Child): void {

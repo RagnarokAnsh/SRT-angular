@@ -33,13 +33,13 @@ test.describe('in Hindi', () => {
 
     await page.goto('/dashboard');
     await expect(
-      page.getByRole('heading', { name: 'हर दक्षता में बच्चे, स्तर के अनुसार' }),
+      page.getByRole('heading', { name: 'हर दक्षता में विद्यार्थी, स्तर के अनुसार' }),
     ).toBeVisible();
     await expectNoHorizontalScroll(page);
     await expectAccessible(page);
 
-    await page.goto('/children/new');
-    await expect(page.getByRole('heading', { name: 'बच्चा जोड़ें' })).toBeVisible();
+    await page.goto('/students/new');
+    await expect(page.getByRole('heading', { name: 'विद्यार्थी जोड़ें' })).toBeVisible();
     await expectNoHorizontalScroll(page);
   });
 

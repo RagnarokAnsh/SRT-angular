@@ -31,21 +31,21 @@ export interface NavItem {
 export const ROLE_NAV: Record<RoleName, readonly NavItem[]> = {
   aww: [
     { path: '/competencies', labelKey: 'nav.competencies', icon: 'domains' },
-    { path: '/children', labelKey: 'nav.children', icon: 'children' },
+    { path: '/students', labelKey: 'nav.children', icon: 'children' },
     { path: '/dashboard', labelKey: 'nav.dashboard', icon: 'dashboard' },
   ],
   admin: [
     { path: '/admin', labelKey: 'nav.overview', icon: 'dashboard', exact: true },
     { path: '/admin/users', labelKey: 'nav.users', icon: 'users' },
     { path: '/admin/centers', labelKey: 'nav.centers', icon: 'center' },
-    { path: '/children', labelKey: 'nav.children', icon: 'children' },
+    { path: '/students', labelKey: 'nav.children', icon: 'children' },
   ],
   stateofficial: [{ path: '/state', labelKey: 'nav.home', icon: 'home' }],
   dpo: [{ path: '/dpo', labelKey: 'nav.home', icon: 'home' }],
   cdpo: [{ path: '/cdpo', labelKey: 'nav.home', icon: 'home' }],
   supervisor: [
     { path: '/supervisor', labelKey: 'nav.home', icon: 'home' },
-    { path: '/children', labelKey: 'nav.children', icon: 'children' },
+    { path: '/students', labelKey: 'nav.children', icon: 'children' },
   ],
 };
 

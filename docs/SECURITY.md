@@ -17,7 +17,7 @@ Severity: 🔴 high · 🟠 medium · 🟡 low.
 | Redirects | The `returnUrl` after sign-in only accepts paths inside the app. |
 | Input | Every field has type, length and character checks (see below). Server-side checks are still required. |
 | Transport | 🔴 The API is still plain `http://` (needs the server, see S1). |
-| Data exposure | 🔴 `GET /children` returns every centre's children (needs the server, see S2). |
+| Data exposure | 🔴 `GET /children` returns every centre's students (needs the server, see S2). |
 
 ## Fixed in the frontend
 
@@ -52,7 +52,7 @@ Severity: 🔴 high · 🟠 medium · 🟡 low.
 10. **Excel export.** Every exported value is written as a text or number cell, never as a
     formula, so names like `=HYPERLINK(...)` can't run anything when the file is opened.
 11. **Admins can't lock themselves out**: they can't delete their own account or change their own role.
-12. **Addresses with invalid ids** (`/children/abc/edit`) show "not found" without calling the API.
+12. **Addresses with invalid ids** (`/students/abc/edit`) show "not found" without calling the API.
 
 ## Validation (after the review)
 
@@ -70,7 +70,7 @@ Client-side checks keep data clean and give clear messages; the server must repe
 | | Height / weight | required, 30–200 cm / 5–50 kg, up to 2 decimals, no signs or exponents |
 | | Centre | workers: their own centre only; others: chosen from the list |
 | | — | warns before adding a second child with the same name and date of birth |
-| Assessment | Children | at least one, each with a session left (max 4) |
+| Assessment | Students | at least one, each with a session left (max 4) |
 | | Level | required, one of the four levels |
 | | Height / weight | (gross/fine motor) required for each child, same ranges as above |
 | | Remarks | optional, ≤ 500, no control characters |

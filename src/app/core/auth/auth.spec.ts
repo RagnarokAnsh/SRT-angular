@@ -62,12 +62,12 @@ describe('AuthService', () => {
 
   it('after an expiry, returns to login with the reason and the current page', async () => {
     const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-    vi.spyOn(router, 'url', 'get').mockReturnValue('/children?q=ram');
+    vi.spyOn(router, 'url', 'get').mockReturnValue('/students?q=ram');
     session.start(validToken(), testUser());
     auth.logout('expired');
     expect(session.isAuthenticated()).toBe(false);
     expect(navigate).toHaveBeenCalledWith(['/login'], {
-      queryParams: { reason: 'expired', returnUrl: '/children?q=ram' },
+      queryParams: { reason: 'expired', returnUrl: '/students?q=ram' },
     });
   });
 
@@ -89,7 +89,7 @@ describe('AuthService', () => {
     session.start(validToken(), testUser(['aww']));
     await auth.navigateAfterLogin('//evil.example');
     expect(navigateByUrl).toHaveBeenCalledWith('/competencies', { replaceUrl: true });
-    await auth.navigateAfterLogin('/children');
-    expect(navigateByUrl).toHaveBeenLastCalledWith('/children', { replaceUrl: true });
+    await auth.navigateAfterLogin('/students');
+    expect(navigateByUrl).toHaveBeenLastCalledWith('/students', { replaceUrl: true });
   });
 });

@@ -126,7 +126,7 @@ use the same merged data.
 - If the selection mixes finished and unfinished children, Submit is disabled with no explanation (the message is commented out).
 - Each submission is one request per child in parallel. If one fails, the worker is told everything failed, and retrying can create duplicate sessions for the children that did succeed.
 
-> **✅ Fixed.** Children with all 4 sessions are shown as done and can't be selected; the list has All / To do / Done filters. Results are sent at most 3 at a time; if some fail, the page names those children and **Try again** resends only them, so successful results are never duplicated. It is still one POST per child until the backend offers a batch call (I7).
+> **✅ Fixed.** Students with all 4 sessions are shown as done and can't be selected; the list has All / To do / Done filters. Results are sent at most 3 at a time; if some fail, the page names those students and **Try again** resends only them, so successful results are never duplicated. It is still one POST per student until the backend offers a batch call (I7).
 
 **A8 🟡 Business rules hard-coded in the UI**
 - Height/weight entry is tied to competency IDs 10 and 11 (`assessments.component.ts:997`).
@@ -207,7 +207,7 @@ The student form requires an Anganwadi, but only Anganwadi workers get one fille
 field to choose it, so **Save** stays disabled for everyone else. Supervisors are listed as allowed
 on `/students`, but the permission check sends them to "unauthorized".
 
-> **✅ Fixed.** Admins and supervisors choose the centre in the child form, and supervisors can open Children.
+> **✅ Fixed.** Admins and supervisors choose the centre in the student form, and supervisors can open Students.
 
 **B7 🟠 Five of the six role dashboards are placeholders**
 The admin, state, DPO, CDPO and supervisor dashboards just say "…-dashboard works!". Admins land on

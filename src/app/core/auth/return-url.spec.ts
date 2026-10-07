@@ -2,7 +2,7 @@ import { safeReturnUrl } from './return-url';
 
 describe('safeReturnUrl', () => {
   it('accepts in-app paths', () => {
-    expect(safeReturnUrl('/children')).toBe('/children');
+    expect(safeReturnUrl('/students')).toBe('/students');
     expect(safeReturnUrl(' /competencies/4?tab=2#top ')).toBe('/competencies/4?tab=2#top');
   });
 
@@ -12,7 +12,7 @@ describe('safeReturnUrl', () => {
     ['backslash inside', '/a\\b'],
     ['absolute URL', 'https://evil.example'],
     ['javascript URL', 'javascript:alert(1)'],
-    ['relative path', 'children'],
+    ['relative path', 'students'],
     ['login page', '/login'],
     ['login with query', '/login?returnUrl=/x'],
     ['line break', '/a\nb'],
@@ -24,6 +24,6 @@ describe('safeReturnUrl', () => {
 
   it('rejects non-strings', () => {
     expect(safeReturnUrl(undefined)).toBeNull();
-    expect(safeReturnUrl(['/children'])).toBeNull();
+    expect(safeReturnUrl(['/students'])).toBeNull();
   });
 });

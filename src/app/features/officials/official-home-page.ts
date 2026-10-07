@@ -46,7 +46,7 @@ import { PageHeader } from '@shared/ui/page-header';
         <p>{{ 'officials.reportsMessage' | transloco }}</p>
         <div class="actions">
           @if (session.hasAnyRole('supervisor')) {
-            <a mat-flat-button routerLink="/children">
+            <a mat-flat-button routerLink="/students">
               <mat-icon svgIcon="children" aria-hidden="true" />
               {{ 'officials.viewChildren' | transloco }}
             </a>

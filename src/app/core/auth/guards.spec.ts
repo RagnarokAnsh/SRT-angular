@@ -12,7 +12,7 @@ import { testUser, validToken } from '../../../testing/auth';
 import { authGuard, guestGuard, roleGuard } from './guards';
 import { SessionStore } from './session';
 
-function run(guard: CanActivateFn, url = '/children'): unknown {
+function run(guard: CanActivateFn, url = '/students'): unknown {
   return TestBed.runInInjectionContext(() =>
     guard({} as ActivatedRouteSnapshot, { url } as RouterStateSnapshot),
   );
@@ -34,7 +34,7 @@ describe('route guards', () => {
     result instanceof UrlTree ? router.serializeUrl(result) : result;
 
   it('authGuard sends signed-out users to login, remembering the page', () => {
-    expect(serialize(run(authGuard, '/children?q=a'))).toBe('/login?returnUrl=%2Fchildren%3Fq%3Da');
+    expect(serialize(run(authGuard, '/students?q=a'))).toBe('/login?returnUrl=%2Fstudents%3Fq%3Da');
     session.start(validToken(), testUser());
     expect(run(authGuard)).toBe(true);
   });

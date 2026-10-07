@@ -40,9 +40,8 @@ export const routes: Routes = [
   { path: 'assessments', pathMatch: 'full', redirectTo: 'competencies' },
   { path: 'aww', pathMatch: 'full', redirectTo: 'dashboard' },
   { path: 'aww/dashboard', pathMatch: 'full', redirectTo: 'dashboard' },
-  { path: 'students', pathMatch: 'full', redirectTo: 'children' },
-  { path: 'students/create', pathMatch: 'full', redirectTo: 'children/new' },
-  { path: 'students/edit/:id', pathMatch: 'full', redirectTo: 'children/:id/edit' },
+  { path: 'students/create', pathMatch: 'full', redirectTo: 'students/new' },
+  { path: 'students/edit/:id', pathMatch: 'full', redirectTo: 'students/:id/edit' },
   { path: 'admin/dashboard', pathMatch: 'full', redirectTo: 'admin' },
   { path: 'admin/anganwadi', pathMatch: 'full', redirectTo: 'admin/centers' },
   { path: 'admin/anganwadi/create', pathMatch: 'full', redirectTo: 'admin/centers/new' },
@@ -85,8 +84,9 @@ export const routes: Routes = [
       },
     ],
   },
+  // Students are "children" in the API (/children, child_id), so the code uses that name.
   {
-    path: 'children',
+    path: 'students',
     canActivate: [roleGuard('aww', 'admin', 'supervisor')],
     children: [
       {

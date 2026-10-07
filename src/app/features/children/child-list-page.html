@@ -8,7 +8,7 @@
         {{ 'children.subtitle' | transloco }}
       }
     </span>
-    <a pageActions mat-flat-button routerLink="/children/new">
+    <a pageActions mat-flat-button routerLink="/students/new">
       <mat-icon svgIcon="add" aria-hidden="true" />
       {{ 'children.add' | transloco }}
     </a>
@@ -24,7 +24,7 @@
       [title]="'children.empty' | transloco"
       [message]="'children.emptyMessage' | transloco"
     >
-      <a mat-flat-button routerLink="/children/new">
+      <a mat-flat-button routerLink="/students/new">
         <mat-icon svgIcon="add" aria-hidden="true" />
         {{ 'children.add' | transloco }}
       </a>
@@ -87,7 +87,7 @@
           <div class="row__actions">
             <a
               mat-icon-button
-              [routerLink]="['/children', child.id, 'edit']"
+              [routerLink]="['/students', child.id, 'edit']"
               [attr.aria-label]="'children.editLabel' | transloco: { name: child.name }"
             >
               <mat-icon svgIcon="edit" aria-hidden="true" />

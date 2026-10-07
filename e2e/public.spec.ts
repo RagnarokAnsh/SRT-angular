@@ -48,18 +48,18 @@ test.describe('public pages', () => {
   });
 
   test('returns to the requested page after signing in', async ({ page }) => {
-    await page.goto('/children');
-    await expect(page).toHaveURL(/\/login\?returnUrl=%2Fchildren/);
+    await page.goto('/students');
+    await expect(page).toHaveURL(/\/login\?returnUrl=%2Fstudents/);
     await page.getByLabel('Email').fill('aww@demo.in');
     await page.locator('input[formcontrolname=password]').fill('demo1234');
     await page.locator('button[type=submit]').click();
-    await expect(page).toHaveURL(/\/children$/);
+    await expect(page).toHaveURL(/\/students$/);
   });
 
   test('old addresses still work', async ({ page }) => {
     await signIn(page, 'aww@demo.in');
     await page.goto('/students/create');
-    await expect(page).toHaveURL(/\/children\/new$/);
+    await expect(page).toHaveURL(/\/students\/new$/);
     await page.goto('/select-competency');
     await expect(page).toHaveURL(/\/competencies$/);
   });

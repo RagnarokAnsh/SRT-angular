@@ -15,7 +15,7 @@ test.describe('Anganwadi worker', () => {
     await expectAccessible(page);
   });
 
-  test('assesses two children and sees their new session', async ({ page }) => {
+  test('assesses two students and sees their new session', async ({ page }) => {
     await page.goto('/competencies/3/assess'); // Number Concept: nobody assessed yet
     const rows = page.locator('.child');
     await expect(rows.first()).toBeVisible();
@@ -23,7 +23,7 @@ test.describe('Anganwadi worker', () => {
 
     await page.getByRole('checkbox', { name: /Aarav Kumar/ }).check();
     await page.getByRole('checkbox', { name: /Diya Sharma/ }).check();
-    await expect(page.getByText('2 children selected')).toBeVisible();
+    await expect(page.getByText('2 students selected')).toBeVisible();
     await page.getByRole('button', { name: 'Continue' }).click();
 
     await page.getByRole('button', { name: 'Save assessment' }).click();
@@ -35,7 +35,7 @@ test.describe('Anganwadi worker', () => {
     await page.getByRole('button', { name: 'Save assessment' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Save assessment' }).click();
 
-    await expect(page.getByText('Assessment saved for 2 children.')).toBeVisible();
+    await expect(page.getByText('Assessment saved for 2 students.')).toBeVisible();
     await expect(
       page.locator('.child', { hasText: 'Aarav Kumar' }).getByText('Next: session 2'),
     ).toBeVisible();
@@ -54,7 +54,7 @@ test.describe('Anganwadi worker', () => {
     await page.getByRole('textbox', { name: 'Weight' }).fill('13.4');
     await page.getByRole('button', { name: 'Save assessment' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Save assessment' }).click();
-    await expect(page.getByText('Assessment saved for 1 child.')).toBeVisible();
+    await expect(page.getByText('Assessment saved for 1 student.')).toBeVisible();
   });
 
   test('asks before leaving an unfinished assessment', async ({ page }) => {
@@ -66,8 +66,8 @@ test.describe('Anganwadi worker', () => {
     await expect(page).toHaveURL(/\/assess$/);
   });
 
-  test('adds a child with a Hindi name and warns about duplicates', async ({ page }) => {
-    await page.goto('/children/new');
+  test('adds a student with a Hindi name and warns about duplicates', async ({ page }) => {
+    await page.goto('/students/new');
     await page.getByLabel('Full name').fill('प्रिया शर्मा');
     await page.getByLabel('Date of birth').fill('2022-05-10');
     await page.getByRole('radio', { name: 'Girl' }).check();
@@ -76,11 +76,11 @@ test.describe('Anganwadi worker', () => {
     await page.getByRole('textbox', { name: 'Height' }).fill('95.5');
     await page.getByRole('textbox', { name: 'Weight' }).fill('13.2');
     await expectAccessible(page);
-    await page.getByRole('button', { name: 'Add child' }).click();
-    await expect(page).toHaveURL(/\/children$/);
+    await page.getByRole('button', { name: 'Add student' }).click();
+    await expect(page).toHaveURL(/\/students$/);
     await expect(page.getByRole('listitem').filter({ hasText: 'प्रिया शर्मा' })).toBeVisible();
 
-    await page.goto('/children/new');
+    await page.goto('/students/new');
     await page.getByLabel('Full name').fill('प्रिया  शर्मा');
     await page.getByLabel('Date of birth').fill('2022-05-10');
     await page.getByRole('radio', { name: 'Girl' }).check();
@@ -88,16 +88,16 @@ test.describe('Anganwadi worker', () => {
     await page.getByLabel('Symbol').fill('Leaf');
     await page.getByRole('textbox', { name: 'Height' }).fill('95');
     await page.getByRole('textbox', { name: 'Weight' }).fill('13');
-    await page.getByRole('button', { name: 'Add child' }).click();
-    await expect(page.getByRole('dialog')).toContainText('This child may already be registered');
+    await page.getByRole('button', { name: 'Add student' }).click();
+    await expect(page.getByRole('dialog')).toContainText('This student may already be registered');
   });
 
-  test('rejects impossible child details', async ({ page }) => {
-    await page.goto('/children/new');
+  test('rejects impossible student details', async ({ page }) => {
+    await page.goto('/students/new');
     await page.getByLabel('Full name').fill('R2D2');
     await page.getByLabel('Date of birth').fill('2010-01-01');
     await page.getByRole('textbox', { name: 'Height' }).fill('500');
-    await page.getByRole('button', { name: 'Add child' }).click();
+    await page.getByRole('button', { name: 'Add student' }).click();
     await expect(page.getByText("Use letters, spaces and . ' - only.")).toBeVisible();
     await expect(page.getByText('The child must be between 2 and 6 years old.')).toBeVisible();
     await expect(page.getByText('Enter a value from 30 to 200.')).toBeVisible();

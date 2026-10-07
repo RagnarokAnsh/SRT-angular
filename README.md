@@ -1,6 +1,6 @@
 # School Ready Children
 
-The web app for the School Readiness Tool. Anganwadi workers record how children aged 2–6 are
+The web app for the School Readiness Tool. Anganwadi workers record how their students (children aged 2–6) are
 doing on 17 competencies in 6 domains, four sessions each, and follow their centre's progress on
 a dashboard. Admins manage users and Anganwadi centres. The app is built for phones first and
 works in English and Hindi.
@@ -53,9 +53,9 @@ and a **Simulate server down** switch for trying out the error screens.
 
 | Role | Screens |
 |---|---|
-| Anganwadi worker | Competencies and assessments, the children of their centre, the centre dashboard |
-| Admin | Overview, users, centres and children |
-| Supervisor | Home page, children |
+| Anganwadi worker | Competencies and assessments, the students of their centre, the centre dashboard |
+| Admin | Overview, users, centres and students |
+| Supervisor | Home page, students |
 | CDPO, DPO, State official | A home page for their area (reports for these roles need summary data from the backend) |
 
 Roles, navigation and home pages are configured in one place: `src/app/core/auth/roles.ts`.
@@ -72,7 +72,7 @@ src/
     features/
       public/        home page with the readiness wheel, login, not found, unauthorized
       competencies/  competency list and details, the assessment flow
-      children/      children list and form
+      children/      students list and form (the API calls students "children")
       dashboard/     centre dashboard and Excel export
       admin/         overview, users, centres
       officials/     home page for state, DPO, CDPO and supervisor users
@@ -118,7 +118,7 @@ To add a language, for example Tamil:
 ## Tests
 
 - **Unit tests** (Vitest, run with `npm test`) cover the business rules: age, session numbering,
-  matching results to children, dashboard counts, the Excel export, validators and API mapping.
+  matching results to students, dashboard counts, the Excel export, validators and API mapping.
   They also cover sign-in, guards, interceptors and the translation files. They run in the
   Asia/Kolkata time zone so that date bugs show up.
 - **End-to-end tests** (Playwright, run with `npm run e2e`) start the demo app on port 4300. They
@@ -133,9 +133,9 @@ The API address is set in `src/environments/environment.ts` (development) and
 `environment.prod.ts` (production). The app sends the same requests and fields as the old one, so
 it can be deployed without backend changes. Before it goes live, the backend still needs:
 
-1. **HTTPS.** Logins and children's data currently travel over plain HTTP.
+1. **HTTPS.** Logins and students' data currently travel over plain HTTP.
 2. **`GET /children` limited** to the caller's centre or area. Today every worker's device
-   receives every child.
+   receives every student.
 3. **Role checks on every endpoint.** The app hides screens, but only the server can enforce
    access.
 
