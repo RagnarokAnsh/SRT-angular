@@ -3,12 +3,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslocoPipe } from '@jsverse/transloco';
 
-import { CenterApi } from '@core/api/center-api';
+import { AccessService } from '@core/auth/access';
 import { createLoader } from '@shared/loader';
 
 import { ErrorState } from './error-state';
 
-/** Lets users without a centre of their own (administrators) choose one. */
+/** Lets users without a centre of their own choose one of the centres they may see. */
 @Component({
   selector: 'app-center-picker',
   imports: [MatFormFieldModule, MatSelectModule, TranslocoPipe, ErrorState],
@@ -25,6 +25,9 @@ import { ErrorState } from './error-state';
               <mat-option [value]="center.id">{{ center.name }} ({{ center.code }})</mat-option>
             }
           </mat-select>
+          @if (centers.loading() && !centers.data()) {
+            <mat-hint>{{ 'common.loading' | transloco }}</mat-hint>
+          }
         </mat-form-field>
       }
     </div>
@@ -43,6 +46,6 @@ export class CenterPicker {
   readonly value = input<number | null>(null);
   readonly picked = output<number>();
 
-  private readonly api = inject(CenterApi);
-  protected readonly centers = createLoader(() => this.api.list());
+  private readonly access = inject(AccessService);
+  protected readonly centers = createLoader(() => this.access.visibleCenters());
 }

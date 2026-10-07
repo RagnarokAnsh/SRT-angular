@@ -53,6 +53,14 @@ Severity: 🔴 high · 🟠 medium · 🟡 low.
     formula, so names like `=HYPERLINK(...)` can't run anything when the file is opened.
 11. **Admins can't lock themselves out**: they can't delete their own account or change their own role.
 12. **Addresses with invalid ids** (`/students/abc/edit`) show "not found" without calling the API.
+13. **Every screen shows only what the role may see** (`core/auth/access.ts`). Admins see every
+    centre; Anganwadi workers only their own centre, and nothing if their account has no centre;
+    supervisors only the centres in their sector (matched on district, project and sector). This
+    covers the student list, opening a student by address, the centre choices when adding a
+    student, the dashboard and the assessment page. Each role's pages are also guarded, so typing
+    another role's address leads to "unauthorized". Both are tested end to end for every demo
+    role. This is a convenience, not protection: the API still sends every centre's students
+    (S2) and must check roles itself (S3).
 
 ## Validation (after the review)
 

@@ -10,7 +10,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { filter, switchMap } from 'rxjs';
 
 import { ChildApi } from '@core/api/child-api';
-import { SessionStore } from '@core/auth/session';
+import { AccessService } from '@core/auth/access';
 import type { Child } from '@core/models/child';
 import { NotifyService } from '@core/notify/notify';
 import { initials } from '@shared/initials';
@@ -48,20 +48,18 @@ import { genderKey } from './child-labels';
 })
 export class ChildListPage {
   private readonly api = inject(ChildApi);
-  private readonly session = inject(SessionStore);
+  private readonly access = inject(AccessService);
   private readonly notify = inject(NotifyService);
   private readonly dialog = inject(MatDialog);
 
-  /** Workers see their own centre; administrators and supervisors see every child sent. */
-  protected readonly ownCenterId = this.session.anganwadiId;
-  protected readonly isWorker = computed(() => this.session.primaryRole() === 'aww');
+  /** Workers see their own centre, supervisors their area, administrators everyone. */
+  protected readonly isWorker = this.access.worksInOwnCenter;
+  /** A worker whose account isn't linked to a centre can't see or add anyone. */
+  protected readonly unlinked = computed(
+    () => this.isWorker() && this.access.ownCenterId() === null,
+  );
 
-  protected readonly loader = createLoader(() => {
-    const centerId = this.ownCenterId();
-    return this.isWorker() && centerId !== null
-      ? this.api.listForCenter(centerId)
-      : this.api.list();
-  });
+  protected readonly loader = createLoader(() => this.access.visibleChildren());
 
   protected readonly query = signal('');
   protected readonly centerFilter = signal<number | null>(null);

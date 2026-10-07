@@ -2,7 +2,9 @@ import { Injectable, signal } from '@angular/core';
 
 import { type DemoData, createDemoData } from './demo-fixtures';
 
-const DATA_KEY = 'srt-demo-data-v1';
+/** Bumped when the sample data changes, so returning visitors get the new data. */
+const DATA_KEY = 'srt-demo-data-v2';
+const OLD_DATA_KEYS = ['srt-demo-data-v1'];
 const OFFLINE_KEY = 'srt-demo-offline';
 
 /** Demo-mode data, kept in this browser's localStorage. */
@@ -41,6 +43,7 @@ export class DemoDb {
 
   private load(): DemoData {
     try {
+      for (const key of OLD_DATA_KEYS) localStorage.removeItem(key);
       const stored = localStorage.getItem(DATA_KEY);
       if (stored) return JSON.parse(stored) as DemoData;
     } catch {

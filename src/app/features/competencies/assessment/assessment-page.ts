@@ -33,7 +33,7 @@ import { filter, forkJoin, of, switchMap } from 'rxjs';
 import { AssessmentApi } from '@core/api/assessment-api';
 import { ChildApi } from '@core/api/child-api';
 import { CompetencyApi } from '@core/api/competency-api';
-import { SessionStore } from '@core/auth/session';
+import { AccessService } from '@core/auth/access';
 import { isKnownCompetency, needsMeasurements } from '@core/catalog/media';
 import { CHILD_LIMITS } from '@core/models/child';
 import { LEVELS, type Level } from '@core/models/level';
@@ -113,7 +113,7 @@ export class AssessmentPage implements HasUnsavedChanges {
   private readonly competencyApi = inject(CompetencyApi);
   private readonly childApi = inject(ChildApi);
   private readonly assessmentApi = inject(AssessmentApi);
-  private readonly session = inject(SessionStore);
+  private readonly access = inject(AccessService);
   private readonly notify = inject(NotifyService);
   private readonly dialog = inject(MatDialog);
   private readonly transloco = inject(TranslocoService);
@@ -129,11 +129,12 @@ export class AssessmentPage implements HasUnsavedChanges {
   protected readonly heightRange = HEIGHT_RANGE;
   protected readonly weightRange = WEIGHT_RANGE;
 
-  // Which centre: the worker's own, or one chosen by an administrator.
-  protected readonly ownCenterId = this.session.anganwadiId;
-  protected readonly isWorker = computed(() => this.session.primaryRole() === 'aww');
+  // Which centre: the worker's own, or one an administrator chose from the centres they may see.
+  protected readonly isWorker = this.access.worksInOwnCenter;
   protected readonly pickedCenterId = signal<number | null>(null);
-  protected readonly centerId = computed(() => this.ownCenterId() ?? this.pickedCenterId());
+  protected readonly centerId = computed(() =>
+    this.isWorker() ? this.access.ownCenterId() : this.pickedCenterId(),
+  );
 
   protected readonly competency = createLoader(() => this.competencyApi.competency(this.id()), {
     lazy: true,

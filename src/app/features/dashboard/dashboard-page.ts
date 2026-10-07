@@ -19,6 +19,7 @@ import { from, forkJoin, map, mergeMap, of, switchMap, toArray } from 'rxjs';
 import { AssessmentApi } from '@core/api/assessment-api';
 import { ChildApi } from '@core/api/child-api';
 import { CompetencyApi } from '@core/api/competency-api';
+import { AccessService } from '@core/auth/access';
 import { SessionStore } from '@core/auth/session';
 import { CatalogText } from '@core/catalog/catalog-text';
 import { domainColors } from '@core/catalog/framework';
@@ -84,6 +85,7 @@ export class DashboardPage {
   private readonly childApi = inject(ChildApi);
   private readonly assessmentApi = inject(AssessmentApi);
   private readonly session = inject(SessionStore);
+  private readonly access = inject(AccessService);
   private readonly transloco = inject(TranslocoService);
   private readonly language = inject(LanguageService);
   private readonly catalog = inject(CatalogText);
@@ -92,10 +94,12 @@ export class DashboardPage {
   protected readonly levels = LEVELS;
   protected readonly sessionOptions: SessionFilter[] = ['latest', 1, 2, 3, 4];
 
-  protected readonly ownCenterId = this.session.anganwadiId;
-  protected readonly isWorker = computed(() => this.session.primaryRole() === 'aww');
+  /** Workers see their own centre; administrators choose one of the centres they may see. */
+  protected readonly isWorker = this.access.worksInOwnCenter;
   protected readonly pickedCenterId = signal<number | null>(null);
-  protected readonly centerId = computed(() => this.ownCenterId() ?? this.pickedCenterId());
+  protected readonly centerId = computed(() =>
+    this.isWorker() ? this.access.ownCenterId() : this.pickedCenterId(),
+  );
 
   protected readonly loader = createLoader(
     () => {

@@ -2,19 +2,28 @@
   <app-page-header>
     <span pageTitle>{{ 'children.title' | transloco }}</span>
     <span pageSubtitle>
-      @if (loader.data(); as all) {
+      @if (!unlinked() && loader.data(); as all) {
         {{ 'children.count' | plural: all.length }}
       } @else {
         {{ 'children.subtitle' | transloco }}
       }
     </span>
-    <a pageActions mat-flat-button routerLink="/students/new">
-      <mat-icon svgIcon="add" aria-hidden="true" />
-      {{ 'children.add' | transloco }}
-    </a>
+    @if (!unlinked()) {
+      <a pageActions mat-flat-button routerLink="/students/new">
+        <mat-icon svgIcon="add" aria-hidden="true" />
+        {{ 'children.add' | transloco }}
+      </a>
+    }
   </app-page-header>
 
-  @if (loader.error(); as error) {
+  @if (unlinked()) {
+    <app-state-message
+      icon="center"
+      tone="error"
+      [title]="'assessment.noCenterTitle' | transloco"
+      [message]="'assessment.noCenterMessage' | transloco"
+    />
+  } @else if (loader.error(); as error) {
     <app-error-state [error]="error" (retry)="loader.reload()" />
   } @else if (loader.loading() && !loader.data()) {
     <app-skeleton variant="rows" [count]="6" />

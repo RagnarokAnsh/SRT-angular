@@ -29,6 +29,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { map, of, startWith } from 'rxjs';
 
 import { CenterApi } from '@core/api/center-api';
+import { centerInArea } from '@core/auth/access';
 import { LocationCache } from '@core/api/location-cache';
 import { UserApi } from '@core/api/user-api';
 import { ROLE_LOCATION_DEPTH, ROLE_PRIORITY } from '@core/auth/roles';
@@ -165,12 +166,18 @@ export class UserFormPage implements HasUnsavedChanges {
   );
   protected readonly centers = createLoader(() => this.centerApi.list(), { lazy: true });
 
-  /** Centres in the chosen district, project and sector. */
+  /** Centres in the chosen district, project and sector (the same check that scopes access). */
   protected readonly centerOptions = computed(() => {
     const v = this.value();
-    return (this.centers.data() ?? []).filter(
-      (c) => c.district_id === v.district_id && c.project === v.project && c.sector === v.sector,
-    );
+    const area = {
+      depth: 5,
+      countryId: v.country_id,
+      stateId: v.state_id,
+      districtId: v.district_id,
+      project: v.project,
+      sector: v.sector,
+    };
+    return (this.centers.data() ?? []).filter((center) => centerInArea(center, area));
   });
 
   constructor() {

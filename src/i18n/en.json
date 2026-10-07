@@ -555,7 +555,7 @@
     "weight": "Weight",
     "center": "Anganwadi centre",
     "yourCenter": "Your centre",
-    "noCenter": "Your account isn't linked to a centre, so students can't be added. Ask your administrator.",
+    "noCenter": "You can't add or edit students until your account is linked to your Anganwadi centre. Ask your administrator.",
     "chooseCenter": "Choose a centre",
     "add": "Add student",
     "save": "Save changes",

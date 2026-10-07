@@ -237,6 +237,14 @@ export function createDemoData(): DemoData {
         country_id: 1,
         state_id: 1,
       }),
+      // A worker whose account was never linked to a centre (sees no students).
+      user(8, 'Neha Kumari', 'aww3@demo.in', 'aww', 'female', {
+        country_id: 1,
+        state_id: 1,
+        district_id: 1,
+        project: 'Sanganer',
+        sector: 'Sector 2',
+      }),
     ],
     centers: [
       {

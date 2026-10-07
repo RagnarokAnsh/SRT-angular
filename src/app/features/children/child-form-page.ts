@@ -30,8 +30,8 @@ import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { catchError, filter, map, of, startWith, switchMap, tap } from 'rxjs';
 
-import { CenterApi } from '@core/api/center-api';
 import { ChildApi } from '@core/api/child-api';
+import { AccessService } from '@core/auth/access';
 import { SessionStore } from '@core/auth/session';
 import {
   CHILD_GENDERS,
@@ -112,7 +112,7 @@ const SERVER_FIELDS: Record<string, string> = {
 })
 export class ChildFormPage implements HasUnsavedChanges {
   private readonly childApi = inject(ChildApi);
-  private readonly centerApi = inject(CenterApi);
+  private readonly access = inject(AccessService);
   private readonly session = inject(SessionStore);
   private readonly notify = inject(NotifyService);
   private readonly router = inject(Router);
@@ -134,9 +134,12 @@ export class ChildFormPage implements HasUnsavedChanges {
   protected readonly earliestBirth = addYears(this.today, -(CHILD_LIMITS.ageMax + 2));
 
   protected readonly isEdit = computed(() => this.id() !== undefined);
-  protected readonly isWorker = computed(() => this.session.primaryRole() === 'aww');
-  protected readonly ownCenterId = this.session.anganwadiId;
+  /** Workers add students to their own centre; others choose one of the centres they may see. */
+  protected readonly isWorker = this.access.worksInOwnCenter;
+  protected readonly ownCenterId = this.access.ownCenterId;
   protected readonly ownCenterName = computed(() => this.session.user()?.anganwadi?.name ?? null);
+  /** A worker whose account isn't linked to a centre can't add or edit anyone. */
+  protected readonly unlinked = computed(() => this.isWorker() && this.ownCenterId() === null);
 
   /** An address like /students/abc/edit points at nothing; don't ask the server. */
   protected readonly invalidId = computed(
@@ -150,12 +153,25 @@ export class ChildFormPage implements HasUnsavedChanges {
     },
     { lazy: true },
   );
-  protected readonly centers = createLoader(() => this.centerApi.list(), { lazy: true });
+  protected readonly centers = createLoader(() => this.access.visibleCenters(), { lazy: true });
 
-  /** A worker may only edit children of their own centre. */
+  /**
+   * Supervisors and officials may only open students of the centres in their area, so when
+   * editing, their centre list is needed before the form can be shown.
+   */
+  protected readonly needsCenters = computed(
+    () => this.isEdit() && this.access.scope().kind === 'area',
+  );
+
+  /** Only students the user may see can be edited (workers: their centre; others: their area). */
   protected readonly forbidden = computed(() => {
     const child = this.existing.data();
-    return !!child && this.isWorker() && child.anganwadiId !== this.ownCenterId();
+    if (!child) return false;
+    const scope = this.access.scope();
+    if (scope.kind === 'all') return false;
+    if (scope.kind === 'center') return child.anganwadiId !== scope.centerId;
+    const centers = this.centers.data();
+    return !!centers && !centers.some((center) => center.id === child.anganwadiId);
   });
 
   protected readonly saving = signal(false);
@@ -211,8 +227,8 @@ export class ChildFormPage implements HasUnsavedChanges {
       const centerId = this.ownCenterId();
       const worker = this.isWorker();
       untracked(() => {
-        if (worker && centerId !== null) this.form.controls.anganwadiId.setValue(centerId);
-        else this.centers.reload();
+        if (!worker) this.centers.reload();
+        else if (centerId !== null) this.form.controls.anganwadiId.setValue(centerId);
       });
     });
     effect(() => {

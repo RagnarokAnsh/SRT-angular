@@ -12,9 +12,18 @@
       [title]="'notFound.heading' | transloco"
       [message]="'notFound.message' | transloco"
     />
+  } @else if (unlinked()) {
+    <app-state-message
+      icon="center"
+      tone="error"
+      [title]="'assessment.noCenterTitle' | transloco"
+      [message]="'childForm.noCenter' | transloco"
+    />
   } @else if (existing.error(); as error) {
     <app-error-state [error]="error" (retry)="existing.reload()" />
-  } @else if (isEdit() && existing.loading()) {
+  } @else if (needsCenters() && centers.error(); as error) {
+    <app-error-state [error]="error" (retry)="centers.reload()" />
+  } @else if ((isEdit() && existing.loading()) || (needsCenters() && !centers.data())) {
     <app-skeleton variant="lines" [count]="8" />
   } @else if (forbidden()) {
     <app-state-message
@@ -135,14 +144,10 @@
 
       <fieldset class="group">
         <legend class="group__title">{{ 'childForm.center' | transloco }}</legend>
-        @if (isWorker() && ownCenterId() !== null) {
+        @if (isWorker()) {
           <p class="fixed-center">
             <mat-icon svgIcon="center" aria-hidden="true" />
             {{ ownCenterName() ?? ('childForm.yourCenter' | transloco) }}
-          </p>
-        } @else if (isWorker()) {
-          <p class="fixed-center fixed-center--error" role="alert">
-            {{ 'childForm.noCenter' | transloco }}
           </p>
         } @else if (centers.error(); as error) {
           <app-error-state [error]="error" (retry)="centers.reload()" />
@@ -154,6 +159,9 @@
                 <mat-option [value]="center.id">{{ center.name }} ({{ center.code }})</mat-option>
               }
             </mat-select>
+            @if (centers.loading() && !centers.data()) {
+              <mat-hint>{{ 'common.loading' | transloco }}</mat-hint>
+            }
             <mat-error>{{ form.controls.anganwadiId.errors | validationMessage }}</mat-error>
           </mat-form-field>
         }

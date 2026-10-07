@@ -23,7 +23,7 @@ fills in the form):
 
 | Role | Email |
 |---|---|
-| Anganwadi worker | `aww@demo.in` (a second centre: `aww2@demo.in`) |
+| Anganwadi worker | `aww@demo.in` (a second centre: `aww2@demo.in`; not linked to any centre: `aww3@demo.in`) |
 | Admin | `admin@demo.in` |
 | Supervisor | `supervisor@demo.in` |
 | CDPO / DPO / State official | `cdpo@demo.in` / `dpo@demo.in` / `state@demo.in` |
@@ -55,10 +55,14 @@ and a **Simulate server down** switch for trying out the error screens.
 |---|---|
 | Anganwadi worker | Competencies and assessments, the students of their centre, the centre dashboard |
 | Admin | Overview, users, centres and students |
-| Supervisor | Home page, students |
+| Supervisor | Home page, and the students of the centres in their sector |
 | CDPO, DPO, State official | A home page for their area (reports for these roles need summary data from the backend) |
 
 Roles, navigation and home pages are configured in one place: `src/app/core/auth/roles.ts`.
+Which centres each user may see is decided in `src/app/core/auth/access.ts`: everything for
+admins, their own centre for workers (nothing if their account has no centre), and the centres
+in their area for supervisors. The API currently returns every centre's students, so the app
+filters them; the server must enforce the same rules (see `docs/SECURITY.md`).
 
 ## Project structure
 
