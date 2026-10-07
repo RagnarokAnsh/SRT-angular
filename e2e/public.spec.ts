@@ -24,6 +24,37 @@ test.describe('public pages', () => {
     await expectAccessible(page);
   });
 
+  for (const lang of ['en', 'hi'] as const) {
+    test.describe(`in ${lang}`, () => {
+      test.use({ lang });
+
+      test('wheel labels are large and upright on phones, and tapping one opens it', async ({
+        page,
+      }) => {
+        await page.goto('/home');
+        const wheel = page.locator('app-readiness-wheel svg.wheel__svg');
+        await wheel.scrollIntoViewIfNeeded();
+        await page.evaluate(() => document.fonts.ready);
+        const labels = await wheel.evaluate((svg) => {
+          const scale = svg.getBoundingClientRect().width / 500;
+          return [...svg.querySelectorAll('.label--domain')].map((text) => ({
+            px: Number(text.getAttribute('font-size')) * scale,
+            curved: !!text.querySelector('textPath'),
+          }));
+        });
+        expect(labels.length).toBeGreaterThanOrEqual(6);
+        // Never smaller than 14 px, on any screen.
+        expect(Math.min(...labels.map((l) => l.px))).toBeGreaterThanOrEqual(14);
+        const phone = (page.viewportSize()?.width ?? 0) < 500;
+        if (phone) expect(labels.some((l) => l.curved)).toBe(false);
+
+        await wheel.locator('.domain[data-domain="2"] .segment--domain').click();
+        await expect(page.locator('app-readiness-wheel .panel h3')).toBeFocused();
+        await expect(page.locator('.domain.is-dimmed')).toHaveCount(5);
+      });
+    });
+  }
+
   test('switches to Hindi and remembers the choice', async ({ page }) => {
     await page.goto('/home');
     await page.getByRole('button', { name: /Change language/ }).click();

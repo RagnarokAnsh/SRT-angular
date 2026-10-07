@@ -23,10 +23,12 @@ import { scrollToElement } from '@shared/scroll';
 import { TextMeasurer } from '@shared/text-measurer';
 
 import {
+  type Point,
   arcLength,
   fitFontSize,
   isLowerHalf,
   labelLines,
+  placeBox,
   polar,
   radialRotation,
   ringSegmentPath,
@@ -38,8 +40,11 @@ type Layout = 'compact' | 'full';
 interface LayoutSpec {
   hub: number;
   domainRing: readonly [number, number];
-  competencyRing: readonly [number, number];
+  /** null: no competency ring (competencies are named in the panel instead). */
+  competencyRing: readonly [number, number] | null;
   hubFont: number;
+  /** `flat`: upright labels inside each segment, easiest to read; `curved`: along the ring. */
+  domainLabels: 'flat' | 'curved';
   domainFont: number;
   domainMinFont: number;
   /** 0: no labels on the competency ring (too narrow to read). */
@@ -53,23 +58,26 @@ const CENTER = SIZE / 2;
 const FULL_LAYOUT_MIN_PX = 470;
 
 const LAYOUTS: Record<Layout, LayoutSpec> = {
-  // Phones: a wide domain ring with big labels; competencies are a thin colour band and
-  // are named in the panel instead.
+  // Phones: the domain ring fills the wheel and its labels stay upright and large;
+  // competencies are named in the panel when a domain is chosen.
   compact: {
-    hub: 84,
-    domainRing: [90, 226],
-    competencyRing: [232, 246],
+    hub: 74,
+    domainRing: [79, 246],
+    competencyRing: null,
     hubFont: 27,
-    domainFont: 30,
-    domainMinFont: 21,
+    domainLabels: 'flat',
+    domainFont: 34,
+    domainMinFont: 18,
     competencyFont: 0,
     competencyMinFont: 0,
   },
+  // Wider screens: domains in an inner ring, every competency named on the outer ring.
   full: {
     hub: 56,
     domainRing: [62, 138],
     competencyRing: [144, 240],
     hubFont: 18,
+    domainLabels: 'curved',
     domainFont: 17,
     domainMinFont: 12,
     competencyFont: 13.5,
@@ -80,6 +88,10 @@ const LAYOUTS: Record<Layout, LayoutSpec> = {
 const DOMAIN_SPAN = 360 / FRAMEWORK.length;
 const ARC_PADDING_DEG = 2;
 const RADIAL_PADDING = 8;
+/** Space between a flat label and the edges of its segment. */
+const FLAT_PADDING = 7;
+/** Canvas and SVG text widths can differ slightly; leave a little room. */
+const WIDTH_SAFETY = 1.04;
 
 interface TextLine {
   text: string;
@@ -95,7 +107,8 @@ interface DomainLabel {
 interface CompetencyView {
   slug: string;
   name: string;
-  path: string;
+  /** null when the layout has no competency ring. */
+  path: string | null;
   label: { transform: string; lines: TextLine[] } | null;
 }
 
@@ -106,8 +119,19 @@ interface DomainView {
   color: string;
   tint: string;
   path: string;
+  /** Curved labels (one text path per line). */
   labels: DomainLabel[];
+  /** Upright label lines, centred on `x`. */
+  flat: { x: number; lines: TextLine[] } | null;
   competencies: CompetencyView[];
+}
+
+interface FlatBlock {
+  lines: string[];
+  /** Per unit of font size. */
+  width: number;
+  ascent: number;
+  descent: number;
 }
 
 let nextId = 0;
@@ -242,17 +266,9 @@ export class ReadinessWheel {
     );
     const hub = this.stackLines(hubLines, hubFont, CENTER);
 
-    // Domain labels: fit every line on its arc, then share one size across the ring.
+    // Domain labels
     const [d1, d2] = spec.domainRing;
     const domainMid = (d1 + d2) / 2;
-    const lineRadii = (lines: number, font: number, lower: boolean): number[] => {
-      if (lines < 2) return [domainMid];
-      const offset = font * 0.62;
-      // Upper half: the first line is outermost; lower half (flipped text): innermost.
-      return lower
-        ? [domainMid - offset, domainMid + offset]
-        : [domainMid + offset, domainMid - offset];
-    };
     const domainLines = FRAMEWORK.map((domain, index) => {
       const mid = index * DOMAIN_SPAN;
       return {
@@ -262,62 +278,99 @@ export class ReadinessWheel {
         lines: labelLines(t(`catalog.domains.${domain.slug}.wheel`)),
       };
     });
+    // Curved labels: lines sit on concentric arcs.
+    const lineRadii = (lines: number, font: number, lower: boolean): number[] => {
+      if (lines < 2) return [domainMid];
+      const offset = font * 0.62;
+      // Upper half: the first line is outermost; lower half (flipped text): innermost.
+      return lower
+        ? [domainMid - offset, domainMid + offset]
+        : [domainMid + offset, domainMid - offset];
+    };
+    const flat =
+      spec.domainLabels === 'flat'
+        ? this.fitFlatLabels(
+            domainLines.map(({ lines }) => this.flatBlock(lines)),
+            spec,
+          )
+        : null;
     const usableDeg = DOMAIN_SPAN - 2 * ARC_PADDING_DEG;
-    const domainFont = fitFontSize(
-      domainLines.flatMap(({ lines, lower }) => {
-        const radii = lineRadii(lines.length, spec.domainFont, lower);
-        return lines.map((text, i) => ({ text, maxWidth: arcLength(radii[i], usableDeg) * 0.94 }));
-      }),
-      spec.domainFont,
-      spec.domainMinFont,
-      measure,
-    );
-
-    // Competency labels run along the radius (full layout only).
-    const [c1, c2] = spec.competencyRing;
-    const competencyMid = (c1 + c2) / 2;
-    const competencyLines = FRAMEWORK.flatMap((domain) =>
-      domain.competencies.map((slug) => labelLines(t(`catalog.competencies.${slug}.wheel`))),
-    );
-    const competencyFont = spec.competencyFont
-      ? fitFontSize(
-          competencyLines.flat().map((text) => ({ text, maxWidth: c2 - c1 - 2 * RADIAL_PADDING })),
-          spec.competencyFont,
-          spec.competencyMinFont,
+    const domainFont = flat
+      ? flat.font
+      : fitFontSize(
+          domainLines.flatMap(({ lines, lower }) => {
+            const radii = lineRadii(lines.length, spec.domainFont, lower);
+            return lines.map((text, i) => ({
+              text,
+              maxWidth: arcLength(radii[i], usableDeg) * 0.94,
+            }));
+          }),
+          spec.domainFont,
+          spec.domainMinFont,
           measure,
-        )
-      : 0;
+        );
+
+    // Competency labels run along the radius (only when the wheel is wide enough).
+    const ring = spec.competencyRing;
+    const competencyFont =
+      ring && spec.competencyFont
+        ? fitFontSize(
+            FRAMEWORK.flatMap((domain) =>
+              domain.competencies.flatMap((slug) =>
+                labelLines(t(`catalog.competencies.${slug}.wheel`)).map((text) => ({
+                  text,
+                  maxWidth: ring[1] - ring[0] - 2 * RADIAL_PADDING,
+                })),
+              ),
+            ),
+            spec.competencyFont,
+            spec.competencyMinFont,
+            measure,
+          )
+        : 0;
 
     const domains: DomainView[] = FRAMEWORK.map((domain, index) => {
       const start = index * DOMAIN_SPAN - DOMAIN_SPAN / 2;
       const end = start + DOMAIN_SPAN;
       const { lower, lines } = domainLines[index];
-      const radii = lineRadii(lines.length, domainFont, lower);
-      const labels = lines.map((text, i) => {
-        // Centre the glyphs on the line radius (text sits on the outside of the baseline
-        // on the upper half, on the inside when flipped on the lower half).
-        const baseline = radii[i] + (lower ? 0.35 : -0.35) * domainFont;
-        return {
-          id: `${this.idPrefix}-d${index}-${i}`,
-          arc: textArcPath(
-            CENTER,
-            CENTER,
-            baseline,
-            start + ARC_PADDING_DEG,
-            end - ARC_PADDING_DEG,
-          ),
-          text,
+
+      let labels: DomainLabel[] = [];
+      let flatLabel: DomainView['flat'] = null;
+      if (flat) {
+        const block = flat.blocks[index];
+        const point = flat.points[index] ?? polar(0, 0, domainMid, index * DOMAIN_SPAN);
+        flatLabel = {
+          x: Math.round((CENTER + point.x) * 100) / 100,
+          lines: this.flatLines(block, domainFont, CENTER + point.y),
         };
-      });
+      } else {
+        const radii = lineRadii(lines.length, domainFont, lower);
+        labels = lines.map((text, i) => {
+          // Centre the glyphs on the line radius (text sits on the outside of the baseline
+          // on the upper half, on the inside when flipped on the lower half).
+          const baseline = radii[i] + (lower ? 0.35 : -0.35) * domainFont;
+          return {
+            id: `${this.idPrefix}-d${index}-${i}`,
+            arc: textArcPath(
+              CENTER,
+              CENTER,
+              baseline,
+              start + ARC_PADDING_DEG,
+              end - ARC_PADDING_DEG,
+            ),
+            text,
+          };
+        });
+      }
 
       const span = DOMAIN_SPAN / domain.competencies.length;
       const competencies = domain.competencies.map((slug, i) => {
         const a1 = start + i * span;
         const a2 = a1 + span;
         let label: CompetencyView['label'] = null;
-        if (competencyFont) {
+        if (ring && competencyFont) {
           const angle = (a1 + a2) / 2;
-          const point = polar(CENTER, CENTER, competencyMid, angle);
+          const point = polar(CENTER, CENTER, (ring[0] + ring[1]) / 2, angle);
           label = {
             transform: `translate(${point.x} ${point.y}) rotate(${radialRotation(angle)})`,
             lines: this.stackLines(
@@ -330,7 +383,7 @@ export class ReadinessWheel {
         return {
           slug,
           name: t(`catalog.competencies.${slug}.name`),
-          path: ringSegmentPath(CENTER, CENTER, c1, c2, a1, a2),
+          path: ring ? ringSegmentPath(CENTER, CENTER, ring[0], ring[1], a1, a2) : null,
           label,
         };
       });
@@ -343,11 +396,84 @@ export class ReadinessWheel {
         tint: domain.tint,
         path: ringSegmentPath(CENTER, CENTER, d1, d2, start, end),
         labels,
+        flat: flatLabel,
         competencies,
       };
     });
 
     return { hub, hubFont, domainFont, competencyFont, domains };
+  }
+
+  /** Measures a label's lines once, per unit of font size. */
+  private flatBlock(lines: string[]): FlatBlock {
+    const base = 100;
+    const metrics = lines.map((text) => this.measurer.metrics(text, base));
+    return {
+      lines,
+      width: (Math.max(...metrics.map((m) => m.width)) / base) * WIDTH_SAFETY,
+      ascent: Math.max(...metrics.map((m) => m.ascent)) / base,
+      descent: Math.max(...metrics.map((m) => m.descent)) / base,
+    };
+  }
+
+  /** Distance between baselines: taller scripts (Devanagari) get more room. */
+  private lineGap(block: FlatBlock, font: number): number {
+    return Math.max(1.15, (block.ascent + block.descent) * 1.08) * font;
+  }
+
+  private flatHeight(block: FlatBlock, font: number): number {
+    return (
+      (block.lines.length - 1) * this.lineGap(block, font) + (block.ascent + block.descent) * font
+    );
+  }
+
+  /**
+   * The largest shared font size at which every domain's label fits upright inside its
+   * segment, and where each label goes. If even the smallest size doesn't fit (a very
+   * long translation), labels that don't fit sit in the middle of their segment.
+   */
+  private fitFlatLabels(blocks: FlatBlock[], spec: LayoutSpec) {
+    const [r1, r2] = spec.domainRing;
+    const placeAll = (font: number) =>
+      blocks.map((block, index) =>
+        placeBox(
+          block.width * font,
+          this.flatHeight(block, font),
+          r1,
+          r2,
+          index * DOMAIN_SPAN - DOMAIN_SPAN / 2,
+          index * DOMAIN_SPAN + DOMAIN_SPAN / 2,
+          FLAT_PADDING,
+        ),
+      );
+    let low = spec.domainMinFont;
+    let high = spec.domainFont;
+    let points: (Point | null)[] = placeAll(high);
+    if (points.every(Boolean)) return { font: high, points, blocks };
+    points = placeAll(low);
+    if (points.every(Boolean)) {
+      while (high - low > 0.5) {
+        const mid = (low + high) / 2;
+        const attempt = placeAll(mid);
+        if (attempt.every(Boolean)) {
+          low = mid;
+          points = attempt;
+        } else {
+          high = mid;
+        }
+      }
+    }
+    return { font: Math.floor(low * 10) / 10, points, blocks };
+  }
+
+  /** Baselines for a flat label centred vertically on `centerY`. */
+  private flatLines(block: FlatBlock, font: number, centerY: number): TextLine[] {
+    const gap = this.lineGap(block, font);
+    const top = centerY - this.flatHeight(block, font) / 2;
+    return block.lines.map((text, i) => ({
+      text,
+      y: Math.round((top + block.ascent * font + i * gap) * 100) / 100,
+    }));
   }
 
   /** Vertically centres lines of text on `center` (baseline offsets for each line). */

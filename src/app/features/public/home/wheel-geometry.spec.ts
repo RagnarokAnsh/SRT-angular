@@ -1,8 +1,10 @@
 import {
   arcLength,
+  boxInSegment,
   fitFontSize,
   isLowerHalf,
   labelLines,
+  placeBox,
   polar,
   radialRotation,
   ringSegmentPath,
@@ -58,5 +60,43 @@ describe('wheel geometry', () => {
     expect(labelLines('Language &\nLiteracy')).toEqual(['Language &', 'Literacy']);
     expect(labelLines(' One ')).toEqual(['One']);
     expect(labelLines('a\nb\nc')).toEqual(['a', 'b c']);
+  });
+});
+
+describe('flat labels in ring segments', () => {
+  // The top segment of a six-part ring: -30° to 30°, radii 80 to 240.
+  const top = [80, 240, -30, 30] as const;
+
+  it('accepts a box well inside the segment', () => {
+    expect(boxInSegment({ x0: -40, x1: 40, y0: -180, y1: -150 }, ...top, 4)).toBe(true);
+  });
+
+  it('rejects boxes that cross the outer edge, a side or the inner circle', () => {
+    expect(boxInSegment({ x0: -40, x1: 40, y0: -245, y1: -215 }, ...top, 4)).toBe(false);
+    expect(boxInSegment({ x0: 20, x1: 100, y0: -140, y1: -110 }, ...top, 4)).toBe(false);
+    // Corners outside the inner circle, but the middle of the bottom edge dips into it.
+    expect(boxInSegment({ x0: -30, x1: 30, y0: -100, y1: -78 }, ...top, 4)).toBe(false);
+  });
+
+  it('keeps the padding from every edge', () => {
+    const box = { x0: -40, x1: 40, y0: -236, y1: -206 }; // 2 units from the outer edge
+    expect(boxInSegment(box, ...top, 0)).toBe(true);
+    expect(boxInSegment(box, ...top, 4)).toBe(false);
+  });
+
+  it('centres a box in the segment, or says it does not fit', () => {
+    const point = placeBox(80, 30, ...top, 4);
+    expect(point).not.toBeNull();
+    expect(point!.x).toBeCloseTo(0);
+    expect(point!.y).toBeCloseTo(-160);
+    expect(placeBox(400, 30, ...top, 4)).toBeNull();
+  });
+
+  it('places side segments without rotating the text', () => {
+    // The segment from 30° to 90° (upper right); a wide box sits further out.
+    const point = placeBox(110, 50, 80, 240, 30, 90, 4);
+    expect(point).not.toBeNull();
+    expect(point!.x).toBeGreaterThan(0);
+    expect(point!.y).toBeLessThan(0);
   });
 });

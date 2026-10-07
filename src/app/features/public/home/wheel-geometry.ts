@@ -96,3 +96,83 @@ export function labelLines(label: string, maxLines = 2): string[] {
   if (lines.length <= maxLines) return lines;
   return [...lines.slice(0, maxLines - 1), lines.slice(maxLines - 1).join(' ')];
 }
+
+/** An axis-aligned box, relative to the wheel's centre (y grows downwards). */
+export interface Box {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
+/** Signed distance from a point to the ray at `angle`: positive on its clockwise side. */
+function clockwiseDistance(angle: number, x: number, y: number): number {
+  const rad = (angle * Math.PI) / 180;
+  return Math.sin(rad) * y + Math.cos(rad) * x;
+}
+
+/**
+ * Whether a box lies inside the ring segment between radii r1 < r2 and angles a1 < a2
+ * (a span under 180°), keeping `pad` from every edge.
+ */
+export function boxInSegment(
+  box: Box,
+  r1: number,
+  r2: number,
+  a1: number,
+  a2: number,
+  pad: number,
+): boolean {
+  const corners: [number, number][] = [
+    [box.x0, box.y0],
+    [box.x1, box.y0],
+    [box.x0, box.y1],
+    [box.x1, box.y1],
+  ];
+  for (const [x, y] of corners) {
+    if (Math.hypot(x, y) > r2 - pad) return false;
+    if (clockwiseDistance(a1, x, y) < pad || -clockwiseDistance(a2, x, y) < pad) return false;
+  }
+  // The point of the box nearest the centre must stay clear of the inner circle.
+  const nearX = Math.min(Math.max(0, box.x0), box.x1);
+  const nearY = Math.min(Math.max(0, box.y0), box.y1);
+  return Math.hypot(nearX, nearY) >= r1 + pad;
+}
+
+/**
+ * Where to centre a `width` × `height` box inside a ring segment: as close as possible to
+ * the middle of the segment (relative to the wheel's centre), or null if it doesn't fit.
+ */
+export function placeBox(
+  width: number,
+  height: number,
+  r1: number,
+  r2: number,
+  a1: number,
+  a2: number,
+  pad: number,
+): Point | null {
+  const mid = (a1 + a2) / 2;
+  const midRadius = (r1 + r2) / 2;
+  const maxShift = (a2 - a1) / 4;
+  let best: { point: Point; score: number } | null = null;
+  for (let shift = 0; shift <= maxShift; shift += 1) {
+    for (const angle of shift ? [mid - shift, mid + shift] : [mid]) {
+      const rad = (angle * Math.PI) / 180;
+      for (let r = r1; r <= r2; r += 1) {
+        const x = r * Math.sin(rad);
+        const y = -r * Math.cos(rad);
+        const box = {
+          x0: x - width / 2,
+          x1: x + width / 2,
+          y0: y - height / 2,
+          y1: y + height / 2,
+        };
+        if (!boxInSegment(box, r1, r2, a1, a2, pad)) continue;
+        const score = shift * 2 + Math.abs(r - midRadius) * 0.3;
+        if (!best || score < best.score) best = { point: { x: round(x), y: round(y) }, score };
+      }
+    }
+  }
+  return best?.point ?? null;
+}

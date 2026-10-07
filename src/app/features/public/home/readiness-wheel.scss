@@ -32,16 +32,20 @@
 .domain {
   cursor: pointer;
   transform-origin: 250px 250px;
-  transition:
-    transform 0.25s ease,
-    opacity 0.25s ease;
+  transition: transform 0.25s ease;
 
   &.is-selected {
     transform: scale(1.035);
   }
 
-  &.is-dimmed {
-    opacity: 0.5;
+  // The other domains fade to a pale fill with dark labels, so they stay readable (and
+  // tappable) while the chosen one stands out.
+  &.is-dimmed .segment {
+    opacity: 0.32;
+  }
+
+  &.is-dimmed .label--domain {
+    fill: var(--color-text-strong);
   }
 }
 
@@ -50,8 +54,16 @@
     filter: brightness(1.07);
   }
 
-  .has-selection .domain.is-dimmed:hover {
-    opacity: 0.7;
+  .has-selection .domain.is-dimmed:hover .segment {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .domain,
+  .segment,
+  .label {
+    transition: none;
   }
 }
 
@@ -59,11 +71,13 @@
   stroke: #fff;
   stroke-width: 2.5;
   stroke-linejoin: round;
+  transition: opacity 0.25s ease;
 }
 
 .label {
   pointer-events: none;
   font-weight: 600;
+  transition: fill 0.25s ease;
 }
 
 .label--domain {

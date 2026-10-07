@@ -25,7 +25,9 @@
         [class.is-dimmed]="selected() !== null && selected() !== domain.index"
       >
         @for (competency of domain.competencies; track competency.slug) {
-          <path class="segment" [attr.d]="competency.path" [attr.fill]="domain.tint" />
+          @if (competency.path; as path) {
+            <path class="segment" [attr.d]="path" [attr.fill]="domain.tint" />
+          }
           @if (competency.label; as label) {
             <text
               class="label label--competency"
@@ -40,6 +42,17 @@
           }
         }
         <path class="segment segment--domain" [attr.d]="domain.path" [attr.fill]="domain.color" />
+        @if (domain.flat; as flat) {
+          <text
+            class="label label--domain"
+            [attr.font-size]="model().domainFont"
+            text-anchor="middle"
+          >
+            @for (line of flat.lines; track $index) {
+              <tspan [attr.x]="flat.x" [attr.y]="line.y">{{ line.text }}</tspan>
+            }
+          </text>
+        }
         @for (label of domain.labels; track label.id) {
           <text class="label label--domain" [attr.font-size]="model().domainFont">
             <textPath [attr.href]="pageUrl + '#' + label.id" startOffset="50%" text-anchor="middle">

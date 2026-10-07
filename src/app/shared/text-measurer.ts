@@ -8,11 +8,32 @@ export class TextMeasurer {
   private context: CanvasRenderingContext2D | null | undefined;
 
   measure(text: string, fontSize: number, weight = 600): number {
+    return this.metrics(text, fontSize, weight).width;
+  }
+
+  /** Width and the height of the glyphs above and below the baseline. */
+  metrics(
+    text: string,
+    fontSize: number,
+    weight = 600,
+  ): { width: number; ascent: number; descent: number } {
     const context = this.getContext();
     // Without canvas support, estimate from the character count.
-    if (!context) return Array.from(text).length * fontSize * 0.56;
+    if (!context) {
+      return {
+        width: Array.from(text).length * fontSize * 0.56,
+        ascent: fontSize * 0.75,
+        descent: fontSize * 0.25,
+      };
+    }
     context.font = `${weight} ${fontSize}px Figtree, "Noto Sans Devanagari", system-ui, sans-serif`;
-    return context.measureText(text).width;
+    const m = context.measureText(text);
+    const known = (value: number, fallback: number) => (Number.isFinite(value) ? value : fallback);
+    return {
+      width: m.width,
+      ascent: known(m.actualBoundingBoxAscent, fontSize * 0.75),
+      descent: known(m.actualBoundingBoxDescent, fontSize * 0.25),
+    };
   }
 
   private getContext(): CanvasRenderingContext2D | null {
