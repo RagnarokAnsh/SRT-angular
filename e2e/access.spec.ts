@@ -39,10 +39,10 @@ test.describe('who sees which students', () => {
       '/students/new',
       '/students/1/edit',
       '/dashboard',
-      '/competencies/1/assess',
+      '/competencies/2/assess',
     ]) {
       await page.goto(path);
-      await expect(page.getByText("Your account isn't linked to a centre").first()).toBeVisible();
+      await expect(page.getByText("Your account isn't linked to a center").first()).toBeVisible();
       await expect(page.locator('form'), path).toHaveCount(0);
       await expect(page.locator(rows), path).toHaveCount(0);
     }
@@ -82,7 +82,7 @@ test.describe('who sees which students', () => {
 test.describe('who can open which pages', () => {
   const blocked: Record<string, string[]> = {
     'aww@demo.in': ['/admin', '/admin/users', '/admin/centers/new', '/supervisor', '/state'],
-    'supervisor@demo.in': ['/dashboard', '/competencies', '/competencies/1/assess', '/admin'],
+    'supervisor@demo.in': ['/dashboard', '/competencies', '/competencies/2/assess', '/admin'],
     'cdpo@demo.in': ['/students', '/dashboard', '/competencies', '/admin', '/supervisor'],
     'dpo@demo.in': ['/students', '/dashboard', '/admin/users', '/cdpo'],
     'state@demo.in': ['/students', '/dashboard', '/admin/centers', '/dpo'],

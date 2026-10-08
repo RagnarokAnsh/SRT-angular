@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, shareReplay, throwError } from 'rxjs';
 
 import type { ApiCompetency, ApiDomain, Competency, Domain } from '../models/competency';
-import { slugify } from '../util/slug';
+import { domainSlug, slugify } from '../util/slug';
 import { API_BASE_URL } from './api-base-url';
 import { text, toId, unwrapList } from './parse';
 
@@ -36,7 +36,7 @@ export function groupByDomain(competencies: Competency[]): Domain[] {
       domain = {
         id: competency.domainId,
         name: competency.domainName,
-        slug: slugify(competency.domainName),
+        slug: domainSlug(competency.domainName),
         competencies: [],
       };
       domains.set(competency.domainId, domain);

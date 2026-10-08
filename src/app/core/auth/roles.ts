@@ -67,6 +67,12 @@ export const ROLE_NAV: Record<RoleName, readonly NavItem[]> = {
     { path: '/admin/users', labelKey: 'nav.users', icon: 'users' },
     { path: '/admin/centers', labelKey: 'nav.centers', icon: 'center' },
     { path: '/students', labelKey: 'nav.children', icon: 'children' },
+    {
+      path: '/competencies',
+      labelKey: 'nav.domains',
+      shortLabelKey: 'nav.domainsShort',
+      icon: 'domains',
+    },
   ],
   stateofficial: [{ path: '/state', labelKey: 'nav.dashboard', icon: 'dashboard' }],
   dpo: [{ path: '/dpo', labelKey: 'nav.dashboard', icon: 'dashboard' }],

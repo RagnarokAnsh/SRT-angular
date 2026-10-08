@@ -61,18 +61,8 @@
   font-size: var(--text-lg);
 }
 
-.hero__cta {
-  min-height: var(--touch-target);
-}
-
 .section {
   margin-top: var(--space-10);
-}
-
-.section__intro {
-  max-width: 65ch;
-  margin-bottom: var(--space-5);
-  color: var(--color-text-muted);
 }
 
 .videos {
@@ -128,10 +118,4 @@
   button {
     min-height: var(--touch-target);
   }
-}
-
-.checklist__hint {
-  margin: 0;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
 }

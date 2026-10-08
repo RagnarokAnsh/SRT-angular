@@ -10,9 +10,9 @@ const PAGES: { account: string | null; paths: string[] }[] = [
     paths: [
       '/home',
       '/competencies',
-      '/competencies/domain/language--literacy-development',
-      '/competencies/1',
-      '/competencies/1/assess',
+      '/competencies/domain/language-and-literacy-development',
+      '/competencies/2',
+      '/competencies/2/assess',
       '/competencies/10/assess',
       '/students',
       '/students/new',

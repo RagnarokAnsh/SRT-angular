@@ -69,10 +69,11 @@ describe('translations', () => {
     }
   });
 
-  it('keeps wheel labels to at most two lines', () => {
+  it('keeps wheel labels short: three lines for a domain, two for a competency', () => {
     for (const { key, text } of allTexts) {
-      if (key.endsWith('.wheel'))
-        expect({ key, lines: text.split('\n').length <= 2 }).toEqual({ key, lines: true });
+      if (!key.endsWith('.wheel')) continue;
+      const max = key.includes(':catalog.domains.') ? 3 : 2;
+      expect({ key, lines: text.split('\n').length <= max }).toEqual({ key, lines: true });
     }
   });
 });

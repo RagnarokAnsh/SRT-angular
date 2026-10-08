@@ -22,7 +22,7 @@ test.describe('Anganwadi worker', () => {
   });
 
   test('assesses two students and sees their new session', async ({ page }) => {
-    await page.goto('/competencies/3/assess'); // Number Concept: nobody assessed yet
+    await page.goto('/competencies/4/assess'); // Number concept: nobody assessed yet
     const rows = page.locator('.child');
     await expect(rows.first()).toBeVisible();
     await expectAccessible(page);
@@ -30,42 +30,42 @@ test.describe('Anganwadi worker', () => {
     await page.getByRole('checkbox', { name: /Aarav Kumar/ }).check();
     await page.getByRole('checkbox', { name: /Diya Sharma/ }).check();
     await expect(page.getByText('2 students selected')).toBeVisible();
-    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByRole('button', { name: 'Continue to Assessment' }).click();
 
-    await page.getByRole('button', { name: 'Save assessment' }).click();
+    await page.getByRole('button', { name: 'Submit Assessment' }).click();
     await expect(page.getByText('Choose a level to continue.')).toBeVisible();
 
     await page.getByText('Identifies numerals and can link them with concrete objects').click();
-    await page.getByLabel('What did you notice?').fill('Counted blocks to 10.');
+    await page.getByLabel('Add remarks for this assessment').fill('Counted blocks to 10.');
     await expectNoHorizontalScroll(page);
-    await page.getByRole('button', { name: 'Save assessment' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'Save assessment' }).click();
+    await page.getByRole('button', { name: 'Submit Assessment' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Submit Assessment' }).click();
 
-    await expect(page.getByText('Assessment saved for 2 students.')).toBeVisible();
+    await expect(page.getByText('Assessment submitted successfully!')).toBeVisible();
     await expect(
       page.locator('.child', { hasText: 'Aarav Kumar' }).getByText('Next: session 2'),
     ).toBeVisible();
   });
 
   test('keeps failed results for another try, and saves them once', async ({ page }) => {
-    await page.goto('/competencies/3/assess');
+    await page.goto('/competencies/4/assess');
     await page.getByRole('checkbox', { name: /Aarav Kumar/ }).check();
-    await page.getByRole('button', { name: 'Continue' }).click();
-    await expect(page.locator('#who-title')).toBeFocused(); // focus follows the step
+    await page.getByRole('button', { name: 'Continue to Assessment' }).click();
+    await expect(page.locator('#record-title')).toBeFocused(); // focus follows the step
     await page.getByText('Identifies numerals and can link them with concrete objects').click();
 
     const serverDown = page.getByRole('switch', { name: 'Simulate server down' });
     await serverDown.click();
-    await page.getByRole('button', { name: 'Save assessment' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'Save assessment' }).click();
+    await page.getByRole('button', { name: 'Submit Assessment' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Submit Assessment' }).click();
     await expect(page.getByText("1 result couldn't be saved")).toBeVisible();
     // The list couldn't be refreshed either; the failed student stays ready for another try.
     await expect(page.getByText("Couldn't refresh the list")).toBeVisible();
 
     await serverDown.click();
     await page.getByRole('button', { name: 'Try again' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'Save assessment' }).click();
-    await expect(page.getByText('Assessment saved for 1 student.')).toBeVisible();
+    await page.getByRole('dialog').getByRole('button', { name: 'Submit Assessment' }).click();
+    await expect(page.getByText('Assessment submitted successfully!')).toBeVisible();
     const aarav = page.locator('.child', { hasText: 'Aarav Kumar' });
     await expect(aarav.getByText('Next: session 2')).toBeVisible();
   });
@@ -73,23 +73,23 @@ test.describe('Anganwadi worker', () => {
   test('records height and weight for gross motor', async ({ page }) => {
     await page.goto('/competencies/10/assess');
     await page.getByRole('checkbox', { name: /Ishaan Verma/ }).check();
-    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByRole('button', { name: 'Continue to Assessment' }).click();
     await expect(page.getByRole('heading', { name: 'Height and weight' })).toBeVisible();
     await page.getByText('Maintains balance in gross motor activities').click();
-    await page.getByRole('button', { name: 'Save assessment' }).click();
+    await page.getByRole('button', { name: 'Submit Assessment' }).click();
     await expect(page.getByText('This field is required.').first()).toBeVisible();
 
     await page.getByRole('textbox', { name: 'Height' }).fill('93.5');
     await page.getByRole('textbox', { name: 'Weight' }).fill('13.4');
-    await page.getByRole('button', { name: 'Save assessment' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'Save assessment' }).click();
-    await expect(page.getByText('Assessment saved for 1 student.')).toBeVisible();
+    await page.getByRole('button', { name: 'Submit Assessment' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Submit Assessment' }).click();
+    await expect(page.getByText('Assessment submitted successfully!')).toBeVisible();
   });
 
   test('asks before leaving an unfinished assessment', async ({ page }) => {
-    await page.goto('/competencies/3/assess');
+    await page.goto('/competencies/4/assess');
     await page.getByRole('checkbox', { name: /Aarav Kumar/ }).check();
-    await page.getByRole('link', { name: 'Back to the competency' }).click();
+    await page.getByRole('link', { name: 'Back to Videos' }).click();
     await expect(page.getByRole('dialog')).toContainText('Leave without saving?');
     await page.getByRole('dialog').getByRole('button', { name: 'Cancel' }).click();
     await expect(page).toHaveURL(/\/assess$/);
@@ -97,7 +97,7 @@ test.describe('Anganwadi worker', () => {
 
   test('adds a student with a Hindi name and warns about duplicates', async ({ page }) => {
     await page.goto('/students/new');
-    await page.getByLabel('Full name').fill('प्रिया शर्मा');
+    await page.getByLabel('Name', { exact: true }).fill('प्रिया शर्मा');
     await page.getByLabel('Date of birth').fill('2022-05-10');
     await page.getByRole('radio', { name: 'Girl' }).check();
     await page.getByLabel('Home language').fill('हिंदी');
@@ -105,28 +105,28 @@ test.describe('Anganwadi worker', () => {
     await page.getByRole('textbox', { name: 'Height' }).fill('95.5');
     await page.getByRole('textbox', { name: 'Weight' }).fill('13.2');
     await expectAccessible(page);
-    await page.getByRole('button', { name: 'Add student' }).click();
+    await page.getByRole('button', { name: 'Create Student' }).click();
     await expect(page).toHaveURL(/\/students$/);
     await expect(page.getByRole('listitem').filter({ hasText: 'प्रिया शर्मा' })).toBeVisible();
 
     await page.goto('/students/new');
-    await page.getByLabel('Full name').fill('प्रिया  शर्मा');
+    await page.getByLabel('Name', { exact: true }).fill('प्रिया  शर्मा');
     await page.getByLabel('Date of birth').fill('2022-05-10');
     await page.getByRole('radio', { name: 'Girl' }).check();
     await page.getByLabel('Home language').fill('हिंदी');
     await page.getByLabel('Symbol').fill('Leaf');
     await page.getByRole('textbox', { name: 'Height' }).fill('95');
     await page.getByRole('textbox', { name: 'Weight' }).fill('13');
-    await page.getByRole('button', { name: 'Add student' }).click();
+    await page.getByRole('button', { name: 'Create Student' }).click();
     await expect(page.getByRole('dialog')).toContainText('This student may already be registered');
   });
 
   test('rejects impossible student details', async ({ page }) => {
     await page.goto('/students/new');
-    await page.getByLabel('Full name').fill('R2D2');
+    await page.getByLabel('Name', { exact: true }).fill('R2D2');
     await page.getByLabel('Date of birth').fill('2010-01-01');
     await page.getByRole('textbox', { name: 'Height' }).fill('500');
-    await page.getByRole('button', { name: 'Add student' }).click();
+    await page.getByRole('button', { name: 'Create Student' }).click();
     await expect(page.getByText("Use letters, spaces and . ' - only.")).toBeVisible();
     await expect(page.getByText('The child must be between 2 and 6 years old.')).toBeVisible();
     await expect(page.getByText('Enter a value from 30 to 200.')).toBeVisible();

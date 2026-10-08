@@ -12,26 +12,24 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
-import { Router, RouterLink } from '@angular/router';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { Router } from '@angular/router';
+import { TranslocoService } from '@jsverse/transloco';
 
-import { FRAMEWORK, FRAMEWORK_COMPETENCY_COUNT } from '@core/catalog/framework';
+import {
+  FRAMEWORK,
+  FRAMEWORK_COMPETENCY_COUNT,
+  type FrameworkDomain,
+} from '@core/catalog/framework';
 import { LanguageService } from '@core/i18n/language';
-import { PluralPipe } from '@shared/pipes/plural-pipe';
 import { TextMeasurer } from '@shared/text-measurer';
 
 import {
   type Point,
-  arcLength,
   fitFontSize,
-  isLowerHalf,
   labelLines,
   placeBox,
   polar,
-  radialRotation,
   ringSegmentPath,
-  textArcPath,
 } from './wheel-geometry';
 
 type Layout = 'compact' | 'full';
@@ -39,76 +37,84 @@ type Layout = 'compact' | 'full';
 interface LayoutSpec {
   hub: number;
   domainRing: readonly [number, number];
-  /** null: no competency ring (competencies are listed on the domain's page instead). */
-  competencyRing: readonly [number, number] | null;
+  /** Wider screens: the outer band where a domain's competencies fan out. */
+  fanRing: readonly [number, number] | null;
   hubFont: number;
-  /** `flat`: upright labels inside each segment, easiest to read; `curved`: along the ring. */
-  domainLabels: 'flat' | 'curved';
   domainFont: number;
   domainMinFont: number;
-  /** 0: no labels on the competency ring (too narrow to read). */
   competencyFont: number;
   competencyMinFont: number;
 }
 
 const SIZE = 500;
 const CENTER = SIZE / 2;
-/** Below this rendered width, only the domains are drawn (with larger labels). */
-const FULL_LAYOUT_MIN_PX = 470;
+/** Below this rendered width the domains fill the wheel, and tapping one zooms into it. */
+const FULL_LAYOUT_MIN_PX = 520;
 
 const LAYOUTS: Record<Layout, LayoutSpec> = {
-  // Phones: the domain ring fills the wheel and its labels stay upright and large;
-  // a domain's page lists its competencies.
+  // Phones: the domains fill the wheel, so their full names stay large; a tapped domain
+  // shows its competencies all around it.
   compact: {
-    hub: 74,
-    domainRing: [79, 246],
-    competencyRing: null,
-    hubFont: 27,
-    domainLabels: 'flat',
-    domainFont: 34,
-    domainMinFont: 18,
-    competencyFont: 0,
-    competencyMinFont: 0,
+    hub: 46,
+    domainRing: [50, 248],
+    fanRing: null,
+    hubFont: 24,
+    domainFont: 30,
+    domainMinFont: 14,
+    competencyFont: 32,
+    competencyMinFont: 16,
   },
-  // Wider screens: domains in an inner ring, every competency named on the outer ring.
+  // Wider screens: the domains inside, and an outer ring where the competencies of the
+  // domain under the pointer fan out.
   full: {
     hub: 56,
-    domainRing: [62, 138],
-    competencyRing: [144, 240],
-    hubFont: 18,
-    domainLabels: 'curved',
+    domainRing: [60, 162],
+    fanRing: [166, 248],
+    hubFont: 19,
     domainFont: 17,
-    domainMinFont: 12,
-    competencyFont: 13.5,
-    competencyMinFont: 10,
+    domainMinFont: 11,
+    competencyFont: 16,
+    competencyMinFont: 11,
   },
 };
 
 const DOMAIN_SPAN = 360 / FRAMEWORK.length;
-const ARC_PADDING_DEG = 2;
-const RADIAL_PADDING = 8;
-/** Space between a flat label and the edges of its segment. */
-const FLAT_PADDING = 7;
+/** Each competency's share of the fan, in degrees. */
+const FAN_STEP = 46;
+/** A zoomed-in domain: its name on a disc of this radius, its competencies around it. */
+const ZOOM_DISC = 112;
+/** Space between a label and the edges of its segment. */
+const PADDING = 7;
 /** Canvas and SVG text widths can differ slightly; leave a little room. */
 const WIDTH_SAFETY = 1.04;
+/** How long the pointer rests on a domain before its competencies show, when another shows. */
+const HOVER_SWITCH_MS = 140;
+/** How long the competencies stay after the pointer leaves the wheel. */
+const LEAVE_MS = 300;
 
 interface TextLine {
   text: string;
   y: number;
 }
 
-interface DomainLabel {
-  id: string;
-  arc: string;
-  text: string;
+interface Label {
+  x: number;
+  lines: TextLine[];
 }
 
-interface CompetencyView {
-  slug: string;
-  name: string;
-  /** null when the layout has no competency ring. */
-  path: string | null;
-  label: { transform: string; lines: TextLine[] } | null;
+interface Block {
+  lines: string[];
+  /** Per unit of font size. */
+  width: number;
+  ascent: number;
+  descent: number;
+}
+
+interface Sector {
+  r1: number;
+  r2: number;
+  a1: number;
+  a2: number;
 }
 
 interface DomainView {
@@ -118,36 +124,33 @@ interface DomainView {
   color: string;
   tint: string;
   path: string;
-  /** Curved labels (one text path per line). */
-  labels: DomainLabel[];
-  /** Upright label lines, centred on `x`. */
-  flat: { x: number; lines: TextLine[] } | null;
-  competencies: CompetencyView[];
+  /** The light band outside the domain, under its competencies. */
+  track: string | null;
+  label: Label;
 }
 
-interface FlatBlock {
-  lines: string[];
-  /** Per unit of font size. */
-  width: number;
-  ascent: number;
-  descent: number;
+interface CompetencyView {
+  slug: string;
+  name: string;
+  path: string;
+  label: Label;
 }
-
-let nextId = 0;
 
 /**
- * The school readiness framework as a wheel: six domains around the centre, their
- * competencies on the outer ring. Tapping a domain opens its page in "School Readiness –
- * Domains", tapping a competency opens the competency (signed-out visitors sign in first).
- * The list of domains under the wheel does the same for keyboard and screen reader users.
- * Labels are sized to fit their segment in every language.
+ * The school readiness framework as a wheel: the six domains around the centre. On wider
+ * screens a domain's competencies fan out around it while the pointer is on it; on phones,
+ * tapping a domain shows its competencies all around it (tap the middle to go back). Tapping
+ * a competency opens it (visitors sign in first). Every part can be reached with the
+ * keyboard, and the labels are sized to fit their segment in every language.
  */
 @Component({
   selector: 'app-readiness-wheel',
-  imports: [RouterLink, MatIconModule, TranslocoPipe, PluralPipe],
   templateUrl: './readiness-wheel.html',
   styleUrl: './readiness-wheel.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:pointerdown)': 'onDocumentPointerDown($event)',
+  },
 })
 export class ReadinessWheel {
   private readonly transloco = inject(TranslocoService);
@@ -156,11 +159,10 @@ export class ReadinessWheel {
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
   private readonly router = inject(Router);
-  protected readonly idPrefix = `wheel-${nextId++}`;
 
   /**
-   * Whether domains and competencies open their pages. Off for signed-in users whose role
-   * can't open them (the wheel then only explains the framework).
+   * Whether competencies open their pages. Off for signed-in users whose role can't open
+   * them (the wheel then only explains the framework).
    */
   readonly linked = input(true);
 
@@ -168,20 +170,26 @@ export class ReadinessWheel {
 
   protected readonly size = SIZE;
   protected readonly center = CENTER;
+  protected readonly zoomDisc = ZOOM_DISC;
+  /** A small × at the top of a zoomed-in domain's disc: tapping the disc goes back. */
+  protected readonly closeMark = cross(CENTER, CENTER - ZOOM_DISC + 22, 7);
   /**
-   * A first guess from the window width (the wheel is at least 482 px wide on any screen of
-   * 600 px or more), so desktops don't flash the phone layout before the wheel is measured.
+   * A first guess from the window width, so desktops don't flash the phone layout before
+   * the wheel is measured.
    */
   protected readonly layout = signal<Layout>(
-    (this.document.defaultView?.innerWidth ?? 0) >= 600 ? 'full' : 'compact',
+    (this.document.defaultView?.innerWidth ?? 0) >= 1024 ? 'full' : 'compact',
   );
-  /** The domain under the pointer (or focused in the list): the others fade. */
-  protected readonly highlighted = signal<number | null>(null);
+  /** The domain whose competencies are showing. */
+  protected readonly expanded = signal<number | null>(null);
   /** Bumped when web fonts finish loading, so labels are re-measured with the real font. */
   private readonly fontsVersion = signal(0);
 
-  /** `<textPath>` needs the page URL: a bare `#id` would resolve against `<base href>`. */
-  protected readonly pageUrl = this.document.location.pathname + this.document.location.search;
+  private hoverTimer: ReturnType<typeof setTimeout> | null = null;
+  private leaveTimer: ReturnType<typeof setTimeout> | null = null;
+  private lastPointer = 'mouse';
+  /** Focus moved back by the wheel itself (after Escape): don't open that domain again. */
+  private quietFocus = false;
 
   protected readonly spec = computed(() => LAYOUTS[this.layout()]);
 
@@ -189,6 +197,63 @@ export class ReadinessWheel {
     this.language.current();
     this.fontsVersion();
     return this.buildModel(this.spec());
+  });
+
+  /** Wider screens: the expanded domain's competencies, fanned out around it. */
+  protected readonly fan = computed(() => {
+    const index = this.expanded();
+    const ring = this.spec().fanRing;
+    if (index === null || !ring) return null;
+    this.language.current();
+    this.fontsVersion();
+    const domain = FRAMEWORK[index];
+    const total = domain.competencies.length * FAN_STEP;
+    const start = index * DOMAIN_SPAN - total / 2;
+    const sectors = domain.competencies.map((_, i) => ({
+      r1: ring[0],
+      r2: ring[1],
+      a1: start + i * FAN_STEP,
+      a2: start + (i + 1) * FAN_STEP,
+    }));
+    return { index, tint: domain.tint, ...this.competencyViews(domain, sectors) };
+  });
+
+  /** Phones: the expanded domain, zoomed in. */
+  protected readonly zoom = computed(() => {
+    const index = this.expanded();
+    if (index === null || this.spec().fanRing) return null;
+    this.language.current();
+    this.fontsVersion();
+    const domain = FRAMEWORK[index];
+    const step = 360 / domain.competencies.length;
+    // Upright labels have more room in some directions than others: of the two ways of
+    // turning the ring, keep the one where the labels can be largest.
+    const [views] = [0, step / 2]
+      .map((offset) =>
+        this.competencyViews(
+          domain,
+          domain.competencies.map((_, i) => ({
+            r1: ZOOM_DISC + 4,
+            r2: 248,
+            a1: offset + i * step - step / 2,
+            a2: offset + i * step + step / 2,
+          })),
+        ),
+      )
+      .sort((a, b) => b.competencyFont - a.competencyFont);
+    const t = (key: string) => this.transloco.translate(key);
+    const block = this.block(labelLines(t(`catalog.domains.${domain.slug}.wheel`), 3));
+    // The disc's name sits below a small close mark.
+    const font = this.fitInDisc(block, ZOOM_DISC - 24, this.spec().domainFont);
+    return {
+      index,
+      name: t(`catalog.domains.${domain.slug}.name`),
+      color: domain.color,
+      tint: domain.tint,
+      label: { x: CENTER, lines: this.flatLines(block, font, CENTER + 12) },
+      font,
+      ...views,
+    };
   });
 
   protected readonly summary = computed(() => {
@@ -201,37 +266,162 @@ export class ReadinessWheel {
 
   constructor() {
     afterNextRender(() => this.observe());
+    inject(DestroyRef).onDestroy(() => this.cancelTimers());
   }
 
-  protected highlight(index: number | null): void {
-    this.highlighted.set(index);
+  // Pointer
+
+  protected onPointerDown(event: PointerEvent): void {
+    this.lastPointer = event.pointerType;
   }
 
+  /** Mouse only: resting on a domain shows its competencies. */
   protected onPointerOver(event: PointerEvent): void {
-    if (event.pointerType !== 'mouse') return;
-    const domain = (event.target as Element | null)?.closest('[data-domain]');
-    this.highlighted.set(domain ? Number(domain.getAttribute('data-domain')) : null);
+    if (event.pointerType !== 'mouse' || !this.spec().fanRing) return;
+    this.clearLeave();
+    const target = event.target as Element | null;
+    if (target?.closest('[data-competency]')) {
+      this.clearHover();
+      return;
+    }
+    const index = this.domainOf(target);
+    if (index === null) return;
+    if (index === this.expanded()) {
+      this.clearHover();
+      return;
+    }
+    this.clearHover();
+    // Moving across the wheel towards a competency shouldn't switch to the domains passed.
+    this.hoverTimer = setTimeout(
+      () => this.expanded.set(index),
+      this.expanded() === null ? 0 : HOVER_SWITCH_MS,
+    );
   }
 
-  /** Pointer shortcut; keyboard and screen reader users use the list of domains instead. */
-  protected onWheelClick(event: MouseEvent): void {
-    if (!this.linked()) return;
+  protected onPointerLeave(event: PointerEvent): void {
+    if (event.pointerType !== 'mouse' || !this.spec().fanRing) return;
+    this.clearHover();
+    this.clearLeave();
+    this.leaveTimer = setTimeout(() => this.expanded.set(null), LEAVE_MS);
+  }
+
+  protected onClick(event: MouseEvent): void {
     const target = event.target as Element | null;
     const competency = target?.closest('[data-competency]')?.getAttribute('data-competency');
     if (competency) {
-      void this.router.navigate(['/competencies/find', competency]);
+      this.open(competency);
       return;
     }
-    const domain = target?.closest('[data-domain]')?.getAttribute('data-domain');
-    const slug = domain === null || domain === undefined ? null : FRAMEWORK[Number(domain)]?.slug;
-    if (slug) void this.router.navigate(['/competencies/domain', slug]);
+    if (target?.closest('[data-back]')) {
+      this.collapse();
+      return;
+    }
+    const index = this.domainOf(target);
+    if (index !== null) {
+      this.clearHover();
+      const mouse = this.lastPointer === 'mouse' && this.spec().fanRing;
+      // A tap shows a domain's competencies, or hides them again; a click keeps them.
+      this.expanded.set(!mouse && this.expanded() === index ? null : index);
+      return;
+    }
+    if (this.lastPointer !== 'mouse') this.collapse();
+  }
+
+  /** A tap anywhere else on the page closes the competencies. */
+  protected onDocumentPointerDown(event: PointerEvent): void {
+    if (this.expanded() === null || event.pointerType === 'mouse') return;
+    const element = this.wheel().nativeElement;
+    if (!element.contains(event.target as Node)) this.collapse();
+  }
+
+  // Keyboard
+
+  protected onDomainFocus(index: number): void {
+    if (this.quietFocus) {
+      this.quietFocus = false;
+      return;
+    }
+    if (this.spec().fanRing) this.expanded.set(index);
+  }
+
+  /** Enter or Space shows the domain's competencies and moves to the first of them. */
+  protected onDomainKey(event: KeyboardEvent, index: number): void {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    this.expanded.set(index);
+    this.focusLater('.competency[tabindex], [data-back]');
+  }
+
+  protected onCompetencyKey(event: KeyboardEvent, slug: string): void {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    this.open(slug);
+  }
+
+  protected onBackKey(event: KeyboardEvent): void {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    this.onEscape();
+  }
+
+  /** Hides the competencies and goes back to their domain. */
+  protected onEscape(): void {
+    const index = this.expanded();
+    if (index === null) return;
+    this.collapse();
+    this.quietFocus = true;
+    this.focusLater(`[data-domain="${index}"][tabindex]`);
+  }
+
+  private open(slug: string): void {
+    if (!this.linked()) return;
+    void this.router.navigate(['/competencies/find', slug]);
+  }
+
+  private collapse(): void {
+    this.cancelTimers();
+    this.expanded.set(null);
+  }
+
+  private domainOf(target: Element | null): number | null {
+    const value = target?.closest('[data-domain]')?.getAttribute('data-domain');
+    return value === null || value === undefined ? null : Number(value);
+  }
+
+  private focusLater(selector: string): void {
+    afterNextRender(
+      () => {
+        const target = this.wheel().nativeElement.querySelector<SVGElement>(selector);
+        if (target) target.focus();
+        else this.quietFocus = false;
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private clearHover(): void {
+    if (this.hoverTimer) clearTimeout(this.hoverTimer);
+    this.hoverTimer = null;
+  }
+
+  private clearLeave(): void {
+    if (this.leaveTimer) clearTimeout(this.leaveTimer);
+    this.leaveTimer = null;
+  }
+
+  private cancelTimers(): void {
+    this.clearHover();
+    this.clearLeave();
   }
 
   private observe(): void {
     const element = this.wheel().nativeElement;
     const destroyRef = this.injector.get(DestroyRef);
-    const update = (width: number) =>
-      this.layout.set(width >= FULL_LAYOUT_MIN_PX ? 'full' : 'compact');
+    const update = (width: number) => {
+      const layout: Layout = width >= FULL_LAYOUT_MIN_PX ? 'full' : 'compact';
+      if (layout !== this.layout()) this.collapse();
+      this.layout.set(layout);
+    };
     update(element.getBoundingClientRect().width);
     if (typeof ResizeObserver !== 'undefined') {
       const observer = new ResizeObserver(([entry]) => update(entry.contentRect.width));
@@ -247,11 +437,11 @@ export class ReadinessWheel {
     }
   }
 
+  // Layout
+
   private buildModel(spec: LayoutSpec) {
     const t = (key: string) => this.transloco.translate(key);
-    const measure = (text: string, fontSize: number) => this.measurer.measure(text, fontSize);
 
-    // Hub
     const hubLines = labelLines(t('home.wheel.hub'));
     const hubFont = fitFontSize(
       hubLines.map((text) => ({ text, maxWidth: spec.hub * 1.6 })),
@@ -259,148 +449,73 @@ export class ReadinessWheel {
       10,
       (text, size) => this.measurer.measure(text, size, 700),
     );
-    const hub = this.stackLines(hubLines, hubFont, CENTER);
 
-    // Domain labels
     const [d1, d2] = spec.domainRing;
-    const domainMid = (d1 + d2) / 2;
-    const domainLines = FRAMEWORK.map((domain, index) => {
-      const mid = index * DOMAIN_SPAN;
-      return {
-        index,
-        mid,
-        lower: isLowerHalf(mid),
-        lines: labelLines(t(`catalog.domains.${domain.slug}.wheel`)),
-      };
-    });
-    // Curved labels: lines sit on concentric arcs.
-    const lineRadii = (lines: number, font: number, lower: boolean): number[] => {
-      if (lines < 2) return [domainMid];
-      const offset = font * 0.62;
-      // Upper half: the first line is outermost; lower half (flipped text): innermost.
-      return lower
-        ? [domainMid - offset, domainMid + offset]
-        : [domainMid + offset, domainMid - offset];
-    };
-    const flat =
-      spec.domainLabels === 'flat'
-        ? this.fitFlatLabels(
-            domainLines.map(({ lines }) => this.flatBlock(lines)),
-            spec,
-          )
-        : null;
-    const usableDeg = DOMAIN_SPAN - 2 * ARC_PADDING_DEG;
-    const domainFont = flat
-      ? flat.font
-      : fitFontSize(
-          domainLines.flatMap(({ lines, lower }) => {
-            const radii = lineRadii(lines.length, spec.domainFont, lower);
-            return lines.map((text, i) => ({
-              text,
-              maxWidth: arcLength(radii[i], usableDeg) * 0.94,
-            }));
-          }),
-          spec.domainFont,
-          spec.domainMinFont,
-          measure,
-        );
-
-    // Competency labels run along the radius (only when the wheel is wide enough).
-    const ring = spec.competencyRing;
-    const competencyFont =
-      ring && spec.competencyFont
-        ? fitFontSize(
-            FRAMEWORK.flatMap((domain) =>
-              domain.competencies.flatMap((slug) =>
-                labelLines(t(`catalog.competencies.${slug}.wheel`)).map((text) => ({
-                  text,
-                  maxWidth: ring[1] - ring[0] - 2 * RADIAL_PADDING,
-                })),
-              ),
-            ),
-            spec.competencyFont,
-            spec.competencyMinFont,
-            measure,
-          )
-        : 0;
+    const sectors = FRAMEWORK.map((_, index) => ({
+      r1: d1,
+      r2: d2,
+      a1: index * DOMAIN_SPAN - DOMAIN_SPAN / 2,
+      a2: index * DOMAIN_SPAN + DOMAIN_SPAN / 2,
+    }));
+    const blocks = FRAMEWORK.map((domain) =>
+      this.block(labelLines(t(`catalog.domains.${domain.slug}.wheel`), 3)),
+    );
+    const fit = this.fitBlocks(blocks, sectors, spec.domainFont, spec.domainMinFont);
 
     const domains: DomainView[] = FRAMEWORK.map((domain, index) => {
-      const start = index * DOMAIN_SPAN - DOMAIN_SPAN / 2;
-      const end = start + DOMAIN_SPAN;
-      const { lower, lines } = domainLines[index];
-
-      let labels: DomainLabel[] = [];
-      let flatLabel: DomainView['flat'] = null;
-      if (flat) {
-        const block = flat.blocks[index];
-        const point = flat.points[index] ?? polar(0, 0, domainMid, index * DOMAIN_SPAN);
-        flatLabel = {
-          x: Math.round((CENTER + point.x) * 100) / 100,
-          lines: this.flatLines(block, domainFont, CENTER + point.y),
-        };
-      } else {
-        const radii = lineRadii(lines.length, domainFont, lower);
-        labels = lines.map((text, i) => {
-          // Centre the glyphs on the line radius (text sits on the outside of the baseline
-          // on the upper half, on the inside when flipped on the lower half).
-          const baseline = radii[i] + (lower ? 0.35 : -0.35) * domainFont;
-          return {
-            id: `${this.idPrefix}-d${index}-${i}`,
-            arc: textArcPath(
-              CENTER,
-              CENTER,
-              baseline,
-              start + ARC_PADDING_DEG,
-              end - ARC_PADDING_DEG,
-            ),
-            text,
-          };
-        });
-      }
-
-      const span = DOMAIN_SPAN / domain.competencies.length;
-      const competencies = domain.competencies.map((slug, i) => {
-        const a1 = start + i * span;
-        const a2 = a1 + span;
-        let label: CompetencyView['label'] = null;
-        if (ring && competencyFont) {
-          const angle = (a1 + a2) / 2;
-          const point = polar(CENTER, CENTER, (ring[0] + ring[1]) / 2, angle);
-          label = {
-            transform: `translate(${point.x} ${point.y}) rotate(${radialRotation(angle)})`,
-            lines: this.stackLines(
-              labelLines(t(`catalog.competencies.${slug}.wheel`)),
-              competencyFont,
-              0,
-            ),
-          };
-        }
-        return {
-          slug,
-          name: t(`catalog.competencies.${slug}.name`),
-          path: ring ? ringSegmentPath(CENTER, CENTER, ring[0], ring[1], a1, a2) : null,
-          label,
-        };
-      });
-
+      const { a1, a2 } = sectors[index];
+      const point = fit.points[index] ?? polar(0, 0, (d1 + d2) / 2, index * DOMAIN_SPAN);
       return {
         index,
         slug: domain.slug,
         name: t(`catalog.domains.${domain.slug}.name`),
         color: domain.color,
         tint: domain.tint,
-        path: ringSegmentPath(CENTER, CENTER, d1, d2, start, end),
-        labels,
-        flat: flatLabel,
-        competencies,
+        path: ringSegmentPath(CENTER, CENTER, d1, d2, a1, a2),
+        track: spec.fanRing
+          ? ringSegmentPath(CENTER, CENTER, spec.fanRing[0], spec.fanRing[1], a1, a2)
+          : null,
+        label: {
+          x: round(CENTER + point.x),
+          lines: this.flatLines(blocks[index], fit.font, CENTER + point.y),
+        },
       };
     });
 
-    return { hub, hubFont, domainFont, competencyFont, domains };
+    return {
+      hub: this.stackLines(hubLines, hubFont, CENTER),
+      hubFont,
+      domainFont: fit.font,
+      domains,
+    };
+  }
+
+  /** One label per competency, upright inside its sector, all at the same size. */
+  private competencyViews(domain: FrameworkDomain, sectors: Sector[]) {
+    const t = (key: string) => this.transloco.translate(key);
+    const spec = this.spec();
+    const blocks = domain.competencies.map((slug) =>
+      this.block(labelLines(t(`catalog.competencies.${slug}.wheel`))),
+    );
+    const fit = this.fitBlocks(blocks, sectors, spec.competencyFont, spec.competencyMinFont);
+    const competencies: CompetencyView[] = domain.competencies.map((slug, i) => {
+      const { r1, r2, a1, a2 } = sectors[i];
+      const point = fit.points[i] ?? polar(0, 0, (r1 + r2) / 2, (a1 + a2) / 2);
+      return {
+        slug,
+        name: t(`catalog.competencies.${slug}.name`),
+        path: ringSegmentPath(CENTER, CENTER, r1, r2, a1, a2),
+        label: {
+          x: round(CENTER + point.x),
+          lines: this.flatLines(blocks[i], fit.font, CENTER + point.y),
+        },
+      };
+    });
+    return { competencies, competencyFont: fit.font };
   }
 
   /** Measures a label's lines once, per unit of font size. */
-  private flatBlock(lines: string[]): FlatBlock {
+  private block(lines: string[]): Block {
     const base = 100;
     const metrics = lines.map((text) => this.measurer.metrics(text, base));
     return {
@@ -412,39 +527,31 @@ export class ReadinessWheel {
   }
 
   /** Distance between baselines: taller scripts (Devanagari) get more room. */
-  private lineGap(block: FlatBlock, font: number): number {
+  private lineGap(block: Block, font: number): number {
     return Math.max(1.15, (block.ascent + block.descent) * 1.08) * font;
   }
 
-  private flatHeight(block: FlatBlock, font: number): number {
+  private height(block: Block, font: number): number {
     return (
       (block.lines.length - 1) * this.lineGap(block, font) + (block.ascent + block.descent) * font
     );
   }
 
   /**
-   * The largest shared font size at which every domain's label fits upright inside its
-   * segment, and where each label goes. If even the smallest size doesn't fit (a very
-   * long translation), labels that don't fit sit in the middle of their segment.
+   * The largest shared font size at which every label fits upright inside its sector, and
+   * where each label goes. If even the smallest size doesn't fit (a very long translation),
+   * labels that don't fit sit in the middle of their sector.
    */
-  private fitFlatLabels(blocks: FlatBlock[], spec: LayoutSpec) {
-    const [r1, r2] = spec.domainRing;
+  private fitBlocks(blocks: Block[], sectors: Sector[], max: number, min: number) {
     const placeAll = (font: number) =>
-      blocks.map((block, index) =>
-        placeBox(
-          block.width * font,
-          this.flatHeight(block, font),
-          r1,
-          r2,
-          index * DOMAIN_SPAN - DOMAIN_SPAN / 2,
-          index * DOMAIN_SPAN + DOMAIN_SPAN / 2,
-          FLAT_PADDING,
-        ),
-      );
-    let low = spec.domainMinFont;
-    let high = spec.domainFont;
+      blocks.map((block, i) => {
+        const { r1, r2, a1, a2 } = sectors[i];
+        return placeBox(block.width * font, this.height(block, font), r1, r2, a1, a2, PADDING);
+      });
+    let low = min;
+    let high = max;
     let points: (Point | null)[] = placeAll(high);
-    if (points.every(Boolean)) return { font: high, points, blocks };
+    if (points.every(Boolean)) return { font: high, points };
     points = placeAll(low);
     if (points.every(Boolean)) {
       while (high - low > 0.5) {
@@ -458,16 +565,28 @@ export class ReadinessWheel {
         }
       }
     }
-    return { font: Math.floor(low * 10) / 10, points, blocks };
+    return { font: Math.floor(low * 10) / 10, points };
   }
 
-  /** Baselines for a flat label centred vertically on `centerY`. */
-  private flatLines(block: FlatBlock, font: number, centerY: number): TextLine[] {
+  /** The largest font size (up to `max`) at which the block fits inside a circle. */
+  private fitInDisc(block: Block, radius: number, max: number): number {
+    let font = max;
+    while (font > 10) {
+      const halfWidth = (block.width * font) / 2;
+      const halfHeight = this.height(block, font) / 2;
+      if (Math.hypot(halfWidth, halfHeight) <= radius) break;
+      font -= 0.5;
+    }
+    return font;
+  }
+
+  /** Baselines for a label centred vertically on `centerY`. */
+  private flatLines(block: Block, font: number, centerY: number): TextLine[] {
     const gap = this.lineGap(block, font);
-    const top = centerY - this.flatHeight(block, font) / 2;
+    const top = centerY - this.height(block, font) / 2;
     return block.lines.map((text, i) => ({
       text,
-      y: Math.round((top + block.ascent * font + i * gap) * 100) / 100,
+      y: round(top + block.ascent * font + i * gap),
     }));
   }
 
@@ -476,7 +595,15 @@ export class ReadinessWheel {
     const lineHeight = font * 1.15;
     return lines.map((text, i) => ({
       text,
-      y: Math.round((center + (i - (lines.length - 1) / 2) * lineHeight + font * 0.35) * 100) / 100,
+      y: round(center + (i - (lines.length - 1) / 2) * lineHeight + font * 0.35),
     }));
   }
+}
+
+function round(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+function cross(x: number, y: number, r: number): string {
+  return `M ${x - r} ${y - r} L ${x + r} ${y + r} M ${x + r} ${y - r} L ${x - r} ${y + r}`;
 }

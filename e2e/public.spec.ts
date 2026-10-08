@@ -1,47 +1,48 @@
 import { expect, expectAccessible, expectNoHorizontalScroll, signIn, test } from './fixtures';
 
 test.describe('public pages', () => {
-  test('home page shows the approved text and a wheel that opens the domains', async ({ page }) => {
+  test('home page shows only the approved text and the wheel; a competency opens after logging in', async ({
+    page,
+  }) => {
     await page.goto('/home');
     await expect(page.getByRole('heading', { level: 1 })).toContainText('School Ready Children');
     await expect(page.getByText('School readiness is a crucial phase')).toBeVisible();
     await expect(page.getByText('School readiness lays the foundation')).toBeVisible();
-    const wheel = page.getByRole('img', { name: /School readiness framework: 6 domains/ });
-    await expect(wheel).toBeVisible();
+    await expect(
+      page.getByRole('group', { name: /School readiness framework: 6 domains/ }),
+    ).toBeVisible();
+    // No lists or hints under the wheel.
+    await expect(page.locator('app-readiness-wheel :is(nav, ul, p)')).toHaveCount(0);
     await expectNoHorizontalScroll(page);
     await expectAccessible(page);
 
-    // The domain list is the keyboard path into the wheel. Signed out, it asks to sign in
-    // first, then opens the domain.
-    const domains = page.getByRole('navigation', { name: 'Six domains of development' });
-    await expect(domains.getByRole('link')).toHaveCount(6);
-    await domains.getByRole('link', { name: /Language & Literacy Development/ }).click();
-    await expect(page).toHaveURL(/\/login\?returnUrl=%2Fcompetencies%2Fdomain%2Flanguage/);
+    // Competencies show once a domain is chosen (the pointer on it, or a tap on phones).
+    const wheel = page.locator('app-readiness-wheel');
+    await expect(wheel.locator('.competency')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Language and Literacy Development' }).click();
+    await expect(wheel.locator('.competency')).toHaveCount(4);
+    await expectAccessible(page);
+
+    // Visitors log in first, then the competency opens.
+    await page.getByRole('link', { name: 'Listening comprehension' }).click();
+    await expect(page).toHaveURL(
+      /\/login\?returnUrl=%2Fcompetencies%2Ffind%2Flistening-comprehension/,
+    );
     await page.getByLabel('Email').fill('aww@demo.in');
     await page.locator('input[formcontrolname=password]').fill('demo1234');
     await page.locator('button[type=submit]').click();
-    await expect(page).toHaveURL(/\/competencies\/domain\/language--literacy-development$/);
+    await expect(page).toHaveURL(/\/competencies\/7$/);
     await expect(
-      page.getByRole('heading', { level: 1, name: 'Language & Literacy Development' }),
+      page.getByRole('heading', { level: 1, name: 'Listening comprehension' }),
     ).toBeVisible();
-    await expect(page.getByRole('link', { name: /Listening Comprehension/ })).toBeVisible();
-    await expectNoHorizontalScroll(page);
   });
 
-  test('a signed-in worker opens a domain or competency straight from the wheel', async ({
-    page,
-  }) => {
+  test('a logged-in worker opens a competency straight from the wheel', async ({ page }) => {
     await signIn(page, 'aww@demo.in');
     await expect(page).toHaveURL(/\/home$/);
-    if ((page.viewportSize()?.width ?? 0) < 600) {
-      // Phones draw the domains only; a domain opens its page.
-      await page.locator('app-readiness-wheel .domain[data-domain="0"] .segment--domain').click();
-      await expect(page).toHaveURL(/\/competencies\/domain\/cognitive-development$/);
-      await page.getByRole('link', { name: /Seriation/ }).click();
-    } else {
-      await page.locator('app-readiness-wheel [data-competency="seriation"]').click();
-    }
-    await expect(page).toHaveURL(/\/competencies\/\d+$/);
+    await page.getByRole('button', { name: 'Cognitive Development' }).click();
+    await page.getByRole('link', { name: 'Seriation' }).click();
+    await expect(page).toHaveURL(/\/competencies\/5$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Seriation' })).toBeVisible();
     // Back leads to the competency's domain, then to all the domains.
     await page.getByRole('link', { name: 'Cognitive Development' }).first().click();
@@ -50,11 +51,23 @@ test.describe('public pages', () => {
     await expect(page).toHaveURL(/\/competencies$/);
   });
 
+  test('the wheel works with the keyboard', async ({ page }) => {
+    await page.goto('/home');
+    const domain = page.getByRole('button', { name: 'Creativity Development' });
+    await domain.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('link', { name: 'Imagination' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Creative expression' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('link', { name: 'Imagination' })).toHaveCount(0);
+    await expect(domain).toBeFocused();
+  });
+
   for (const lang of ['en', 'hi'] as const) {
     test.describe(`in ${lang}`, () => {
       test.use({ lang });
 
-      test('wheel labels are large and upright on phones, and tapping one opens it', async ({
+      test('wheel labels are large and upright, and a domain shows its competencies', async ({
         page,
       }) => {
         await page.goto('/home');
@@ -74,8 +87,16 @@ test.describe('public pages', () => {
         const phone = (page.viewportSize()?.width ?? 0) < 500;
         if (phone) expect(labels.some((l) => l.curved)).toBe(false);
 
+        // Its competencies show, still large enough to read.
         await wheel.locator('.domain[data-domain="2"] .segment--domain').click();
-        await expect(page).toHaveURL(/\/login\?returnUrl=%2Fcompetencies%2Fdomain%2F/);
+        await expect(page.locator('app-readiness-wheel .competency')).toHaveCount(2);
+        const sizes = await wheel.evaluate((svg) => {
+          const scale = svg.getBoundingClientRect().width / 500;
+          return [...svg.querySelectorAll('.competency .label')].map(
+            (text) => Number(text.getAttribute('font-size')) * scale,
+          );
+        });
+        expect(Math.min(...sizes)).toBeGreaterThanOrEqual(14);
       });
     });
   }
@@ -99,7 +120,7 @@ test.describe('public pages', () => {
     await page.getByLabel('Email').fill('aww@demo.in');
     await page.locator('input[formcontrolname=password]').fill('wrong-password');
     await page.locator('button[type=submit]').click();
-    await expect(page.getByRole('alert')).toContainText('The email or password is incorrect.');
+    await expect(page.getByRole('alert')).toContainText('Your email or password is incorrect.');
     // The password is cleared, without a "required" message under the real problem.
     await expect(page.locator('input[formcontrolname=password]')).toHaveValue('');
     await expect(page.getByText('This field is required.')).toHaveCount(0);

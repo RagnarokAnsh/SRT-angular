@@ -496,7 +496,7 @@ export class AssessmentPage implements HasUnsavedChanges {
   private focusStep(step: Step): void {
     this.afterRender(() =>
       this.host.nativeElement
-        .querySelector<HTMLElement>(step === 'record' ? '#who-title' : '#step-select')
+        .querySelector<HTMLElement>(step === 'record' ? '#record-title' : '#step-select')
         ?.focus({ preventScroll: true }),
     );
   }

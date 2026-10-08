@@ -4,8 +4,8 @@ import { DEMO_PASSWORD, expect, signIn, test } from './fixtures';
 
 async function signOut(page: Page): Promise<void> {
   await page.locator('app-account-menu button').click();
-  await page.getByRole('menuitem', { name: 'Sign out' }).click();
-  await page.getByRole('dialog').getByRole('button', { name: 'Sign out' }).click();
+  await page.getByRole('menuitem', { name: 'Logout' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Logout' }).click();
   await expect(page).toHaveURL(/\/login/);
 }
 
@@ -24,7 +24,7 @@ test.describe('sessions across tabs', () => {
 
     await signOut(other);
     await expect(page).toHaveURL(/\/login/);
-    await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Log In' })).toBeVisible();
   });
 
   test("someone else signing in elsewhere replaces the previous user's page, unsaved changes and all", async ({

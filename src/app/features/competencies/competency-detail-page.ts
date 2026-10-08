@@ -1,4 +1,3 @@
-import { DOCUMENT } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -22,7 +21,6 @@ import { SessionStore } from '@core/auth/session';
 import { domainColors } from '@core/catalog/framework';
 import { activityVideos, competencyImage } from '@core/catalog/media';
 import { createLoader } from '@shared/loader';
-import { scrollToElement } from '@shared/scroll';
 import {
   CompetencyDescriptionPipe,
   CompetencyNamePipe,
@@ -61,7 +59,6 @@ const CHECKLIST = ['understand', 'videos', 'practised', 'ready'] as const;
 export class CompetencyDetailPage {
   private readonly api = inject(CompetencyApi);
   private readonly session = inject(SessionStore);
-  private readonly document = inject(DOCUMENT);
 
   /** Route parameter. */
   readonly id = input.required({ transform: numberAttribute });
@@ -105,14 +102,6 @@ export class CompetencyDetailPage {
         this.loader.reload();
       });
     });
-  }
-
-  protected goToChecklist(event: Event): void {
-    event.preventDefault();
-    const heading = this.document.getElementById('checklist-title');
-    if (!heading) return;
-    scrollToElement(heading, 'center');
-    heading.focus({ preventScroll: true });
   }
 
   protected toggle(item: string, checked: boolean): void {

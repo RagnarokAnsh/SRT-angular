@@ -1,6 +1,7 @@
 {
   "app": {
-    "name": "School Ready Children"
+    "name": "School Ready Children",
+    "footer": "© {{year}} School Ready Children. All rights reserved."
   },
   "nav": {
     "skipToContent": "Skip to main content",
@@ -10,13 +11,13 @@
     "domainsShort": "Domains",
     "children": "Students",
     "dashboard": "Dashboard",
-    "overview": "Overview",
+    "overview": "Dashboard",
     "users": "Users",
-    "centers": "Centres",
-    "login": "Sign in",
-    "logout": "Sign out",
+    "centers": "Anganwadi",
+    "login": "Login",
+    "logout": "Logout",
     "accountMenu": "Account menu",
-    "signedInAs": "Signed in as"
+    "signedInAs": "Logged in as"
   },
   "language": {
     "change": "Change language",
@@ -39,15 +40,15 @@
     "retry": "Try again",
     "refresh": "Refresh",
     "reload": "Reload",
-    "center": "Centre",
-    "pickCenter": "Choose a centre to continue.",
-    "changeCenter": "Change centre",
-    "noCenters": "There are no centres you can choose. Ask your administrator.",
+    "center": "Center",
+    "pickCenter": "Choose a center to continue.",
+    "changeCenter": "Change center",
+    "noCenters": "There are no centers you can choose. Ask your administrator.",
     "alreadyRemoved": "{{name}} had already been removed."
   },
   "logout": {
-    "title": "Sign out?",
-    "message": "You'll need your email and password to sign in again."
+    "title": "Logout",
+    "message": "Are you sure you want to logout?"
   },
   "unsaved": {
     "title": "Leave without saving?",
@@ -64,7 +65,7 @@
     "offline": "You're offline. Check your internet connection and try again.",
     "network": "Couldn't reach the server. It may be down, or your connection may be weak.",
     "timeout": "The server is taking too long to respond. Please try again.",
-    "sessionExpired": "Your session has ended. Please sign in again.",
+    "sessionExpired": "Your session has ended. Please log in again.",
     "forbidden": "You don't have permission to do this.",
     "notFound": "We couldn't find what you were looking for. It may have been removed.",
     "conflict": "This was changed by someone else. Reload and try again.",
@@ -108,7 +109,7 @@
     "resetTitle": "Reset the demo data?",
     "resetMessage": "All changes made in demo mode will be replaced with the original sample data.",
     "accountsTitle": "Demo accounts",
-    "accountsHint": "Choose an account to fill in the form, then sign in."
+    "accountsHint": "Choose an account to fill in the form, then log in."
   },
   "home": {
     "pageTitle": "Home",
@@ -119,41 +120,31 @@
     "closing": "School readiness lays the foundation for a child's lifelong learning and success. A good early childhood education program should offer an age-appropriate and developmentally suitable learning environment for all children, ensuring that every 6-year-old is school-ready when they enter primary school. This tool will assist ECE educators in providing necessary early learning experiences to children based on their individual developmental journeys.",
     "wheel": {
       "hub": "School\nReadiness",
-      "summary": "School readiness framework: {{domains}} domains of development made up of {{competencies}} competencies.",
-      "listTitle": "Six domains of development",
-      "listHint": "Tap a domain or a competency to open it.",
-      "competencyCount": {
-        "one": "{{count}} competency",
-        "other": "{{count}} competencies"
-      }
+      "summary": "School readiness framework: {{domains}} domains of development made up of {{competencies}} competencies."
     }
   },
   "login": {
-    "pageTitle": "Sign in",
-    "artTitle": "Every child, ready for school",
-    "artSubtitle": "Observe, record and follow each student's progress across the domains of development.",
-    "heading": "Sign in",
-    "subheading": "Use the email and password given to you by your administrator.",
+    "pageTitle": "Log In",
+    "heading": "Log In",
     "email": "Email",
     "password": "Password",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "capsLock": "Caps Lock is on.",
-    "remember": "Keep me signed in on this device",
-    "submit": "Sign in",
-    "signingIn": "Signing in…",
-    "help": "Forgot your password? Ask your supervisor or administrator to reset it.",
+    "remember": "Remember Me",
+    "submit": "Log In",
+    "signingIn": "Logging in…",
     "welcome": "Welcome, {{name}}!",
-    "invalidCredentials": "The email or password is incorrect.",
-    "invalidResponse": "The server's reply was incomplete, so you couldn't be signed in. Please try again.",
-    "reasonExpired": "Your session expired. Please sign in again.",
-    "reasonIdle": "You were signed out after a period of inactivity, to keep students' data safe."
+    "invalidCredentials": "Your email or password is incorrect.",
+    "invalidResponse": "The server's reply was incomplete, so you couldn't be logged in. Please try again.",
+    "reasonExpired": "Your session expired. Please log in again.",
+    "reasonIdle": "You were logged out after a period of inactivity, to keep students' data safe."
   },
   "unauthorized": {
-    "pageTitle": "No access",
-    "heading": "You don't have access to this page",
-    "message": "Your account's role doesn't include this page. If you think it should, ask your administrator.",
-    "home": "Go to my home page"
+    "pageTitle": "Access Denied",
+    "heading": "Access Denied",
+    "message": "You don't have permission to access this page. Please contact your administrator if you believe this is an error.",
+    "home": "Go to My Dashboard"
   },
   "notFound": {
     "pageTitle": "Page not found",
@@ -165,34 +156,34 @@
     "domains": {
       "cognitive-development": {
         "name": "Cognitive Development",
-        "wheel": "Cognitive"
+        "wheel": "Cognitive\nDevelopment"
       },
-      "language--literacy-development": {
-        "name": "Language & Literacy Development",
-        "wheel": "Language &\nLiteracy"
+      "language-and-literacy-development": {
+        "name": "Language and Literacy Development",
+        "wheel": "Language &\nLiteracy\nDevelopment"
       },
-      "physical--motor-development": {
-        "name": "Physical & Motor Development",
-        "wheel": "Physical &\nMotor"
+      "physical-and-motor-development": {
+        "name": "Physical and Motor Development",
+        "wheel": "Physical &\nMotor\nDevelopment"
       },
       "socio-emotional-development": {
         "name": "Socio-Emotional Development",
-        "wheel": "Socio-\nEmotional"
+        "wheel": "Socio-\nEmotional\nDevelopment"
       },
       "approaches-towards-learning": {
         "name": "Approaches towards Learning",
-        "wheel": "Approaches\nto Learning"
+        "wheel": "Approaches\ntowards\nLearning"
       },
       "creativity-development": {
         "name": "Creativity Development",
-        "wheel": "Creativity"
+        "wheel": "Creativity\nDevelopment"
       }
     },
     "competencies": {
       "classification": {
         "name": "Classification",
         "wheel": "Classification",
-        "description": "Sorting and grouping objects by shared features such as colour, shape and size.",
+        "description": "Classification is an important concept related to identifying different characteristics of things and categorizing them according to these characteristics. Children develop these skills by observing and examining different aspects of objects and identifying how these are alike or different.",
         "levels": {
           "beginning": "Unable to sort objects based on any characteristic",
           "progressing": "Sorts objects based on any one characteristic",
@@ -203,7 +194,7 @@
       "patterns": {
         "name": "Patterns",
         "wheel": "Patterns",
-        "description": "Noticing, copying and continuing repeating patterns in objects, sounds and movements.",
+        "description": "Understanding patterns is a foundational math skill upon which many mathematical concepts are based. For example, multiplication and counting both require an understanding of patterns. Patterns help children make logical connections between things, events, etc., by using their reasoning and problem-solving skills. Patterns can be found everywhere in our lives (e.g., the daily routine that we follow).",
         "levels": {
           "beginning": "Unable to copy patterns",
           "progressing": "Copies patterns",
@@ -212,9 +203,9 @@
         }
       },
       "number-concept": {
-        "name": "Number Concept",
-        "wheel": "Number\nConcept",
-        "description": "Understanding quantity, counting with meaning and recognising numerals.",
+        "name": "Number concept",
+        "wheel": "Number\nconcept",
+        "description": "Learning number concepts is one of the most important competencies and sets the foundation for understanding numbers. Number concepts involve a child’s ability to recognize numerals, one-to-one correspondence, counting and simple operations.",
         "levels": {
           "beginning": "Unable to compare quantities",
           "progressing": "Connects a number with an object and counts each object with understanding",
@@ -225,7 +216,7 @@
       "seriation": {
         "name": "Seriation",
         "wheel": "Seriation",
-        "description": "Comparing and arranging objects in order of size, length or quantity.",
+        "description": "Seriation is an important concept related to measuring objects and categorizing them accordingly. At preschool age, children develop these skills for sequencing and putting objects in order, such as from smallest to largest, lightest to heaviest or least to most.",
         "levels": {
           "beginning": "Unable to compare two objects in terms of size, length, or quantity",
           "progressing": "Compares two similar objects based on size, length, or quantity",
@@ -234,9 +225,9 @@
         }
       },
       "vocabulary-and-expression": {
-        "name": "Vocabulary and Expression",
-        "wheel": "Vocabulary &\nExpression",
-        "description": "Using a growing range of words and sentences to share ideas and describe events.",
+        "name": "Vocabulary and expression",
+        "wheel": "Vocabulary\n& exp.",
+        "description": "Early vocabulary development is an important predictor of success in reading. A strong vocabulary enables a child to understand and communicate more effectively.",
         "levels": {
           "beginning": "Uses gestures to express/describe any event",
           "progressing": "Uses words to express/describe any event",
@@ -245,20 +236,20 @@
         }
       },
       "listening-comprehension": {
-        "name": "Listening Comprehension",
-        "wheel": "Listening\nComprehension",
-        "description": "Listening with attention and understanding stories and conversations.",
+        "name": "Listening comprehension",
+        "wheel": "Listening\ncomprehension",
+        "description": "Listening comprehension is important for a child to understand what is being said. It includes a child’s receptive language skills as well as interpretation of what he/she hears.",
         "levels": {
           "beginning": "Does not pay attention to a story/conversation",
           "progressing": "Listens actively to a story/conversation",
           "advancing": "Understands a story/conversation – responds to simple/close-ended questions (e.g., what, when, who)",
-          "schoolReady": "Understands a story/conversation – responds to complex/open-ended questions (e.g., why and how)"
+          "schoolReady": "Understands a story/conversation –responds to complex/open-ended questions (e.g., why and how)"
         }
       },
       "emergent-reading--book-handling": {
-        "name": "Emergent Reading & Book Handling",
-        "wheel": "Emergent\nReading",
-        "description": "Exploring books, telling pictures from text and following print in the right direction.",
+        "name": "Emergent reading – book handling",
+        "wheel": "Emergent\nreading",
+        "description": "Book handling is a predictor of successful reading skills. It helps children to develop bonds with books, understand books, letters, words, and directionality, and to understand that print has meaning.",
         "levels": {
           "beginning": "Picks up books and explores them",
           "progressing": "Identifies the cover page of a book",
@@ -267,9 +258,9 @@
         }
       },
       "emergent-writing": {
-        "name": "Emergent Writing",
-        "wheel": "Emergent\nWriting",
-        "description": "Moving from scribbles and drawings towards writing letters and words to express ideas.",
+        "name": "Emergent writing",
+        "wheel": "Emergent\nwriting",
+        "description": "Writing is an important skill. Between the ages of 3 to 6 years, children begin to learn to write, and by the time they are 6 years old, they should be able to write some simple words and/or their names.",
         "levels": {
           "beginning": "Scribbles to represent writing",
           "progressing": "Draws shapes to represent writing",
@@ -278,9 +269,9 @@
         }
       },
       "gross-motor-development": {
-        "name": "Gross Motor Development",
-        "wheel": "Gross Motor",
-        "description": "Balance, coordination and control of the large muscles while running, jumping and throwing.",
+        "name": "Gross motor development",
+        "wheel": "Gross\nmotor",
+        "description": "Gross motor development involves large muscle movements in arms, legs and the torso, and includes skills, such as walking, running, climbing, throwing, kicking, and catching. A child needs considerable practice to develop gross motor skills.",
         "levels": {
           "beginning": "Limited balance in gross motor activities, e.g., jumping",
           "progressing": "Maintains balance in gross motor activities",
@@ -289,9 +280,9 @@
         }
       },
       "fine-motor-development": {
-        "name": "Fine Motor Development",
-        "wheel": "Fine Motor",
-        "description": "Control and coordination of the small muscles of the hands and fingers.",
+        "name": "Fine motor development",
+        "wheel": "Fine\nmotor",
+        "description": "Fine motor development includes the development of small finger muscles and skills such as picking up things, threading beads, tying shoelaces, colouring within the boundary and stacking objects of different sizes.",
         "levels": {
           "beginning": "Limited coordination of small muscles in fine motor activities",
           "progressing": "Maintains coordination of small muscles in fine motor activities",
@@ -302,7 +293,7 @@
       "interaction": {
         "name": "Interaction",
         "wheel": "Interaction",
-        "description": "Playing and working together with other children and adults.",
+        "description": "Interaction between young children and their peers and adults is important during the early years. Through interactions, children learn a language and social skills. Children who are given enough opportunities to interact and communicate through play-based activities tend to have a stronger social relationship with others.",
         "levels": {
           "beginning": "Plays alongside or near others but not with others",
           "progressing": "Starts to play with others",
@@ -311,9 +302,9 @@
         }
       },
       "sharing-with-others": {
-        "name": "Sharing with Others",
-        "wheel": "Sharing",
-        "description": "Willingly sharing materials, space and attention with peers.",
+        "name": "Sharing with others",
+        "wheel": "Sharing\nwith others",
+        "description": "Sharing is an important social skill. Children at an early age build these skills through observation.",
         "levels": {
           "beginning": "Shares unwillingly with peers and only when asked",
           "progressing": "Begins to share selectively when encouraged",
@@ -322,9 +313,9 @@
         }
       },
       "emotional-expression-and-regulation": {
-        "name": "Emotional Expression and Regulation",
-        "wheel": "Emotional\nExpression",
-        "description": "Recognising feelings and responding to them in appropriate ways.",
+        "name": "Emotional expression and regulation",
+        "wheel": "Emotional\nexpression",
+        "description": "Emotional regulation determines a child’s ability to express feelings and manage her/his emotions. Emotional regulation is a crucial skill for the well-being of the child. It is important that parents, caregivers and teachers provide support for the child’s emotional stability to help her/him grow and develop optimally.",
         "levels": {
           "beginning": "Unable to identify emotions",
           "progressing": "Identifies own emotions",
@@ -335,7 +326,7 @@
       "initiative": {
         "name": "Initiative",
         "wheel": "Initiative",
-        "description": "Starting activities and trying new things without being asked.",
+        "description": "Learning to take initiative is a behaviour that helps children navigate their lives with confidence. By taking initiative, children become more proactive and look for different ways to grow, study, excel and practice leadership skills.",
         "levels": {
           "beginning": "Does not take action even after being asked to do something",
           "progressing": "Begins to take initiative when encouraged",
@@ -344,9 +335,9 @@
         }
       },
       "task-persistence": {
-        "name": "Task Persistence",
-        "wheel": "Task\nPersistence",
-        "description": "Staying focused on an activity until it is finished, even with distractions.",
+        "name": "Task persistence",
+        "wheel": "Task\npersistence",
+        "description": "Task persistence is a skill that is important for children in classroom activities as well as in personal endeavours. It is important that children are encouraged to undertake challenging activities and tasks. This will help them learn to persevere, complete tasks and activities, and not give up.",
         "levels": {
           "beginning": "Focuses on play activities for a short period of time (about 5 minutes)",
           "progressing": "Engages in play activities for about 10 minutes",
@@ -355,9 +346,9 @@
         }
       },
       "creative-expression": {
-        "name": "Creative Expression",
-        "wheel": "Creative\nExpression",
-        "description": "Expressing ideas through art, craft, music, dance and play.",
+        "name": "Creative expression",
+        "wheel": "Creative\nexpression",
+        "description": "One of the best ways for children to learn about new concepts is to ignite their interest through hands- on experience. Besides giving young children the chance to explore different concepts through their senses, the experience helps develop other useful skills, including problem-solving and perseverance.",
         "levels": {
           "beginning": "Unable to create something to represent an idea or object (e.g., by using arts and crafts, dance or music)",
           "progressing": "Creates something with an adult assistance",
@@ -368,7 +359,7 @@
       "imagination": {
         "name": "Imagination",
         "wheel": "Imagination",
-        "description": "Pretend play, storytelling and thinking about what could happen next.",
+        "description": "Imagination is the door to possibilities. It is where creativity and thinking outside the box begin in child development. Imaginative and creative play is how children learn about the world. During imaginative play, children manipulate materials, express themselves verbally and non-verbally, plan (intentionally or unintentionally), act, interact, react, and try different roles.",
         "levels": {
           "beginning": "Unable to answer questions about what would happen next in a story",
           "progressing": "Answers questions about what would happen next in a story",
@@ -402,7 +393,6 @@
   },
   "competencies": {
     "title": "School Readiness – Domains",
-    "subtitle": "Choose a domain or a competency to see what to look for, watch activity ideas and assess students.",
     "search": "Search competencies",
     "count": {
       "one": "{{count}} competency",
@@ -421,52 +411,45 @@
   },
   "competencyDetail": {
     "pageTitle": "Competency",
-    "assess": "Assess students",
-    "prepare": "Get ready to assess",
-    "levelsTitle": "Learning process",
-    "levelsIntro": "Children move through four levels. Use these descriptions to decide which level best matches what you observe.",
-    "videosTitle": "Suggested activities",
-    "videosIntro": "Activities to try with children at the Anganwadi centre.",
+    "levelsTitle": "Learning Process",
+    "videosTitle": "Suggested activities for children at Anganwadi Center",
     "videoLabel": "Activity video {{n}}",
-    "checklistTitle": "Before you assess",
-    "checklistIntro": "Tick each statement when it is true for you. This is remembered on this device.",
     "checklist": {
       "understand": "I understand the competency and how children learn.",
       "videos": "I have watched all the suggested activity videos.",
-      "practised": "I have tried all these and similar activities in the Anganwadi centre.",
+      "practised": "I have tried all these and similar activities in the anganwadi centres.",
       "ready": "I am ready to use these activities to assess children."
     },
-    "checklistHint": "Tick all four statements to continue.",
-    "continue": "Continue to assessment",
+    "continue": "Continue to Assessment",
     "notFound": "Competency not found",
-    "notFoundMessage": "It may have been removed. Go back to the list and choose another one."
+    "notFoundMessage": "It may have been removed. Go back to the list and choose another one.",
+    "videoUnsupported": "Your browser does not support the video tag."
   },
   "assessment": {
     "pageTitle": "Assessment",
-    "title": "Assess: {{name}}",
+    "title": "{{name}}",
     "titleGeneric": "Assessment",
-    "subtitle": "Each student can be assessed in up to four sessions. The next session number is chosen for you.",
-    "backToCompetency": "Back to the competency",
+    "backToCompetency": "Back to Videos",
     "steps": "Steps",
-    "stepChoose": "Select students",
-    "stepRecord": "Record the level",
-    "noCenterTitle": "Your account isn't linked to a centre",
-    "noCenterMessage": "Ask your administrator to link your account to your Anganwadi centre.",
-    "pickCenterIntro": "Choose the centre whose students you want to assess.",
-    "noChildren": "No students in this centre yet",
-    "noChildrenMessage": "Add students on the Students page, then come back to assess them.",
-    "search": "Search students",
+    "stepChoose": "Select Students",
+    "stepRecord": "Assessment Level",
+    "noCenterTitle": "Your account isn't linked to a center",
+    "noCenterMessage": "Ask your administrator to link your account to your Anganwadi center.",
+    "pickCenterIntro": "Choose the center whose students you want to assess.",
+    "noChildren": "No students available.",
+    "noChildrenMessage": "Please add students to proceed.",
+    "search": "Filter students",
     "filterLabel": "Show",
     "filterAll": "All ({{count}})",
     "filterTodo": "To assess ({{count}})",
     "filterDone": "Finished ({{count}})",
     "selectAll": "Select all {{count}} shown",
     "nextSession": "Next: session {{n}}",
-    "allDone": "All 4 sessions done",
+    "allDone": "All 4 sessions completed",
     "sessionsDone": "{{done}} of {{total}} sessions done",
     "sessionN": "Session {{n}}",
     "sessionShort": "S{{n}}",
-    "notYet": "not yet",
+    "notYet": "Not assessed",
     "history": "Earlier sessions for {{name}}",
     "measurementsShort": "{{height}} cm, {{weight}} kg",
     "noMatch": "No students match your search.",
@@ -475,34 +458,33 @@
       "other": "{{count}} students selected"
     },
     "noneSelected": "No students selected",
-    "continue": "Continue",
+    "continue": "Continue to Assessment",
     "recordingFor": {
-      "one": "Recording for {{count}} student",
-      "other": "Recording for {{count}} students"
+      "one": "Selected Students ({{count}})",
+      "other": "Selected Students ({{count}})"
     },
     "removeChild": "Remove {{name}}",
     "dateLine": "Assessment date: {{date}}",
-    "chooseLevel": "Which level best describes what you observed?",
+    "chooseLevel": "Select Level",
     "levelRequired": "Choose a level to continue.",
     "measurementsTitle": "Height and weight",
-    "measurementsIntro": "Measure each student today and enter the results.",
-    "height": "Height",
-    "weight": "Weight",
+    "height": "Height (cm)",
+    "weight": "Weight (kg)",
     "lastValue": "Last recorded: {{value}}",
-    "remarksTitle": "Remarks (optional)",
-    "remarks": "What did you notice?",
-    "remarksHint": "Saved with every selected student's result.",
-    "confirmTitle": "Save this assessment?",
+    "remarksTitle": "Assessment Remarks",
+    "remarks": "Add remarks for this assessment",
+    "remarksHint": "These remarks will apply to the entire assessment",
+    "confirmTitle": "Submit this assessment?",
     "confirmMessage": {
       "one": "{{level}} will be recorded for {{count}} student. Saved results can't be changed here later.",
       "other": "{{level}} will be recorded for {{count}} students. Saved results can't be changed here later."
     },
-    "save": "Save assessment",
-    "saving": "Saving…",
+    "save": "Submit Assessment",
+    "saving": "Submitting…",
     "retry": "Try again",
     "saved": {
-      "one": "Assessment saved for {{count}} student.",
-      "other": "Assessment saved for {{count}} students."
+      "one": "Assessment submitted successfully!",
+      "other": "Assessment submitted successfully!"
     },
     "partlySaved": "Saved for {{saved}}; {{failed}} couldn't be saved.",
     "failedTitle": {
@@ -515,74 +497,79 @@
       "one": "{{count}} result that seemed to fail had been saved after all.",
       "other": "{{count}} results that seemed to fail had been saved after all."
     },
-    "changeCenterTitle": "Change centre?",
-    "changeCenterMessage": "The students you selected and the level you chose will be cleared."
+    "changeCenterTitle": "Change center?",
+    "changeCenterMessage": "The students you selected and the level you chose will be cleared.",
+    "selectTitle": "Select students to assess",
+    "selectIntro": "Choose the students you want to assess for {{name}}.",
+    "levelTitle": "Choose assessment level",
+    "levelIntro": "Select the appropriate level for the students you've chosen.",
+    "backToStudents": "Back to Students",
+    "searchPlaceholder": "Type a name...",
+    "remarksPlaceholder": "Enter general observations or comments..."
   },
   "children": {
-    "title": "Students",
-    "subtitle": "Students registered at the centre",
+    "title": "Students List",
     "count": {
       "one": "{{count}} student",
       "other": "{{count}} students"
     },
-    "add": "Add student",
+    "add": "Add New",
     "search": "Search by name",
-    "center": "Centre",
-    "allCenters": "All centres",
+    "center": "Anganwadi Center",
+    "allCenters": "All centers",
     "empty": "No students yet",
-    "emptyMessage": "Add the students of your centre to start assessing them.",
+    "emptyMessage": "Add the students of your center to start assessing them.",
     "noMatch": "No students match your search.",
     "symbolShort": "Symbol: {{symbol}}",
     "editLabel": "Edit {{name}}",
     "deleteLabel": "Delete {{name}}",
-    "deleteTitle": "Delete {{name}}?",
-    "deleteMessage": "Their details will be removed. This can't be undone.",
+    "deleteTitle": "Delete Student",
+    "deleteMessage": "Are you sure you want to delete {{name}}?",
     "delete": "Delete",
-    "deleted": "{{name}} was deleted.",
+    "deleted": "Student {{name}} has been successfully deleted",
     "gender": {
       "boy": "Boy",
       "girl": "Girl",
-      "other": "Not specified"
+      "other": "N/A"
     }
   },
   "childForm": {
-    "addTitle": "Add a student",
-    "editTitle": "Edit student",
-    "subtitle": "All fields are required.",
+    "addTitle": "Add Student",
+    "editTitle": "Edit Student",
     "back": "Students",
-    "aboutChild": "About the student",
-    "name": "Full name",
-    "nameHint": "As used at the centre. Any language is fine.",
-    "dateOfBirth": "Date of birth",
+    "name": "Name",
+    "dateOfBirth": "Date of Birth",
     "ageToday": "Age today: {{age}}",
     "gender": "Gender",
-    "language": "Home language",
+    "language": "Home Language",
     "symbol": "Symbol",
-    "symbolHint": "The picture or sign the student uses to find their things, e.g. Sun.",
-    "measurements": "Height and weight",
-    "height": "Height",
-    "weight": "Weight",
-    "center": "Anganwadi centre",
-    "yourCenter": "Your centre",
-    "noCenter": "You can't add or edit students until your account is linked to your Anganwadi centre. Ask your administrator.",
-    "chooseCenter": "Choose a centre",
-    "add": "Add student",
-    "save": "Save changes",
+    "height": "Height (cm)",
+    "weight": "Weight (kg)",
+    "center": "Anganwadi Center",
+    "yourCenter": "Student will be assigned to your center",
+    "noCenter": "You can't add or edit students until your account is linked to your Anganwadi center. Ask your administrator.",
+    "chooseCenter": "Choose a center",
+    "add": "Create Student",
+    "save": "Update Student",
     "saving": "Saving…",
-    "added": "{{name}} was added.",
-    "saved": "Changes to {{name}} were saved.",
+    "added": "Student {{name}} has been successfully created",
+    "saved": "Student {{name}}'s information has been successfully updated",
     "forbiddenTitle": "You can't edit this student",
-    "forbiddenMessage": "This student belongs to another centre.",
+    "forbiddenMessage": "This student belongs to another center.",
     "duplicateTitle": "This student may already be registered",
-    "duplicateMessage": "{{name}}, with the same date of birth, is already registered at this centre. Add another record anyway?",
+    "duplicateMessage": "{{name}}, with the same date of birth, is already registered at this center. Add another record anyway?",
     "addAnyway": "Add anyway",
-    "duplicateEditMessage": "{{name}}, with the same date of birth, is already registered at this centre. Save these changes anyway?",
-    "saveAnyway": "Save anyway"
+    "duplicateEditMessage": "{{name}}, with the same date of birth, is already registered at this center. Save these changes anyway?",
+    "saveAnyway": "Save anyway",
+    "languagePlaceholder": "Enter home language",
+    "symbolPlaceholder": "Enter symbol",
+    "heightPlaceholder": "Enter height",
+    "weightPlaceholder": "Enter weight"
   },
   "dashboard": {
     "title": "Dashboard",
-    "subtitle": "Progress of the students at your centre",
-    "pickCenterIntro": "Choose the centre whose progress you want to see.",
+    "subtitle": "Progress of the students at your center",
+    "pickCenterIntro": "Choose the center whose progress you want to see.",
     "overview": {
       "title": "Overview",
       "subtitle": "Every domain at a glance. Each bar is one session and counts every student's result in every competency of the domain.",
@@ -628,7 +615,7 @@
       "button": "Download Excel",
       "title": "School readiness dashboard",
       "generated": "Generated on",
-      "center": "Centre",
+      "center": "Center",
       "sessionsDone": "Sessions recorded",
       "sessionsPossible": "Sessions possible",
       "age": "Age",
@@ -727,27 +714,25 @@
   },
   "admin": {
     "overview": {
-      "title": "Overview",
-      "subtitle": "Welcome, {{name}}. Manage accounts, centres and students.",
+      "title": "Dashboard",
+      "subtitle": "Welcome, {{name}}",
       "users": "Users",
-      "centers": "Anganwadi centres",
+      "centers": "Anganwadi centers",
       "children": "Students",
       "manageUsers": "Manage users",
-      "manageCenters": "Manage centres",
+      "manageCenters": "Manage centers",
       "viewChildren": "View students",
       "byRole": "Users by role"
     },
     "users": {
-      "title": "Users",
-      "subtitle": "Accounts that can sign in",
+      "title": "Users Management",
       "count": {
         "one": "{{count}} user",
         "other": "{{count}} users"
       },
-      "add": "Add user",
-      "addTitle": "Add a user",
-      "editTitle": "Edit user",
-      "formSubtitle": "The person will sign in with this email and password.",
+      "add": "Add New User",
+      "addTitle": "Add User",
+      "editTitle": "Edit User",
       "search": "Search by name, email or place",
       "role": "Role",
       "allRoles": "All roles",
@@ -755,55 +740,57 @@
       "noMatch": "No users match your search.",
       "editLabel": "Edit {{name}}",
       "deleteLabel": "Delete {{name}}",
-      "deleteTitle": "Delete {{name}}'s account?",
-      "deleteMessage": "They will no longer be able to sign in. This can't be undone.",
-      "delete": "Delete account",
-      "deleted": "{{name}}'s account was deleted.",
-      "account": "Account",
-      "name": "Full name",
-      "newPassword": "New password",
+      "deleteTitle": "Delete User",
+      "deleteMessage": "Are you sure you want to delete {{name}}?",
+      "delete": "Delete",
+      "deleted": "User {{name}} has been successfully deleted",
+      "name": "Full Name",
+      "newPassword": "Password",
       "passwordRule": "At least 8 characters, with letters and numbers.",
       "passwordKeep": "Leave empty to keep the current password.",
       "gender": "Gender",
       "genders": {
         "male": "Male",
         "female": "Female",
-        "other": "Not specified"
+        "other": "N/A"
       },
-      "area": "Area of work",
-      "areaIntro": "A {{role}} is linked to this area.",
+      "area": "Location Information",
       "chooseSectorFirst": "Choose a sector first.",
-      "noCentersInSector": "There are no centres in this sector yet.",
-      "added": "{{name}} was added.",
-      "saved": "Changes to {{name}} were saved.",
-      "ownRole": "You can't change your own role."
+      "noCentersInSector": "There are no centers in this sector yet.",
+      "added": "User {{name}} has been successfully created",
+      "saved": "User {{name}} has been successfully updated",
+      "ownRole": "You can't change your own role.",
+      "create": "Create User",
+      "update": "Update User",
+      "namePlaceholder": "Enter full name",
+      "emailPlaceholder": "Enter email address"
     },
     "centers": {
-      "title": "Anganwadi centres",
-      "subtitle": "Centres where students are assessed",
+      "title": "Anganwadi Centers List",
       "count": {
-        "one": "{{count}} centre",
-        "other": "{{count}} centres"
+        "one": "{{count}} center",
+        "other": "{{count}} centers"
       },
-      "add": "Add centre",
-      "addTitle": "Add a centre",
-      "editTitle": "Edit centre",
+      "add": "Add Center",
+      "addTitle": "Add Anganwadi Center",
+      "editTitle": "Edit Anganwadi Center",
       "search": "Search by name, code or place",
-      "empty": "No centres yet",
-      "noMatch": "No centres match your search.",
+      "empty": "No Anganwadi Centers found",
+      "noMatch": "No centers match your search.",
       "editLabel": "Edit {{name}}",
       "deleteLabel": "Delete {{name}}",
-      "deleteTitle": "Delete {{name}}?",
-      "deleteMessage": "Students and workers linked to this centre may lose their link to it. This can't be undone.",
-      "delete": "Delete centre",
-      "deleted": "{{name}} was deleted.",
-      "details": "Centre details",
-      "name": "Centre name",
-      "code": "Centre code",
-      "codeHint": "For example AWC-JP-001.",
-      "location": "Location",
-      "added": "{{name}} was added.",
-      "saved": "Changes to {{name}} were saved."
+      "deleteTitle": "Delete Anganwadi Center",
+      "deleteMessage": "Are you sure you want to delete {{name}}?",
+      "delete": "Delete",
+      "deleted": "Anganwadi center deleted successfully",
+      "name": "Center Name",
+      "code": "Center Code",
+      "added": "Anganwadi center \"{{name}}\" created successfully",
+      "saved": "Anganwadi center \"{{name}}\" updated successfully",
+      "create": "Create Center",
+      "update": "Update Center",
+      "namePlaceholder": "Enter center name",
+      "codePlaceholder": "Enter center code"
     }
   }
 }

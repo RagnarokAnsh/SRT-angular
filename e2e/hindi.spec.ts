@@ -7,31 +7,31 @@ test.describe('in Hindi', () => {
     await page.goto('/home');
     await expect(page.locator('html')).toHaveAttribute('lang', 'hi');
     await expect(page.getByRole('heading', { level: 1 })).toContainText('स्कूल के लिए');
-    await expect(page.getByRole('heading', { name: 'विकास के छह क्षेत्र' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'संज्ञानात्मक विकास' })).toBeVisible();
     await expectNoHorizontalScroll(page);
     await expectAccessible(page);
 
     await page.goto('/login');
-    await expect(page.getByRole('heading', { name: 'साइन इन करें' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'लॉग इन' })).toBeVisible();
     await expectNoHorizontalScroll(page);
   });
 
   test('worker screens', async ({ page }) => {
     await signIn(page, 'aww@demo.in');
     await expect(page).toHaveURL(/\/home$/);
-    await expect(page.getByRole('heading', { name: 'विकास के छह क्षेत्र' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'संज्ञानात्मक विकास' })).toBeVisible();
     await expectNoHorizontalScroll(page);
 
     await page.goto('/competencies');
     await expect(page.getByRole('heading', { name: 'संज्ञानात्मक विकास' })).toBeVisible();
     await expectNoHorizontalScroll(page);
 
-    await page.goto('/competencies/1');
+    await page.goto('/competencies/2');
     await expect(page.getByRole('heading', { level: 1, name: 'वर्गीकरण' })).toBeVisible();
     await expect(page.getByText('तीन विशेषताओं के आधार पर वस्तुओं का वर्गीकरण करना')).toBeVisible();
     await expectNoHorizontalScroll(page);
 
-    await page.goto('/competencies/1/assess');
+    await page.goto('/competencies/2/assess');
     await expect(page.getByRole('button', { name: /आगे बढ़ें/ })).toBeVisible();
     await expectNoHorizontalScroll(page);
     await expectAccessible(page);

@@ -39,7 +39,6 @@ import { CompetencyCard } from './competency-card';
     <div class="page">
       <app-page-header backLink="/home" [backLabel]="'nav.home' | transloco">
         <span pageTitle>{{ 'competencies.title' | transloco }}</span>
-        <span pageSubtitle>{{ 'competencies.subtitle' | transloco }}</span>
       </app-page-header>
 
       @if (loader.error(); as error) {

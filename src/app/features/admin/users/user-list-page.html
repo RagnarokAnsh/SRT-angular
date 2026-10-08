@@ -1,13 +1,9 @@
 <div class="page">
   <app-page-header>
     <span pageTitle>{{ 'admin.users.title' | transloco }}</span>
-    <span pageSubtitle>
-      @if (loader.data(); as all) {
-        {{ 'admin.users.count' | plural: all.length }}
-      } @else {
-        {{ 'admin.users.subtitle' | transloco }}
-      }
-    </span>
+    @if (loader.data(); as all) {
+      <span pageSubtitle>{{ 'admin.users.count' | plural: all.length }}</span>
+    }
     <a pageActions mat-flat-button routerLink="/admin/users/new">
       <mat-icon svgIcon="add" aria-hidden="true" />
       {{ 'admin.users.add' | transloco }}

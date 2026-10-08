@@ -49,7 +49,7 @@ describe('CompetencyApi', () => {
     const domains = await result;
     expect(domains.map((d) => d.slug)).toEqual([
       'cognitive-development',
-      'language--literacy-development',
+      'language-and-literacy-development',
     ]);
     expect(domains[0].competencies.map((c) => c.slug)).toEqual(['classification', 'patterns']);
   });

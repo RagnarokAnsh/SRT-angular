@@ -23,30 +23,6 @@
   background: #e5c79f; // matches the illustration's own background
 }
 
-.art__text {
-  display: none;
-  padding: var(--space-12) var(--space-10) 0;
-  color: #4a2e12;
-
-  @include up(md) {
-    display: block;
-  }
-}
-
-.art__title {
-  margin: 0 0 var(--space-2);
-  color: #3b230c;
-  font-size: var(--text-3xl);
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.art__subtitle {
-  max-width: 40ch;
-  margin: 0;
-  font-size: var(--text-lg);
-}
-
 .art__image {
   display: block;
   width: 100%;
@@ -82,13 +58,8 @@
 }
 
 .title {
-  margin-bottom: var(--space-1);
-  font-size: var(--text-3xl);
-}
-
-.subtitle {
   margin-bottom: var(--space-6);
-  color: var(--color-text-muted);
+  font-size: var(--text-3xl);
 }
 
 form {
@@ -141,12 +112,6 @@ mat-checkbox {
 
 .notice__detail {
   opacity: 0.85;
-}
-
-.help {
-  margin: var(--space-6) 0 0;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
 }
 
 // Demo accounts (demo builds only)

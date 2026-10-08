@@ -75,7 +75,7 @@
 </main>
 
 <footer class="footer">
-  <p>© {{ year }} {{ 'app.name' | transloco }}</p>
+  <p>{{ 'app.footer' | transloco: { year } }}</p>
 </footer>
 
 @if (showBottomNav()) {

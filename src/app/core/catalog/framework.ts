@@ -20,7 +20,7 @@ export const FRAMEWORK: readonly FrameworkDomain[] = [
     competencies: ['classification', 'patterns', 'number-concept', 'seriation'],
   },
   {
-    slug: 'language--literacy-development',
+    slug: 'language-and-literacy-development',
     color: '#277ab1',
     tint: '#9fc6e0',
     competencies: [
@@ -31,7 +31,7 @@ export const FRAMEWORK: readonly FrameworkDomain[] = [
     ],
   },
   {
-    slug: 'physical--motor-development',
+    slug: 'physical-and-motor-development',
     color: '#1e864a',
     tint: '#9edbb7',
     competencies: ['gross-motor-development', 'fine-motor-development'],
