@@ -97,7 +97,8 @@ test.describe('Anganwadi worker', () => {
 
   test('adds a student with a Hindi name and warns about duplicates', async ({ page }) => {
     await page.goto('/students/new');
-    await page.getByLabel('Name', { exact: true }).fill('प्रिया शर्मा');
+    await page.getByLabel('First Name').fill('प्रिया');
+    await page.getByLabel('Last Name').fill('शर्मा');
     await page.getByLabel('Date of birth').fill('2022-05-10');
     await page.getByRole('radio', { name: 'Girl' }).check();
     await page.getByLabel('Home language').fill('हिंदी');
@@ -110,7 +111,8 @@ test.describe('Anganwadi worker', () => {
     await expect(page.getByRole('listitem').filter({ hasText: 'प्रिया शर्मा' })).toBeVisible();
 
     await page.goto('/students/new');
-    await page.getByLabel('Name', { exact: true }).fill('प्रिया  शर्मा');
+    await page.getByLabel('First Name').fill('प्रिया ');
+    await page.getByLabel('Last Name').fill('  शर्मा');
     await page.getByLabel('Date of birth').fill('2022-05-10');
     await page.getByRole('radio', { name: 'Girl' }).check();
     await page.getByLabel('Home language').fill('हिंदी');
@@ -123,12 +125,22 @@ test.describe('Anganwadi worker', () => {
 
   test('rejects impossible student details', async ({ page }) => {
     await page.goto('/students/new');
-    await page.getByLabel('Name', { exact: true }).fill('R2D2');
+    await page.getByLabel('First Name').fill('R2D2');
     await page.getByLabel('Date of birth').fill('2010-01-01');
     await page.getByRole('textbox', { name: 'Height' }).fill('500');
     await page.getByRole('button', { name: 'Create Student' }).click();
     await expect(page.getByText("Use letters, spaces and . ' - only.")).toBeVisible();
     await expect(page.getByText('The child must be between 2 and 6 years old.')).toBeVisible();
     await expect(page.getByText('Enter a value from 30 to 200.')).toBeVisible();
+  });
+
+  test('edits a student with the first and last name apart', async ({ page }) => {
+    await page.goto('/students/1/edit');
+    await expect(page.getByLabel('First Name')).toHaveValue('Aarav');
+    await expect(page.getByLabel('Last Name')).toHaveValue('Kumar');
+    await page.getByLabel('Last Name').fill('Kumar Singh');
+    await page.getByRole('button', { name: 'Update Student' }).click();
+    await expect(page).toHaveURL(/\/students$/);
+    await expect(page.getByRole('listitem').filter({ hasText: 'Aarav Kumar Singh' })).toBeVisible();
   });
 });

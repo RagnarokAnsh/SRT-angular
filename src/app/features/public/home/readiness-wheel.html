@@ -7,6 +7,8 @@
     [attr.aria-label]="summary()"
     [class.is-linked]="linked()"
     [class.has-selection]="expanded() !== null"
+    [class.morphs]="morphs"
+    [class.is-opening]="opening()"
     (pointerdown)="onPointerDown($event)"
     (pointerover)="onPointerOver($event)"
     (pointerleave)="onPointerLeave($event)"
@@ -64,15 +66,10 @@
         </text>
       </g>
     } @else {
+      <!-- Invisible: while competencies show, the pointer outside them still points at a domain. -->
       @for (domain of model().domains; track domain.slug) {
         @if (domain.track; as track) {
-          <path
-            class="track"
-            [attr.d]="track"
-            [attr.fill]="domain.tint"
-            [attr.data-domain]="domain.index"
-            [class.is-dimmed]="expanded() !== null"
-          />
+          <path class="track" [attr.d]="track" [attr.data-domain]="domain.index" />
         }
       }
 
@@ -86,15 +83,22 @@
           [attr.aria-expanded]="expanded() === domain.index"
           [class.is-selected]="expanded() === domain.index"
           [class.is-dimmed]="expanded() !== null && expanded() !== domain.index"
-          (focus)="onDomainFocus(domain.index)"
+          (focus)="onDomainFocus($event, domain.index)"
           (keydown)="onDomainKey($event, domain.index)"
         >
-          <path class="segment segment--domain" [attr.d]="domain.path" [attr.fill]="domain.color" />
+          <path
+            class="segment segment--domain"
+            [attr.d]="isOpen() && domain.open ? domain.open.path : domain.path"
+            [attr.fill]="domain.color"
+          />
           <text
             class="label label--domain"
             [attr.font-size]="model().domainFont"
             text-anchor="middle"
             aria-hidden="true"
+            [style.transform]="
+              domain.open ? (isOpen() ? domain.open.labelTo : domain.open.labelFrom) : null
+            "
           >
             @for (line of domain.label.lines; track $index) {
               <tspan [attr.x]="domain.label.x" [attr.y]="line.y">{{ line.text }}</tspan>
@@ -142,4 +146,11 @@
       </text>
     }
   </svg>
+
+  @if (hint(); as hint) {
+    <p class="wheel__hint">
+      <mat-icon [svgIcon]="hint.icon" aria-hidden="true" />
+      {{ hint.key | transloco }}
+    </p>
+  }
 </div>

@@ -74,6 +74,19 @@ function normalized(name: string): string {
   return tidyText(name).toLocaleLowerCase();
 }
 
+/**
+ * The API keeps one name; the form asks for the first and last name, as the previous version
+ * did. The first word is the first name, the rest the last name.
+ */
+export function splitName(name: string): { firstName: string; lastName: string } {
+  const [firstName = '', ...rest] = tidyText(name).split(' ');
+  return { firstName, lastName: rest.join(' ') };
+}
+
+export function joinName(firstName: string, lastName: string): string {
+  return tidyText(`${firstName} ${lastName}`);
+}
+
 /** Same name (ignoring case, spacing and how the letters were typed) and same date of birth. */
 export function isSameChild(
   child: Pick<Child, 'name' | 'dateOfBirth'>,
@@ -188,16 +201,30 @@ export class ChildFormPage implements HasUnsavedChanges {
   private saved = false;
   /** The stored date of birth: older children can still be edited without tripping the age rule. */
   private originalDob: IsoDate | null = null;
+  /** A stored name of one word can still be saved as it is, without a last name. */
+  private oneWordName = false;
 
   private readonly ageRule = (control: AbstractControl): ValidationErrors | null =>
     this.originalDob && control.value === this.originalDob
       ? null
       : ageInRange(CHILD_LIMITS.ageMin, CHILD_LIMITS.ageMax)(control);
 
+  private readonly lastNameRule = (control: AbstractControl): ValidationErrors | null =>
+    this.oneWordName ? null : requiredText(control);
+
   protected readonly form = inject(NonNullableFormBuilder).group({
-    name: [
+    firstName: [
       '',
-      [requiredText, minTextLength(2), Validators.maxLength(CHILD_LIMITS.nameMax), personName],
+      [requiredText, minTextLength(2), Validators.maxLength(CHILD_LIMITS.firstNameMax), personName],
+    ],
+    lastName: [
+      '',
+      [
+        this.lastNameRule,
+        minTextLength(2),
+        Validators.maxLength(CHILD_LIMITS.lastNameMax),
+        personName,
+      ],
     ],
     dateOfBirth: ['', [Validators.required, pastIsoDate(), this.ageRule]],
     gender: ['' as ChildGender | '', Validators.required],
@@ -271,7 +298,7 @@ export class ChildFormPage implements HasUnsavedChanges {
 
     const value = this.form.getRawValue();
     const input: ChildInput = {
-      name: tidyText(value.name),
+      name: joinName(value.firstName, value.lastName),
       dateOfBirth: value.dateOfBirth,
       gender: value.gender as ChildGender,
       symbol: tidyText(value.symbol),
@@ -359,10 +386,13 @@ export class ChildFormPage implements HasUnsavedChanges {
 
   private fill(child: Child): void {
     this.originalDob = child.dateOfBirth;
+    const { firstName, lastName } = splitName(child.name);
+    this.oneWordName = lastName === '';
     // Older records may say "boy" or "Male": shown as the matching choice, not as missing.
     const gender = toChildGender(child.gender) ?? '';
     this.form.reset({
-      name: child.name,
+      firstName,
+      lastName,
       dateOfBirth: child.dateOfBirth ?? '',
       gender,
       symbol: child.symbol,

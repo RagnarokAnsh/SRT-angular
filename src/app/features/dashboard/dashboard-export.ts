@@ -101,7 +101,7 @@ export function buildSheets(input: ExportInput, txt: ExportText): Cell[][][] {
 
   const children: Cell[][] = [
     [
-      bold(t('childForm.name')),
+      bold(t('dashboard.export.studentName')),
       bold(t('childForm.dateOfBirth')),
       bold(t('dashboard.export.age')),
       bold(t('childForm.gender')),
@@ -128,7 +128,7 @@ export function buildSheets(input: ExportInput, txt: ExportText): Cell[][][] {
   const sessions = [1, 2, 3, 4] as const;
   const assessments: Cell[][] = [
     [
-      bold(t('childForm.name')),
+      bold(t('dashboard.export.studentName')),
       bold(t('dashboard.table.competency')),
       bold(t('dashboard.table.domain')),
       ...sessions.flatMap((n) => [
@@ -160,7 +160,7 @@ export function buildSheets(input: ExportInput, txt: ExportText): Cell[][][] {
     }`;
   const attention: Cell[][] = [
     [
-      bold(t('childForm.name')),
+      bold(t('dashboard.export.studentName')),
       bold(t('dashboard.table.competency')),
       bold(t('dashboard.table.domain')),
       bold(t('dashboard.export.reason')),

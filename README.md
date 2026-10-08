@@ -75,12 +75,14 @@ filters them; the server must enforce the same rules (see `docs/SECURITY.md`).
 
 ## The home page
 
-The client-approved text and the readiness wheel, nothing else. On wider screens the domains sit
-around the centre and a domain's competencies fan out while the pointer rests on it (or while it
-has keyboard focus); on phones, tapping a domain shows its competencies all around it, and
-tapping the centre goes back. Tapping a competency opens it; visitors log in first. The wheel
-uses the original app's labels: the full domain names and its short competency names
-(`catalog.*.wheel` in the translation files).
+The client-approved text and the readiness wheel, nothing else. The domains fill the wheel. On
+wider screens, while the pointer rests on a domain (or it has keyboard focus) the domains draw in
+and its competencies fan out around it, and one line under the wheel says what to do next
+("Hover over a domain…", then "Click a competency…"; "Tap…" on touch screens). On phones,
+tapping a domain shows its competencies all around it, and tapping the centre goes back.
+Tapping a competency opens it; visitors log in first. The wheel uses the original app's labels:
+the full domain names and its short competency names (`catalog.*.wheel` in the translation
+files).
 
 ## The centre dashboard
 
@@ -186,7 +188,9 @@ To add a language, for example Tamil:
 
 The API address is set in `src/environments/environment.ts` (development) and
 `environment.prod.ts` (production). The app sends the same requests and fields as the old one, so
-it can be deployed without backend changes. Before it goes live, the backend still needs:
+it can be deployed without backend changes. (For example, the student form asks for the first and
+last name, as the old one did, and sends them joined with a space as the one `name` the API
+keeps; editing splits it at the first space.) Before it goes live, the backend still needs:
 
 1. **HTTPS.** Logins and students' data currently travel over plain HTTP.
 2. **`GET /children` limited** to the caller's centre or area. Today every worker's device

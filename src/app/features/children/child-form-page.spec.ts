@@ -1,6 +1,6 @@
 import { type Child, type ChildInput, toChildGender } from '@core/models/child';
 
-import { isSameChild } from './child-form-page';
+import { isSameChild, joinName, splitName } from './child-form-page';
 
 const child = (name: string, dateOfBirth: string | null): Child => ({
   id: 1,
@@ -49,6 +49,27 @@ describe('isSameChild', () => {
     expect(
       isSameChild(child('\u095Bोया', '2021-03-14'), input('\u091C\u093Cोया', '2021-03-14')),
     ).toBe(true);
+  });
+});
+
+describe('splitName and joinName', () => {
+  it('takes the first word as the first name and the rest as the last name', () => {
+    expect(splitName('Aarav Kumar')).toEqual({ firstName: 'Aarav', lastName: 'Kumar' });
+    expect(splitName('  Mohammed  Abdul Rahman ')).toEqual({
+      firstName: 'Mohammed',
+      lastName: 'Abdul Rahman',
+    });
+    expect(splitName('प्रिया शर्मा')).toEqual({ firstName: 'प्रिया', lastName: 'शर्मा' });
+  });
+
+  it('leaves the last name empty for a name of one word', () => {
+    expect(splitName('Diya')).toEqual({ firstName: 'Diya', lastName: '' });
+    expect(splitName('')).toEqual({ firstName: '', lastName: '' });
+  });
+
+  it('joins the two with one space', () => {
+    expect(joinName(' Aarav ', ' Kumar  Singh')).toBe('Aarav Kumar Singh');
+    expect(joinName('Diya', '')).toBe('Diya');
   });
 });
 
