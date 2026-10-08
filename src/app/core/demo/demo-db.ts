@@ -3,8 +3,8 @@ import { Injectable, signal } from '@angular/core';
 import { type DemoData, createDemoData } from './demo-fixtures';
 
 /** Bumped when the sample data changes, so returning visitors get the new data. */
-const DATA_KEY = 'srt-demo-data-v3';
-const OLD_DATA_KEYS = ['srt-demo-data-v1', 'srt-demo-data-v2'];
+const DATA_KEY = 'srt-demo-data-v4';
+const OLD_DATA_KEYS = ['srt-demo-data-v1', 'srt-demo-data-v2', 'srt-demo-data-v3'];
 const OFFLINE_KEY = 'srt-demo-offline';
 
 /** Demo-mode data, kept in this browser's localStorage. */

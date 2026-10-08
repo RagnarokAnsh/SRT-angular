@@ -146,15 +146,15 @@ const SESSION_DATES = ['2026-07-14', '2026-08-18', '2026-09-15', '2026-09-29'];
 
 /** Competencies assessed so far at each centre, and in how many sessions. */
 const SEED_PLAN: Record<number, [competency: number, sessions: number][]> = {
-  // Shivaji Nagar is well into the year. Number Concept and Emergent Writing haven't started
-  // (the e2e tests record the first Number Concept results).
+  // Shivaji Nagar is well into the year. Number concept (4) and Emergent writing (9) haven't
+  // started (the e2e tests record the first Number concept results).
   1: [
-    [1, 3],
-    [2, 2],
-    [4, 1],
-    [5, 2],
+    [2, 3],
+    [3, 2],
+    [5, 1],
     [6, 2],
-    [7, 1],
+    [7, 2],
+    [8, 1],
     [10, 2],
     [11, 2],
     [12, 2],
@@ -167,9 +167,9 @@ const SEED_PLAN: Record<number, [competency: number, sessions: number][]> = {
   ],
   // Gandhi Colony has just begun; Sanganer Gaon hasn't yet.
   2: [
-    [1, 2],
-    [2, 1],
-    [5, 2],
+    [2, 2],
+    [3, 1],
+    [6, 2],
     [12, 1],
   ],
 };
@@ -194,7 +194,7 @@ const SEED_PROFILES: Record<number, SeedProfile> = {
   1: { start: 1, up: 10, same: 0 },
   2: { start: 2, up: 10, same: 0 },
   3: { start: 1, up: 10, same: 0 },
-  4: { start: 1, up: 10, same: 0, misses: [4] },
+  4: { start: 1, up: 10, same: 0, misses: [5] },
   5: { start: 0, up: 4, same: 5 },
   6: { start: 2, up: 4, same: 2 },
   7: { start: 1, up: 8, same: 1 },
@@ -363,120 +363,132 @@ export function createDemoData(): DemoData {
     children,
     domains: [
       { id: 1, domain_name: 'Cognitive Development' },
-      { id: 2, domain_name: 'Language & Literacy Development' },
-      { id: 3, domain_name: 'Physical & Motor Development' },
+      { id: 2, domain_name: 'Language and Literacy Development' },
+      { id: 3, domain_name: 'Physical and Motor Development' },
       { id: 4, domain_name: 'Socio-Emotional Development' },
       { id: 5, domain_name: 'Approaches towards Learning' },
       { id: 6, domain_name: 'Creativity Development' },
     ],
+    // Names and descriptions exactly as the real API returns them.
     competencies: [
-      {
-        id: 1,
-        domain_id: 1,
-        name: 'Classification',
-        description:
-          'Sorting and grouping objects by shared features such as colour, shape and size.',
-      },
       {
         id: 2,
         domain_id: 1,
-        name: 'Patterns',
+        name: 'Classification',
         description:
-          'Noticing, copying and continuing repeating patterns in objects, sounds and movements.',
+          'Classification is an important concept related to identifying different characteristics of things and categorizing them according to these characteristics. Children develop these skills by observing and examining different aspects of objects and identifying how these are alike or different.',
       },
       {
         id: 3,
         domain_id: 1,
-        name: 'Number Concept',
-        description: 'Understanding quantity, counting with meaning and recognising numerals.',
+        name: 'Patterns',
+        description:
+          'Understanding patterns is a foundational math skill upon which many mathematical concepts are based. For example, multiplication and counting both require an understanding of patterns. Patterns help children make logical connections between things, events, etc., by using their reasoning and problem-solving skills. Patterns can be found everywhere in our lives (e.g., the daily routine that we follow).',
       },
       {
         id: 4,
         domain_id: 1,
-        name: 'Seriation',
-        description: 'Comparing and arranging objects in order of size, length or quantity.',
+        name: 'Number concept',
+        description:
+          'Learning number concepts is one of the most important competencies and sets the foundation for understanding numbers. Number concepts involve a child’s ability to recognize numerals, one-to-one correspondence, counting and simple operations.',
       },
       {
         id: 5,
-        domain_id: 2,
-        name: 'Vocabulary and Expression',
+        domain_id: 1,
+        name: 'Seriation',
         description:
-          'Using a growing range of words and sentences to share ideas and describe events.',
+          'Seriation is an important concept related to measuring objects and categorizing them accordingly. At preschool age, children develop these skills for sequencing and putting objects in order, such as from smallest to largest, lightest to heaviest or least to most.',
       },
       {
         id: 6,
         domain_id: 2,
-        name: 'Listening Comprehension',
-        description: 'Listening with attention and understanding stories and conversations.',
+        name: 'Vocabulary and expression',
+        description:
+          'Early vocabulary development is an important predictor of success in reading. A strong vocabulary enables a child to understand and communicate more effectively.',
       },
       {
         id: 7,
         domain_id: 2,
-        name: 'Emergent Reading & Book Handling',
+        name: 'Listening comprehension',
         description:
-          'Exploring books, telling pictures from text and following print in the right direction.',
+          'Listening comprehension is important for a child to understand what is being said. It includes a child’s receptive language skills as well as interpretation of what he/she hears.',
       },
       {
         id: 8,
         domain_id: 2,
-        name: 'Emergent Writing',
+        name: 'Emergent reading – book handling',
         description:
-          'Moving from scribbles and drawings towards writing letters and words to express ideas.',
+          'Book handling is a predictor of successful reading skills. It helps children to develop bonds with books, understand books, letters, words, and directionality, and to understand that print has meaning.',
+      },
+      {
+        id: 9,
+        domain_id: 2,
+        name: 'Emergent writing',
+        description:
+          'Writing is an important skill. Between the ages of 3 to 6 years, children begin to learn to write, and by the time they are 6 years old, they should be able to write some simple words and/or their names.',
       },
       {
         id: 10,
         domain_id: 3,
-        name: 'Gross Motor Development',
+        name: 'Gross motor development',
         description:
-          'Balance, coordination and control of the large muscles while running, jumping and throwing.',
+          'Gross motor development involves large muscle movements in arms, legs and the torso, and includes skills, such as walking, running, climbing, throwing, kicking, and catching. A child needs considerable practice to develop gross motor skills.',
       },
       {
         id: 11,
         domain_id: 3,
-        name: 'Fine Motor Development',
-        description: 'Control and coordination of the small muscles of the hands and fingers.',
+        name: 'Fine motor development',
+        description:
+          'Fine motor development includes the development of small finger muscles and skills such as picking up things, threading beads, tying shoelaces, colouring within the boundary and stacking objects of different sizes.',
       },
       {
         id: 12,
         domain_id: 4,
         name: 'Interaction',
-        description: 'Playing and working together with other children and adults.',
+        description:
+          'Interaction between young children and their peers and adults is important during the early years. Through interactions, children learn a language and social skills. Children who are given enough opportunities to interact and communicate through play-based activities tend to have a stronger social relationship with others.',
       },
       {
         id: 13,
         domain_id: 4,
-        name: 'Sharing with Others',
-        description: 'Willingly sharing materials, space and attention with peers.',
+        name: 'Sharing with others',
+        description:
+          'Sharing is an important social skill. Children at an early age build these skills through observation.',
       },
       {
         id: 14,
         domain_id: 4,
-        name: 'Emotional Expression and Regulation',
-        description: 'Recognising feelings and responding to them in appropriate ways.',
+        name: 'Emotional expression and regulation',
+        description:
+          'Emotional regulation determines a child’s ability to express feelings and manage her/his emotions. Emotional regulation is a crucial skill for the well-being of the child. It is important that parents, caregivers and teachers provide support for the child’s emotional stability to help her/him grow and develop optimally.',
       },
       {
         id: 15,
         domain_id: 5,
         name: 'Initiative',
-        description: 'Starting activities and trying new things without being asked.',
+        description:
+          'Learning to take initiative is a behaviour that helps children navigate their lives with confidence. By taking initiative, children become more proactive and look for different ways to grow, study, excel and practice leadership skills.',
       },
       {
         id: 16,
         domain_id: 5,
-        name: 'Task Persistence',
-        description: 'Staying focused on an activity until it is finished, even with distractions.',
+        name: 'Task persistence',
+        description:
+          'Task persistence is a skill that is important for children in classroom activities as well as in personal endeavours. It is important that children are encouraged to undertake challenging activities and tasks. This will help them learn to persevere, complete tasks and activities, and not give up.',
       },
       {
         id: 17,
         domain_id: 6,
-        name: 'Creative Expression',
-        description: 'Expressing ideas through art, craft, music, dance and play.',
+        name: 'Creative expression',
+        description:
+          'One of the best ways for children to learn about new concepts is to ignite their interest through hands- on experience. Besides giving young children the chance to explore different concepts through their senses, the experience helps develop other useful skills, including problem-solving and perseverance.',
       },
       {
         id: 18,
         domain_id: 6,
         name: 'Imagination',
-        description: 'Pretend play, storytelling and thinking about what could happen next.',
+        description:
+          'Imagination is the door to possibilities. It is where creativity and thinking outside the box begin in child development. Imaginative and creative play is how children learn about the world. During imaginative play, children manipulate materials, express themselves verbally and non-verbally, plan (intentionally or unintentionally), act, interact, react, and try different roles.',
       },
     ],
     assessments: seedAssessments(children),

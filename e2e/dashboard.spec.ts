@@ -15,9 +15,9 @@ test.describe('dashboard', () => {
     await expectAccessible(page);
 
     // A domain opens its competencies.
-    await page.getByRole('button', { name: /Physical & Motor Development/ }).click();
+    await page.getByRole('button', { name: /Physical and Motor Development/ }).click();
     await expect(page).toHaveURL(/view=competencies/);
-    await expect(page.getByRole('link', { name: 'Gross Motor Development' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Gross motor development' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Classification' })).toHaveCount(0);
 
     const download = page.waitForEvent('download');
@@ -61,7 +61,7 @@ test.describe('dashboard', () => {
     await expect(page).toHaveURL(/view=attention/);
     const ramSingh = page.locator('li.student', { hasText: 'Ram Singh' });
     await expect(ramSingh).toContainText('2 went down');
-    await expect(ramSingh.locator('li.item', { hasText: 'Fine Motor Development' })).toContainText(
+    await expect(ramSingh.locator('li.item', { hasText: 'Fine motor development' })).toContainText(
       'Went down',
     );
     // Missed the latest session the others had.

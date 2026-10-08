@@ -1,122 +1,145 @@
 <div class="wheel" #wheel>
-  <!-- Pointer shortcut only: the domain links below are the keyboard and screen reader path. -->
-  <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -->
+  <!-- Domains and competencies are buttons and links of their own; clicks are handled here. -->
   <svg
     class="wheel__svg"
     [attr.viewBox]="'0 0 ' + size + ' ' + size"
-    role="img"
+    role="group"
     [attr.aria-label]="summary()"
     [class.is-linked]="linked()"
-    [class.has-selection]="highlighted() !== null"
-    (click)="onWheelClick($event)"
+    [class.has-selection]="expanded() !== null"
+    (pointerdown)="onPointerDown($event)"
     (pointerover)="onPointerOver($event)"
-    (pointerleave)="highlight(null)"
+    (pointerleave)="onPointerLeave($event)"
+    (click)="onClick($event)"
+    (keydown.escape)="onEscape()"
   >
-    <defs>
+    @if (zoom(); as z) {
+      <!-- Phones: one domain, its competencies all around it. -->
+      @for (competency of z.competencies; track competency.slug) {
+        <g
+          class="competency"
+          [attr.data-competency]="competency.slug"
+          [attr.role]="linked() ? 'link' : null"
+          [attr.tabindex]="linked() ? 0 : null"
+          [attr.aria-label]="linked() ? competency.name : null"
+          (keydown)="onCompetencyKey($event, competency.slug)"
+        >
+          <path
+            class="segment segment--competency"
+            [attr.d]="competency.path"
+            [attr.fill]="z.tint"
+          />
+          <text
+            class="label label--competency"
+            [attr.font-size]="z.competencyFont"
+            text-anchor="middle"
+            [attr.aria-hidden]="linked() ? 'true' : null"
+          >
+            @for (line of competency.label.lines; track $index) {
+              <tspan [attr.x]="competency.label.x" [attr.y]="line.y">{{ line.text }}</tspan>
+            }
+          </text>
+        </g>
+      }
+      <g
+        class="zoom-disc"
+        data-back
+        role="button"
+        tabindex="0"
+        aria-expanded="true"
+        [attr.aria-label]="z.name"
+        (keydown)="onBackKey($event)"
+      >
+        <circle [attr.cx]="center" [attr.cy]="center" [attr.r]="zoomDisc" [attr.fill]="z.color" />
+        <path class="close-mark" [attr.d]="closeMark" />
+        <text
+          class="label label--domain"
+          [attr.font-size]="z.font"
+          text-anchor="middle"
+          aria-hidden="true"
+        >
+          @for (line of z.label.lines; track $index) {
+            <tspan [attr.x]="z.label.x" [attr.y]="line.y">{{ line.text }}</tspan>
+          }
+        </text>
+      </g>
+    } @else {
       @for (domain of model().domains; track domain.slug) {
-        @for (label of domain.labels; track label.id) {
-          <path [attr.id]="label.id" [attr.d]="label.arc" />
+        @if (domain.track; as track) {
+          <path
+            class="track"
+            [attr.d]="track"
+            [attr.fill]="domain.tint"
+            [attr.data-domain]="domain.index"
+            [class.is-dimmed]="expanded() !== null"
+          />
         }
       }
-    </defs>
 
-    @for (domain of model().domains; track domain.slug) {
-      <g
-        class="domain"
-        [attr.data-domain]="domain.index"
-        [class.is-selected]="highlighted() === domain.index"
-        [class.is-dimmed]="highlighted() !== null && highlighted() !== domain.index"
-      >
-        @for (competency of domain.competencies; track competency.slug) {
-          @if (competency.path; as path) {
-            <path
-              class="segment segment--competency"
-              [attr.d]="path"
-              [attr.fill]="domain.tint"
-              [attr.data-competency]="competency.slug"
-            />
-          }
-          @if (competency.label; as label) {
-            <text
-              class="label label--competency"
-              [attr.transform]="label.transform"
-              [attr.font-size]="model().competencyFont"
-              text-anchor="middle"
-            >
-              @for (line of label.lines; track $index) {
-                <tspan x="0" [attr.y]="line.y">{{ line.text }}</tspan>
-              }
-            </text>
-          }
-        }
-        <path class="segment segment--domain" [attr.d]="domain.path" [attr.fill]="domain.color" />
-        @if (domain.flat; as flat) {
+      @for (domain of model().domains; track domain.slug) {
+        <g
+          class="domain"
+          role="button"
+          tabindex="0"
+          [attr.data-domain]="domain.index"
+          [attr.aria-label]="domain.name"
+          [attr.aria-expanded]="expanded() === domain.index"
+          [class.is-selected]="expanded() === domain.index"
+          [class.is-dimmed]="expanded() !== null && expanded() !== domain.index"
+          (focus)="onDomainFocus(domain.index)"
+          (keydown)="onDomainKey($event, domain.index)"
+        >
+          <path class="segment segment--domain" [attr.d]="domain.path" [attr.fill]="domain.color" />
           <text
             class="label label--domain"
             [attr.font-size]="model().domainFont"
             text-anchor="middle"
+            aria-hidden="true"
           >
-            @for (line of flat.lines; track $index) {
-              <tspan [attr.x]="flat.x" [attr.y]="line.y">{{ line.text }}</tspan>
+            @for (line of domain.label.lines; track $index) {
+              <tspan [attr.x]="domain.label.x" [attr.y]="line.y">{{ line.text }}</tspan>
             }
           </text>
-        }
-        @for (label of domain.labels; track label.id) {
-          <text class="label label--domain" [attr.font-size]="model().domainFont">
-            <textPath [attr.href]="pageUrl + '#' + label.id" startOffset="50%" text-anchor="middle">
-              {{ label.text }}
-            </textPath>
-          </text>
-        }
-      </g>
-    }
+        </g>
 
-    <circle class="hub" [attr.cx]="center" [attr.cy]="center" [attr.r]="spec().hub" />
-    <text class="label label--hub" [attr.font-size]="model().hubFont" text-anchor="middle">
-      @for (line of model().hub; track $index) {
-        <tspan [attr.x]="center" [attr.y]="line.y">{{ line.text }}</tspan>
+        @if (fan(); as f) {
+          @if (f.index === domain.index) {
+            @for (competency of f.competencies; track competency.slug) {
+              <g
+                class="competency competency--fan"
+                [attr.data-competency]="competency.slug"
+                [attr.role]="linked() ? 'link' : null"
+                [attr.tabindex]="linked() ? 0 : null"
+                [attr.aria-label]="linked() ? competency.name : null"
+                (keydown)="onCompetencyKey($event, competency.slug)"
+              >
+                <path
+                  class="segment segment--competency"
+                  [attr.d]="competency.path"
+                  [attr.fill]="f.tint"
+                />
+                <text
+                  class="label label--competency"
+                  [attr.font-size]="f.competencyFont"
+                  text-anchor="middle"
+                  [attr.aria-hidden]="linked() ? 'true' : null"
+                >
+                  @for (line of competency.label.lines; track $index) {
+                    <tspan [attr.x]="competency.label.x" [attr.y]="line.y">{{ line.text }}</tspan>
+                  }
+                </text>
+              </g>
+            }
+          }
+        }
       }
-    </text>
+
+      <circle class="hub" [attr.cx]="center" [attr.cy]="center" [attr.r]="spec().hub" />
+      <text class="label label--hub" [attr.font-size]="model().hubFont" text-anchor="middle">
+        @for (line of model().hub; track $index) {
+          <tspan [attr.x]="center" [attr.y]="line.y">{{ line.text }}</tspan>
+        }
+      </text>
+    }
   </svg>
 </div>
-
-<nav class="domains" [attr.aria-labelledby]="idPrefix + '-title'">
-  <h2 class="domains__title" [id]="idPrefix + '-title'">
-    {{ 'home.wheel.listTitle' | transloco }}
-  </h2>
-  @if (linked()) {
-    <p class="domains__hint">{{ 'home.wheel.listHint' | transloco }}</p>
-  }
-  <ul class="domain-list">
-    @for (domain of model().domains; track domain.slug) {
-      <li>
-        @if (linked()) {
-          <a
-            class="domain-link"
-            [routerLink]="['/competencies/domain', domain.slug]"
-            [style.--domain-color]="domain.color"
-            (pointerenter)="highlight(domain.index)"
-            (pointerleave)="highlight(null)"
-            (focus)="highlight(domain.index)"
-            (blur)="highlight(null)"
-          >
-            <span class="swatch" aria-hidden="true"></span>
-            <span class="domain-link__name">{{ domain.name }}</span>
-            <span class="domain-link__count">
-              {{ 'home.wheel.competencyCount' | plural: domain.competencies.length }}
-            </span>
-            <mat-icon svgIcon="chevron-right" aria-hidden="true" />
-          </a>
-        } @else {
-          <span class="domain-link" [style.--domain-color]="domain.color">
-            <span class="swatch" aria-hidden="true"></span>
-            <span class="domain-link__name">{{ domain.name }}</span>
-            <span class="domain-link__count">
-              {{ 'home.wheel.competencyCount' | plural: domain.competencies.length }}
-            </span>
-          </span>
-        }
-      </li>
-    }
-  </ul>
-</nav>

@@ -27,38 +27,16 @@
           {{ view.domain | domainName }}
         </p>
         <p class="hero__description">{{ view.competency | competencyDescription }}</p>
-        @if (ready()) {
-          <a
-            mat-flat-button
-            class="hero__cta"
-            [routerLink]="['/competencies', view.competency.id, 'assess']"
-          >
-            <mat-icon svgIcon="assessment" aria-hidden="true" />
-            {{ 'competencyDetail.assess' | transloco }}
-          </a>
-        } @else {
-          <a
-            mat-stroked-button
-            class="hero__cta"
-            href="#checklist-title"
-            (click)="goToChecklist($event)"
-          >
-            <mat-icon svgIcon="check-circle-outline" aria-hidden="true" />
-            {{ 'competencyDetail.prepare' | transloco }}
-          </a>
-        }
       </div>
     </section>
 
     <section class="section" aria-labelledby="levels-title">
       <h2 id="levels-title">{{ 'competencyDetail.levelsTitle' | transloco }}</h2>
-      <p class="section__intro">{{ 'competencyDetail.levelsIntro' | transloco }}</p>
       <app-learning-process [slug]="view.competency.slug" />
     </section>
 
     <section class="section" aria-labelledby="videos-title">
       <h2 id="videos-title">{{ 'competencyDetail.videosTitle' | transloco }}</h2>
-      <p class="section__intro">{{ 'competencyDetail.videosIntro' | transloco }}</p>
       <div class="videos">
         @for (video of view.videos; track video.src) {
           <video
@@ -70,16 +48,13 @@
             [attr.aria-label]="'competencyDetail.videoLabel' | transloco: { n: $index + 1 }"
           >
             <source [src]="video.src" type="video/mp4" />
+            {{ 'competencyDetail.videoUnsupported' | transloco }}
           </video>
         }
       </div>
     </section>
 
-    <section class="section checklist" aria-labelledby="checklist-title">
-      <h2 id="checklist-title" tabindex="-1">
-        {{ 'competencyDetail.checklistTitle' | transloco }}
-      </h2>
-      <p class="section__intro">{{ 'competencyDetail.checklistIntro' | transloco }}</p>
+    <section class="section checklist">
       <ul class="checklist__items">
         @for (item of checklist; track item) {
           <li>
@@ -100,7 +75,6 @@
             {{ 'competencyDetail.continue' | transloco }}
             <mat-icon svgIcon="arrow-right" iconPositionEnd aria-hidden="true" />
           </button>
-          <p class="checklist__hint">{{ 'competencyDetail.checklistHint' | transloco }}</p>
         }
       </div>
     </section>

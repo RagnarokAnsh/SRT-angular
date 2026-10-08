@@ -1,9 +1,5 @@
 <div class="login">
   <aside class="art" aria-hidden="true">
-    <div class="art__text">
-      <p class="art__title">{{ 'login.artTitle' | transloco }}</p>
-      <p class="art__subtitle">{{ 'login.artSubtitle' | transloco }}</p>
-    </div>
     <img
       class="art__image"
       src="assets/images/login-illustration.webp"
@@ -17,7 +13,6 @@
   <div class="form-side">
     <div class="card">
       <h1 class="title">{{ 'login.heading' | transloco }}</h1>
-      <p class="subtitle">{{ 'login.subheading' | transloco }}</p>
 
       @if (reasonKey(); as key) {
         <div class="notice notice--info" role="status">
@@ -104,8 +99,6 @@
           }
         </button>
       </form>
-
-      <p class="help">{{ 'login.help' | transloco }}</p>
 
       @if (demoAccounts.length) {
         <section class="demo" aria-labelledby="demo-accounts-title">

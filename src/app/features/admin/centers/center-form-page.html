@@ -3,7 +3,6 @@
     <span pageTitle>{{
       (isEdit() ? 'admin.centers.editTitle' : 'admin.centers.addTitle') | transloco
     }}</span>
-    <span pageSubtitle>{{ 'childForm.subtitle' | transloco }}</span>
   </app-page-header>
 
   @if (invalidId()) {
@@ -25,8 +24,7 @@
         </div>
       }
 
-      <fieldset class="group">
-        <legend class="group__title">{{ 'admin.centers.details' | transloco }}</legend>
+      <div class="group">
         <div class="form-grid">
           <mat-form-field>
             <mat-label>{{ 'admin.centers.name' | transloco }}</mat-label>
@@ -35,6 +33,7 @@
               formControlName="name"
               autocomplete="off"
               [maxlength]="limits.nameMax"
+              [placeholder]="'admin.centers.namePlaceholder' | transloco"
             />
             <mat-error>{{ form.controls.name.errors | validationMessage }}</mat-error>
           </mat-form-field>
@@ -47,17 +46,16 @@
               autocapitalize="characters"
               spellcheck="false"
               [maxlength]="limits.codeMax"
+              [placeholder]="'admin.centers.codePlaceholder' | transloco"
             />
-            <mat-hint>{{ 'admin.centers.codeHint' | transloco }}</mat-hint>
             <mat-error>{{ form.controls.code.errors | validationMessage }}</mat-error>
           </mat-form-field>
         </div>
-      </fieldset>
+      </div>
 
-      <fieldset class="group">
-        <legend class="group__title">{{ 'admin.centers.location' | transloco }}</legend>
+      <div class="group">
         <app-location-fields [controls]="form.controls" [cascade]="location" [levels]="5" />
-      </fieldset>
+      </div>
 
       <div class="form-actions">
         <button mat-stroked-button type="button" [disabled]="saving()" (click)="cancel()">
@@ -70,8 +68,12 @@
             <mat-icon svgIcon="check" aria-hidden="true" />
           }
           {{
-            (saving() ? 'childForm.saving' : isEdit() ? 'childForm.save' : 'admin.centers.add')
-              | transloco
+            (saving()
+              ? 'childForm.saving'
+              : isEdit()
+                ? 'admin.centers.update'
+                : 'admin.centers.create'
+            ) | transloco
           }}
         </button>
       </div>

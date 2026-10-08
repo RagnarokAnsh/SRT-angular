@@ -10,12 +10,9 @@
         {{ 'assessment.titleGeneric' | transloco }}
       }
     </span>
-    <span pageSubtitle>
-      @if (pickedCenter(); as center) {
-        {{ center.name }} ·
-      }
-      {{ 'assessment.subtitle' | transloco }}
-    </span>
+    @if (pickedCenter(); as center) {
+      <span pageSubtitle>{{ center.name }}</span>
+    }
     @if (!isWorker() && centerId() !== null && step() === 'select' && !submitting()) {
       <button pageActions mat-button type="button" (click)="changeCenter()">
         <mat-icon svgIcon="center" aria-hidden="true" />
@@ -85,6 +82,12 @@
       }
       @if (step() === 'select') {
         <!-- Step 1 -->
+        <h2 class="block__title">{{ 'assessment.selectTitle' | transloco }}</h2>
+        <p class="block__intro">
+          {{
+            'assessment.selectIntro' | transloco: { name: (competency.data()! | competencyName) }
+          }}
+        </p>
         @if (!counts().all) {
           <app-state-message
             icon="children"
@@ -99,6 +102,7 @@
               <input
                 matInput
                 type="search"
+                [placeholder]="'assessment.searchPlaceholder' | transloco"
                 [value]="query()"
                 (input)="query.set($any($event.target).value)"
               />
@@ -265,10 +269,14 @@
         <!-- Step 2 -->
         <!-- Locked while saving, so nothing changes under a save in progress. -->
         <fieldset class="record-step" [disabled]="submitting()">
+          <h2 id="record-title" class="block__title" tabindex="-1">
+            {{ 'assessment.levelTitle' | transloco }}
+          </h2>
+          <p class="block__intro">{{ 'assessment.levelIntro' | transloco }}</p>
           <section class="block" aria-labelledby="who-title">
-            <h2 id="who-title" class="block__title" tabindex="-1">
+            <h3 id="who-title" class="block__title block__title--sub" tabindex="-1">
               {{ 'assessment.recordingFor' | plural: chosen().length }}
-            </h2>
+            </h3>
             <ul class="chips">
               @for (p of chosen(); track p.child.id) {
                 <li class="chip">
@@ -334,10 +342,9 @@
 
           @if (measured()) {
             <section class="block" aria-labelledby="measure-title">
-              <h2 id="measure-title" class="block__title">
+              <h3 id="measure-title" class="block__title block__title--sub">
                 {{ 'assessment.measurementsTitle' | transloco }}
-              </h2>
-              <p class="block__intro">{{ 'assessment.measurementsIntro' | transloco }}</p>
+              </h3>
               <ul class="measurements">
                 @for (p of chosen(); track p.child.id) {
                   @if (measurementGroup(p.child.id); as group) {
@@ -351,7 +358,6 @@
                           inputmode="decimal"
                           autocomplete="off"
                         />
-                        <span matTextSuffix>{{ 'units.cm' | transloco }}</span>
                         @if (p.child.heightCm !== null) {
                           <mat-hint>{{
                             'assessment.lastValue' | transloco: { value: p.child.heightCm }
@@ -369,7 +375,6 @@
                           inputmode="decimal"
                           autocomplete="off"
                         />
-                        <span matTextSuffix>{{ 'units.kg' | transloco }}</span>
                         @if (p.child.weightKg !== null) {
                           <mat-hint>{{
                             'assessment.lastValue' | transloco: { value: p.child.weightKg }
@@ -387,15 +392,16 @@
           }
 
           <section class="block" aria-labelledby="remarks-title">
-            <h2 id="remarks-title" class="block__title">
+            <h3 id="remarks-title" class="block__title block__title--sub">
               {{ 'assessment.remarksTitle' | transloco }}
-            </h2>
+            </h3>
             <mat-form-field class="remarks">
               <mat-label>{{ 'assessment.remarks' | transloco }}</mat-label>
               <textarea
                 matInput
                 [formControl]="remarks"
                 rows="3"
+                [placeholder]="'assessment.remarksPlaceholder' | transloco"
                 [maxlength]="remarksMax"
               ></textarea>
               <mat-hint>{{ 'assessment.remarksHint' | transloco }}</mat-hint>
@@ -430,7 +436,7 @@
         <div class="sticky-actions">
           <button mat-stroked-button type="button" [disabled]="submitting()" (click)="back()">
             <mat-icon svgIcon="arrow-left" aria-hidden="true" />
-            {{ 'common.back' | transloco }}
+            {{ 'assessment.backToStudents' | transloco }}
           </button>
           <button
             mat-flat-button

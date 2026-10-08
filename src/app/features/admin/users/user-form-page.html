@@ -3,7 +3,6 @@
     <span pageTitle>{{
       (isEdit() ? 'admin.users.editTitle' : 'admin.users.addTitle') | transloco
     }}</span>
-    <span pageSubtitle>{{ 'admin.users.formSubtitle' | transloco }}</span>
   </app-page-header>
 
   @if (invalidId()) {
@@ -25,12 +24,17 @@
         </div>
       }
 
-      <fieldset class="group">
-        <legend class="group__title">{{ 'admin.users.account' | transloco }}</legend>
+      <div class="group">
         <div class="form-grid">
           <mat-form-field class="span-all">
             <mat-label>{{ 'admin.users.name' | transloco }}</mat-label>
-            <input matInput formControlName="name" autocomplete="off" [maxlength]="nameMax" />
+            <input
+              matInput
+              formControlName="name"
+              autocomplete="off"
+              [maxlength]="nameMax"
+              [placeholder]="'admin.users.namePlaceholder' | transloco"
+            />
             <mat-error>{{ form.controls.name.errors | validationMessage }}</mat-error>
           </mat-form-field>
 
@@ -45,6 +49,7 @@
               inputmode="email"
               autocapitalize="none"
               spellcheck="false"
+              [placeholder]="'admin.users.emailPlaceholder' | transloco"
             />
             <mat-error>{{ form.controls.email.errors | validationMessage }}</mat-error>
           </mat-form-field>
@@ -114,14 +119,11 @@
             }
           </div>
         </div>
-      </fieldset>
+      </div>
 
       @if (depth() > 0) {
         <fieldset class="group">
           <legend class="group__title">{{ 'admin.users.area' | transloco }}</legend>
-          <p class="group__intro">
-            {{ 'admin.users.areaIntro' | transloco: { role: ('roles.' + role() | transloco) } }}
-          </p>
           <app-location-fields [controls]="form.controls" [cascade]="location" [levels]="depth()" />
 
           @if (needsCenter()) {
@@ -160,7 +162,7 @@
             <mat-icon svgIcon="check" aria-hidden="true" />
           }
           {{
-            (saving() ? 'childForm.saving' : isEdit() ? 'childForm.save' : 'admin.users.add')
+            (saving() ? 'childForm.saving' : isEdit() ? 'admin.users.update' : 'admin.users.create')
               | transloco
           }}
         </button>

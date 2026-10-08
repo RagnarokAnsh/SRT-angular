@@ -1,13 +1,9 @@
 <div class="page">
   <app-page-header>
     <span pageTitle>{{ 'children.title' | transloco }}</span>
-    <span pageSubtitle>
-      @if (!unlinked() && loader.data(); as all) {
-        {{ 'children.count' | plural: all.length }}
-      } @else {
-        {{ 'children.subtitle' | transloco }}
-      }
-    </span>
+    @if (!unlinked() && loader.data(); as all) {
+      <span pageSubtitle>{{ 'children.count' | plural: all.length }}</span>
+    }
     @if (!unlinked()) {
       <a pageActions mat-flat-button routerLink="/students/new">
         <mat-icon svgIcon="add" aria-hidden="true" />

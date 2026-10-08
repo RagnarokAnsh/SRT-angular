@@ -7,9 +7,9 @@ import { SessionStore } from '@core/auth/session';
 import { ReadinessWheel } from './readiness-wheel';
 
 /**
- * The School Readiness home page: the client-approved overview (word for word) and a large
- * readiness wheel that leads into "School Readiness – Domains". Anganwadi workers land here
- * after signing in.
+ * The School Readiness home page: the client-approved text (word for word) and the readiness
+ * wheel, whose competencies lead into "School Readiness – Domains". Anganwadi workers land
+ * here after logging in.
  */
 @Component({
   selector: 'app-home-page',
@@ -25,7 +25,7 @@ import { ReadinessWheel } from './readiness-wheel';
         <p class="home__lead">{{ 'home.intro' | transloco }}</p>
       </section>
 
-      <section class="home__visual" [attr.aria-label]="'home.wheel.listTitle' | transloco">
+      <section class="home__visual">
         <app-readiness-wheel [linked]="linked()" />
       </section>
 
@@ -44,8 +44,8 @@ import { ReadinessWheel } from './readiness-wheel';
         radial-gradient(70% 50% at 0% 40%, var(--color-secondary-soft) 0%, transparent 55%);
     }
 
-    // Phones and tablets: overview, wheel, closing words. Wide screens: the text beside the
-    // wheel, as on the approved page.
+    // Phones: overview, wheel, closing words. Wider screens: the overview beside the wheel,
+    // and the closing words across the page below them, so no column runs on alone.
     .home {
       display: grid;
       grid-template-areas:
@@ -53,17 +53,20 @@ import { ReadinessWheel } from './readiness-wheel';
         'visual'
         'closing';
       gap: var(--space-6);
-      padding-block: var(--space-6) var(--space-10);
+      padding-block: var(--space-6) var(--space-8);
 
-      @include up(lg) {
-        grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-        grid-template-rows: auto 1fr;
+      @include up(md) {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
         grid-template-areas:
           'intro visual'
-          'closing visual';
-        column-gap: var(--space-10);
-        row-gap: var(--space-4);
-        padding-block: var(--space-10);
+          'closing closing';
+        align-items: center;
+        column-gap: var(--space-8);
+        padding-block: var(--space-8);
+      }
+
+      @include up(lg) {
+        column-gap: var(--space-12);
       }
     }
 
@@ -87,12 +90,12 @@ import { ReadinessWheel } from './readiness-wheel';
 
     .home__lead,
     .home__closing p {
-      max-width: 65ch;
       color: var(--color-text);
       line-height: 1.7;
     }
 
     .home__lead {
+      max-width: 65ch;
       margin: 0;
       font-size: var(--text-base);
     }

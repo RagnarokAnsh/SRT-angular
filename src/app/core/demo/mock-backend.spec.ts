@@ -110,7 +110,7 @@ describe('demo backend', () => {
 
   it('records assessments per child and session', async () => {
     const { headers } = await login('aww@demo.in');
-    const url = `${TEST_API}/assessments/anganwadi/1/competency/3`;
+    const url = `${TEST_API}/assessments/anganwadi/1/competency/4`;
     const before = await call(http.get<Record<string, unknown>[]>(url, { headers }));
     const row = before.find((r) => r['child_id'] === 1);
     expect(row?.['session_1']).toBe('-');
@@ -121,7 +121,7 @@ describe('demo backend', () => {
           `${TEST_API}/assessments/`,
           {
             children: [1],
-            competency_id: 3,
+            competency_id: 4,
             observation: 'Advancing',
             assessment_date: '2026-10-06',
             remarks: '',
@@ -145,7 +145,7 @@ describe('demo backend', () => {
           `${TEST_API}/assessments/`,
           {
             children: [1],
-            competency_id: 3,
+            competency_id: 4,
             observation: 'Great',
             assessment_date: '2026-10-06',
             attempt_number: 2,

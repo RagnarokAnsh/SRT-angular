@@ -3,7 +3,6 @@
     <span pageTitle>{{
       (isEdit() ? 'childForm.editTitle' : 'childForm.addTitle') | transloco
     }}</span>
-    <span pageSubtitle>{{ 'childForm.subtitle' | transloco }}</span>
   </app-page-header>
 
   @if (invalidId()) {
@@ -41,8 +40,7 @@
         </div>
       }
 
-      <fieldset class="group">
-        <legend class="group__title">{{ 'childForm.aboutChild' | transloco }}</legend>
+      <div class="group">
         <div class="form-grid">
           <mat-form-field class="span-all">
             <mat-label>{{ 'childForm.name' | transloco }}</mat-label>
@@ -52,7 +50,6 @@
               autocomplete="off"
               [maxlength]="limits.nameMax"
             />
-            <mat-hint>{{ 'childForm.nameHint' | transloco }}</mat-hint>
             <mat-error>{{ form.controls.name.errors | validationMessage }}</mat-error>
           </mat-form-field>
 
@@ -100,6 +97,7 @@
               formControlName="language"
               list="language-suggestions"
               autocomplete="off"
+              [placeholder]="'childForm.languagePlaceholder' | transloco"
               [maxlength]="limits.languageMax"
             />
             <datalist id="language-suggestions">
@@ -116,31 +114,36 @@
               matInput
               formControlName="symbol"
               autocomplete="off"
+              [placeholder]="'childForm.symbolPlaceholder' | transloco"
               [maxlength]="limits.symbolMax"
             />
-            <mat-hint>{{ 'childForm.symbolHint' | transloco }}</mat-hint>
             <mat-error>{{ form.controls.symbol.errors | validationMessage }}</mat-error>
           </mat-form-field>
-        </div>
-      </fieldset>
 
-      <fieldset class="group">
-        <legend class="group__title">{{ 'childForm.measurements' | transloco }}</legend>
-        <div class="form-grid">
           <mat-form-field>
             <mat-label>{{ 'childForm.height' | transloco }}</mat-label>
-            <input matInput formControlName="heightCm" inputmode="decimal" autocomplete="off" />
-            <span matTextSuffix>{{ 'units.cm' | transloco }}</span>
+            <input
+              matInput
+              formControlName="heightCm"
+              inputmode="decimal"
+              autocomplete="off"
+              [placeholder]="'childForm.heightPlaceholder' | transloco"
+            />
             <mat-error>{{ form.controls.heightCm.errors | validationMessage }}</mat-error>
           </mat-form-field>
           <mat-form-field>
             <mat-label>{{ 'childForm.weight' | transloco }}</mat-label>
-            <input matInput formControlName="weightKg" inputmode="decimal" autocomplete="off" />
-            <span matTextSuffix>{{ 'units.kg' | transloco }}</span>
+            <input
+              matInput
+              formControlName="weightKg"
+              inputmode="decimal"
+              autocomplete="off"
+              [placeholder]="'childForm.weightPlaceholder' | transloco"
+            />
             <mat-error>{{ form.controls.weightKg.errors | validationMessage }}</mat-error>
           </mat-form-field>
         </div>
-      </fieldset>
+      </div>
 
       <fieldset class="group">
         <legend class="group__title">{{ 'childForm.center' | transloco }}</legend>
