@@ -86,8 +86,10 @@ describe('AuthService', () => {
 
   it('chooses the home page from the highest role', () => {
     expect(auth.homeUrl()).toBe('/home');
+    session.start(validToken(), testUser(['supervisor']));
+    expect(auth.homeUrl()).toBe('/supervisor');
     session.start(validToken(), testUser(['aww']));
-    expect(auth.homeUrl()).toBe('/competencies');
+    expect(auth.homeUrl()).toBe('/home');
     session.start(validToken(), testUser(['aww', 'admin']));
     expect(auth.homeUrl()).toBe('/admin');
   });
@@ -130,7 +132,7 @@ describe('AuthService', () => {
     const navigateByUrl = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
     session.start(validToken(), testUser(['aww']));
     await auth.navigateAfterLogin('//evil.example');
-    expect(navigateByUrl).toHaveBeenCalledWith('/competencies', { replaceUrl: true });
+    expect(navigateByUrl).toHaveBeenCalledWith('/home', { replaceUrl: true });
     await auth.navigateAfterLogin('/students');
     expect(navigateByUrl).toHaveBeenLastCalledWith('/students', { replaceUrl: true });
   });
@@ -141,6 +143,19 @@ describe('AuthService', () => {
     await auth.navigateAfterLogin('/students/4/edit', '7');
     expect(navigateByUrl).toHaveBeenLastCalledWith('/students/4/edit', { replaceUrl: true });
     await auth.navigateAfterLogin('/students/4/edit', '8');
-    expect(navigateByUrl).toHaveBeenLastCalledWith('/competencies', { replaceUrl: true });
+    expect(navigateByUrl).toHaveBeenLastCalledWith('/home', { replaceUrl: true });
+  });
+
+  it('opens the page someone tapped before signing in, if their role may open it', async () => {
+    const navigateByUrl = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    session.start(validToken(), testUser(['aww']));
+    await auth.navigateAfterLogin('/competencies/find/seriation');
+    expect(navigateByUrl).toHaveBeenLastCalledWith('/competencies/find/seriation', {
+      replaceUrl: true,
+    });
+    // A supervisor can't open competencies: their dashboard instead of "unauthorized".
+    session.start(validToken(), testUser(['supervisor']));
+    await auth.navigateAfterLogin('/competencies/find/seriation');
+    expect(navigateByUrl).toHaveBeenLastCalledWith('/supervisor', { replaceUrl: true });
   });
 });

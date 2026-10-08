@@ -3,8 +3,11 @@ import type { Routes } from '@angular/router';
 
 import { AuthService } from '@core/auth/auth';
 import { guestGuard, roleGuard } from '@core/auth/guards';
+import { ROUTE_ROLES } from '@core/auth/roles';
 import { SessionStore } from '@core/auth/session';
 import { unsavedChangesGuard } from '@shared/unsaved-changes-guard';
+
+import { competencyBySlug } from './features/competencies/competency-by-slug';
 
 /** Route `title`s are translation keys (see TranslatedTitleStrategy). */
 export const routes: Routes = [
@@ -55,15 +58,28 @@ export const routes: Routes = [
   { path: '404', pathMatch: 'full', redirectTo: 'not-found' },
 
   // Anganwadi workers (administrators can use these too, as before).
+  // "School Readiness – Domains": all domains, one domain, one competency.
   {
     path: 'competencies',
-    canActivate: [roleGuard('aww', 'admin')],
+    canActivate: [roleGuard(...ROUTE_ROLES.competencies)],
     children: [
       {
         path: '',
         title: 'competencies.title',
         loadComponent: () =>
           import('./features/competencies/competency-list-page').then((m) => m.CompetencyListPage),
+      },
+      {
+        path: 'domain/:slug',
+        title: 'domainPage.pageTitle',
+        loadComponent: () =>
+          import('./features/competencies/domain-page').then((m) => m.DomainPage),
+      },
+      {
+        // The home page's wheel names competencies, not ids: this opens the right page.
+        path: 'find/:slug',
+        canActivate: [competencyBySlug],
+        children: [],
       },
       {
         path: ':id',
@@ -87,7 +103,7 @@ export const routes: Routes = [
   // Students are "children" in the API (/children, child_id), so the code uses that name.
   {
     path: 'students',
-    canActivate: [roleGuard('aww', 'admin', 'supervisor')],
+    canActivate: [roleGuard(...ROUTE_ROLES.students)],
     children: [
       {
         path: '',
@@ -115,13 +131,13 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     title: 'dashboard.title',
-    canActivate: [roleGuard('aww', 'admin')],
+    canActivate: [roleGuard(...ROUTE_ROLES.dashboard)],
     loadComponent: () => import('./features/dashboard/dashboard-page').then((m) => m.DashboardPage),
   },
 
   {
     path: 'admin',
-    canActivate: [roleGuard('admin')],
+    canActivate: [roleGuard(...ROUTE_ROLES.admin)],
     children: [
       {
         path: '',
@@ -171,10 +187,10 @@ export const routes: Routes = [
       },
     ],
   },
-  ...(['stateofficial', 'dpo', 'cdpo', 'supervisor'] as const).map((role) => ({
-    path: { stateofficial: 'state', dpo: 'dpo', cdpo: 'cdpo', supervisor: 'supervisor' }[role],
+  ...(['state', 'dpo', 'cdpo', 'supervisor'] as const).map((path) => ({
+    path,
     title: 'officials.pageTitle',
-    canActivate: [roleGuard(role)],
+    canActivate: [roleGuard(...ROUTE_ROLES[path])],
     loadComponent: () =>
       import('./features/officials/official-home-page').then((m) => m.OfficialHomePage),
   })),

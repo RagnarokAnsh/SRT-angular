@@ -1,13 +1,16 @@
 <div class="wheel" #wheel>
-  <!-- Pointer shortcut only: the domain list in the panel is the keyboard/screen reader path. -->
+  <!-- Pointer shortcut only: the domain links below are the keyboard and screen reader path. -->
   <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -->
   <svg
     class="wheel__svg"
     [attr.viewBox]="'0 0 ' + size + ' ' + size"
     role="img"
     [attr.aria-label]="summary()"
-    [class.has-selection]="selected() !== null"
+    [class.is-linked]="linked()"
+    [class.has-selection]="highlighted() !== null"
     (click)="onWheelClick($event)"
+    (pointerover)="onPointerOver($event)"
+    (pointerleave)="highlight(null)"
   >
     <defs>
       @for (domain of model().domains; track domain.slug) {
@@ -21,12 +24,17 @@
       <g
         class="domain"
         [attr.data-domain]="domain.index"
-        [class.is-selected]="selected() === domain.index"
-        [class.is-dimmed]="selected() !== null && selected() !== domain.index"
+        [class.is-selected]="highlighted() === domain.index"
+        [class.is-dimmed]="highlighted() !== null && highlighted() !== domain.index"
       >
         @for (competency of domain.competencies; track competency.slug) {
           @if (competency.path; as path) {
-            <path class="segment" [attr.d]="path" [attr.fill]="domain.tint" />
+            <path
+              class="segment segment--competency"
+              [attr.d]="path"
+              [attr.fill]="domain.tint"
+              [attr.data-competency]="competency.slug"
+            />
           }
           @if (competency.label; as label) {
             <text
@@ -72,60 +80,43 @@
   </svg>
 </div>
 
-<section class="panel" #panel [attr.aria-label]="'home.wheel.panelLabel' | transloco">
-  <p class="visually-hidden" aria-live="polite">{{ announcement() }}</p>
-  @if (selectedDomain(); as domain) {
-    <button mat-button type="button" class="panel__back" (click)="select(null)">
-      <mat-icon svgIcon="arrow-left" aria-hidden="true" />
-      {{ 'home.wheel.allDomains' | transloco }}
-    </button>
-    <p class="panel__eyebrow">
-      {{
-        'home.wheel.domainOf'
-          | transloco: { current: domain.index + 1, total: model().domains.length }
-      }}
-    </p>
-    <h3 class="panel__title" tabindex="-1" #panelTitle>
-      <span class="swatch" [style.background]="domain.color" aria-hidden="true"></span>
-      {{ domain.name }}
-    </h3>
-    <p class="panel__meta">
-      {{ 'home.wheel.competencyCount' | plural: domain.competencies.length }}
-    </p>
-    <ol class="competency-list">
-      @for (competency of domain.competencies; track competency.slug) {
-        <li>
-          <span class="bullet" [style.background]="domain.tint" aria-hidden="true"></span>
-          {{ competency.name }}
-        </li>
-      }
-    </ol>
-    <div class="panel__steps">
-      <button mat-stroked-button type="button" (click)="step(-1)">
-        <mat-icon svgIcon="chevron-left" aria-hidden="true" />
-        {{ 'common.previous' | transloco }}
-      </button>
-      <button mat-stroked-button type="button" (click)="step(1)">
-        {{ 'common.next' | transloco }}
-        <mat-icon svgIcon="chevron-right" iconPositionEnd aria-hidden="true" />
-      </button>
-    </div>
-  } @else {
-    <h3 class="panel__title">{{ 'home.wheel.listTitle' | transloco }}</h3>
-    <p class="panel__meta">{{ 'home.wheel.listHint' | transloco }}</p>
-    <ul class="domain-list">
-      @for (domain of model().domains; track domain.slug) {
-        <li>
-          <button type="button" class="domain-button" #domainButton (click)="select(domain.index)">
-            <span class="swatch" [style.background]="domain.color" aria-hidden="true"></span>
-            <span class="domain-button__name">{{ domain.name }}</span>
-            <span class="domain-button__count">
+<nav class="domains" [attr.aria-labelledby]="idPrefix + '-title'">
+  <h2 class="domains__title" [id]="idPrefix + '-title'">
+    {{ 'home.wheel.listTitle' | transloco }}
+  </h2>
+  @if (linked()) {
+    <p class="domains__hint">{{ 'home.wheel.listHint' | transloco }}</p>
+  }
+  <ul class="domain-list">
+    @for (domain of model().domains; track domain.slug) {
+      <li>
+        @if (linked()) {
+          <a
+            class="domain-link"
+            [routerLink]="['/competencies/domain', domain.slug]"
+            [style.--domain-color]="domain.color"
+            (pointerenter)="highlight(domain.index)"
+            (pointerleave)="highlight(null)"
+            (focus)="highlight(domain.index)"
+            (blur)="highlight(null)"
+          >
+            <span class="swatch" aria-hidden="true"></span>
+            <span class="domain-link__name">{{ domain.name }}</span>
+            <span class="domain-link__count">
               {{ 'home.wheel.competencyCount' | plural: domain.competencies.length }}
             </span>
             <mat-icon svgIcon="chevron-right" aria-hidden="true" />
-          </button>
-        </li>
-      }
-    </ul>
-  }
-</section>
+          </a>
+        } @else {
+          <span class="domain-link" [style.--domain-color]="domain.color">
+            <span class="swatch" aria-hidden="true"></span>
+            <span class="domain-link__name">{{ domain.name }}</span>
+            <span class="domain-link__count">
+              {{ 'home.wheel.competencyCount' | plural: domain.competencies.length }}
+            </span>
+          </span>
+        }
+      </li>
+    }
+  </ul>
+</nav>

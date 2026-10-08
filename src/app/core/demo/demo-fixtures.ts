@@ -142,33 +142,115 @@ function child(
 }
 
 const LEVELS = ['Beginning', 'Progressing', 'Advancing', 'School Ready'];
+const SESSION_DATES = ['2026-07-14', '2026-08-18', '2026-09-15', '2026-09-29'];
+
+/** Competencies assessed so far at each centre, and in how many sessions. */
+const SEED_PLAN: Record<number, [competency: number, sessions: number][]> = {
+  // Shivaji Nagar is well into the year. Number Concept and Emergent Writing haven't started
+  // (the e2e tests record the first Number Concept results).
+  1: [
+    [1, 3],
+    [2, 2],
+    [4, 1],
+    [5, 2],
+    [6, 2],
+    [7, 1],
+    [10, 2],
+    [11, 2],
+    [12, 2],
+    [13, 1],
+    [14, 2],
+    [15, 2],
+    [16, 1],
+    [17, 2],
+    [18, 1],
+  ],
+  // Gandhi Colony has just begun; Sanganer Gaon hasn't yet.
+  2: [
+    [1, 2],
+    [2, 1],
+    [5, 2],
+    [12, 1],
+  ],
+};
+
+interface SeedProfile {
+  /** The first session's level (0 Beginning … 3 School Ready), give or take one. */
+  start: number;
+  /** Chances out of 10, for each later session, of going up or staying the same (else down). */
+  up: number;
+  same: number;
+  /** Competencies whose latest session this student missed. */
+  misses?: number[];
+  /** Missed the latest session in about one competency in this many. */
+  missEvery?: number;
+}
+
+/**
+ * How each student's results move, so the dashboard has something to show: most improve, a
+ * few stay at the same level, slip back or miss sessions.
+ */
+const SEED_PROFILES: Record<number, SeedProfile> = {
+  1: { start: 1, up: 10, same: 0 },
+  2: { start: 2, up: 10, same: 0 },
+  3: { start: 1, up: 10, same: 0 },
+  4: { start: 1, up: 10, same: 0, misses: [4] },
+  5: { start: 0, up: 4, same: 5 },
+  6: { start: 2, up: 4, same: 2 },
+  7: { start: 1, up: 8, same: 1 },
+  8: { start: 0, up: 5, same: 4, missEvery: 2 },
+  9: { start: 1, up: 7, same: 2 },
+  10: { start: 2, up: 8, same: 2 },
+  11: { start: 0, up: 6, same: 3 },
+  12: { start: 1, up: 7, same: 2 },
+};
+
+/** A fixed spread of numbers, so the sample data is the same on every visit. */
+function spread(...values: number[]): number {
+  let hash = 2166136261;
+  for (const value of values) hash = Math.imul(hash ^ value, 16777619);
+  hash ^= hash >>> 15;
+  hash = Math.imul(hash, 0x2c1b3c6d);
+  hash ^= hash >>> 12;
+  return hash >>> 0;
+}
+
+function clampLevel(level: number): number {
+  return Math.max(0, Math.min(LEVELS.length - 1, level));
+}
 
 function seedAssessments(children: DbChild[]): DbAssessment[] {
   const result: DbAssessment[] = [];
   let id = 1;
-  const sessionDates = ['2026-07-14', '2026-08-18', '2026-09-15', '2026-09-29'];
-  const plan: { competency: number; sessions: number }[] = [
-    { competency: 1, sessions: 2 },
-    { competency: 2, sessions: 1 },
-    { competency: 5, sessions: 2 },
-    { competency: 10, sessions: 1 },
-    { competency: 12, sessions: 1 },
-  ];
-  for (const c of children.filter((ch) => ch.anganwadi_id === 1)) {
-    for (const { competency, sessions } of plan) {
-      const count = c.id === 3 && competency === 1 ? 4 : c.id % 4 === 0 ? sessions - 1 : sessions;
+  for (const c of children) {
+    const profile = SEED_PROFILES[c.id];
+    if (!profile) continue;
+    for (const [competency, sessions] of SEED_PLAN[c.anganwadi_id] ?? []) {
+      const missed =
+        profile.misses?.includes(competency) ||
+        (!!profile.missEvery && spread(c.id, competency, 99) % profile.missEvery === 0);
+      // Ishaan has no gross motor results yet (the e2e tests record his first).
+      const count = c.id === 8 && competency === 10 ? 0 : missed ? sessions - 1 : sessions;
+      let level = clampLevel(profile.start + (spread(c.id, competency) % 3) - 1);
       for (let attempt = 1; attempt <= count; attempt++) {
-        const levelIndex = Math.min(3, (c.id + competency + attempt) % 4);
+        let remarks = attempt === 1 && c.id % 3 === 0 ? 'Needed some encouragement to begin.' : '';
+        if (attempt > 1) {
+          const roll = spread(c.id, competency, attempt) % 10;
+          const step = roll < profile.up ? 1 : roll < profile.up + profile.same ? 0 : -1;
+          if (step < 0 && level > 0) remarks = 'Seemed tired and distracted today.';
+          level = clampLevel(level + step);
+        }
+        const date = SESSION_DATES[attempt - 1];
         result.push({
           id: id++,
           child_id: c.id,
           competency_id: competency,
           anganwadi_id: c.anganwadi_id,
           attempt_number: attempt,
-          observation: LEVELS[levelIndex],
-          assessment_date: sessionDates[attempt - 1],
-          created_at: `${sessionDates[attempt - 1]}T05:30:00.000000Z`,
-          remarks: attempt === 1 && c.id % 3 === 0 ? 'Needed some encouragement to begin.' : '',
+          observation: LEVELS[level],
+          assessment_date: date,
+          created_at: `${date}T05:30:00.000000Z`,
+          remarks,
           age: '',
           height: competency === 10 ? String(Number(c.height_cm) + attempt - 1) : '',
           weight: competency === 10 ? c.weight_kg : '',

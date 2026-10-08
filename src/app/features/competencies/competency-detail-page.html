@@ -1,12 +1,15 @@
 <div class="page">
   @if (loader.error(); as error) {
-    <app-page-header backLink="/competencies" [backLabel]="'competencyDetail.back' | transloco" />
+    <app-page-header backLink="/competencies" [backLabel]="'nav.domains' | transloco" />
     <app-error-state [error]="error" (retry)="loader.reload()" />
   } @else if (loader.loading() || loader.data() === undefined) {
     <app-skeleton variant="block" [count]="1" />
     <app-skeleton variant="lines" [count]="4" />
   } @else if (view(); as view) {
-    <app-page-header backLink="/competencies" [backLabel]="'competencyDetail.back' | transloco">
+    <app-page-header
+      [backLink]="['/competencies/domain', view.domain.slug]"
+      [backLabel]="view.domain | domainName"
+    >
       <span pageTitle>{{ view.competency | competencyName }}</span>
     </app-page-header>
 
@@ -102,7 +105,7 @@
       </div>
     </section>
   } @else {
-    <app-page-header backLink="/competencies" [backLabel]="'competencyDetail.back' | transloco" />
+    <app-page-header backLink="/competencies" [backLabel]="'nav.domains' | transloco" />
     <app-state-message
       icon="not-found"
       [title]="'competencyDetail.notFound' | transloco"

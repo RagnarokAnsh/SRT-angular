@@ -1,8 +1,10 @@
+import type { SessionResult } from '@core/models/assessment';
 import type { Child } from '@core/models/child';
+import type { Competency, Domain } from '@core/models/competency';
 import { LEVELS, type Level } from '@core/models/level';
 import { type IsoDate, ageOn, formatAgeCompact } from '@core/util/dates';
 
-import type { CompetencyRow, Summary } from './dashboard-model';
+import type { CompetencyRow, StudentAttention, Summary } from './dashboard-model';
 
 type Cell = {
   value?: string | number;
@@ -13,8 +15,8 @@ type Cell = {
 export interface ExportText {
   /** Translates a key (with params) in the current language. */
   t: (key: string, params?: Record<string, unknown>) => string;
-  competencyName: (row: CompetencyRow) => string;
-  domainName: (row: CompetencyRow) => string;
+  competencyName: (competency: Competency) => string;
+  domainName: (domain: Domain) => string;
   formatDate: (iso: IsoDate | null) => string;
 }
 
@@ -24,6 +26,8 @@ export interface ExportInput {
   summary: Summary;
   rows: CompetencyRow[];
   children: Child[];
+  /** Who needs attention, and in which competencies. */
+  attention: StudentAttention[];
   today: IsoDate;
 }
 
@@ -59,7 +63,7 @@ export function fileSafe(label: string): string {
   );
 }
 
-/** Builds the three sheets (summary, children, assessments) as rows of cells. */
+/** Builds the four sheets (summary, students, assessments, needs attention) as rows of cells. */
 export function buildSheets(input: ExportInput, txt: ExportText): Cell[][][] {
   const { t } = txt;
   const levelLabel = (level: Level) => t(`levels.${level}.label`);
@@ -86,8 +90,8 @@ export function buildSheets(input: ExportInput, txt: ExportText): Cell[][][] {
       bold(t('dashboard.table.total')),
     ],
     ...input.rows.map((row) => [
-      text(txt.competencyName(row)),
-      text(txt.domainName(row)),
+      text(txt.competencyName(row.competency)),
+      text(txt.domainName(row.domain)),
       ...LEVELS.map((level) => num(row.counts[level])),
       num(row.other),
       num(row.notAssessed),
@@ -137,8 +141,8 @@ export function buildSheets(input: ExportInput, txt: ExportText): Cell[][][] {
         .filter((p) => p.sessions.length > 0)
         .map((p) => [
           text(p.child.name),
-          text(txt.competencyName(row)),
-          text(txt.domainName(row)),
+          text(txt.competencyName(row.competency)),
+          text(txt.domainName(row.domain)),
           ...sessions.flatMap((n) => {
             const s = p.sessions.find((x) => x.session === n);
             return [
@@ -150,7 +154,36 @@ export function buildSheets(input: ExportInput, txt: ExportText): Cell[][][] {
     ),
   ];
 
-  return [summary, children, assessments];
+  const inSession = (result: SessionResult) =>
+    `${t('assessment.sessionN', { n: result.session })}: ${
+      result.level ? levelLabel(result.level) : result.rawObservation
+    }`;
+  const attention: Cell[][] = [
+    [
+      bold(t('childForm.name')),
+      bold(t('dashboard.table.competency')),
+      bold(t('dashboard.table.domain')),
+      bold(t('dashboard.export.reason')),
+      bold(t('dashboard.export.before')),
+      bold(t('dashboard.export.latest')),
+    ],
+    ...input.attention.flatMap(({ student, items }) =>
+      items.map(({ item, reason }) => [
+        text(student.child.name),
+        text(txt.competencyName(item.competency)),
+        text(txt.domainName(item.domain)),
+        text(t(`dashboard.attention.reason.${reason}`)),
+        text(reason === 'none' || !item.change ? '' : inSession(item.change.from)),
+        text(
+          reason === 'none' || !item.change
+            ? `${t('assessment.sessionN', { n: item.missed })}: ${t('dashboard.notAssessed')}`
+            : inSession(item.change.to),
+        ),
+      ]),
+    ),
+  ];
+
+  return [summary, children, assessments, attention];
 }
 
 /** Writes the dashboard to an .xlsx file (the library is only downloaded when needed). */
@@ -162,6 +195,7 @@ export async function exportDashboard(input: ExportInput, txt: ExportText): Prom
       txt.t('dashboard.export.sheetSummary'),
       txt.t('dashboard.export.sheetChildren'),
       txt.t('dashboard.export.sheetAssessments'),
+      txt.t('dashboard.tabs.attention'),
     ],
     fileName: `srt-dashboard-${fileSafe(input.centerName)}-${input.today}.xlsx`,
   });

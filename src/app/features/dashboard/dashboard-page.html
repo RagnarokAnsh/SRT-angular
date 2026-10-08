@@ -40,12 +40,12 @@
   } @else if (loader.error(); as error) {
     <app-error-state [error]="error" (retry)="loader.reload()" />
   } @else if (!data()) {
-    <app-skeleton variant="cards" [count]="3" />
+    <app-skeleton variant="cards" [count]="4" />
     <app-skeleton variant="rows" [count]="6" />
   } @else {
     <div class="content" [class.is-refreshing]="loader.loading()">
       @if (overall(); as o) {
-        <section class="kpis" [attr.aria-label]="'dashboard.overview' | transloco">
+        <section class="kpis" [attr.aria-label]="'dashboard.overview.title' | transloco">
           <div class="kpi">
             <span class="kpi__label">{{ 'dashboard.children' | transloco }}</span>
             <span class="kpi__value">{{ o.children }}</span>
@@ -83,6 +83,11 @@
               }}
             </span>
           </div>
+          <button type="button" class="kpi kpi--action" (click)="selectView(3, true)">
+            <span class="kpi__label">{{ 'dashboard.needSupport' | transloco }}</span>
+            <span class="kpi__value">{{ o.needSupport }}</span>
+            <span class="kpi__detail">{{ 'dashboard.needSupportDetail' | transloco }}</span>
+          </button>
         </section>
       }
 
@@ -93,12 +98,12 @@
           [message]="'assessment.noChildrenMessage' | transloco"
         />
       } @else {
-        <div class="filters">
+        <section class="filters" [attr.aria-label]="'dashboard.filters' | transloco">
           <mat-form-field class="filters__domain">
             <mat-label>{{ 'dashboard.filterDomain' | transloco }}</mat-label>
             <mat-select
               [value]="domainFilter() ?? 0"
-              (selectionChange)="domainFilter.set($event.value || null)"
+              (selectionChange)="setDomain($event.value || null)"
             >
               <mat-option [value]="0">{{ 'dashboard.allDomains' | transloco }}</mat-option>
               @for (domain of data()!.domains; track domain.id) {
@@ -106,191 +111,96 @@
               }
             </mat-select>
           </mat-form-field>
-          <div class="filters__session">
-            <span class="filters__label" id="session-filter-label">{{
-              'dashboard.filterSession' | transloco
+
+          <mat-form-field class="filters__competencies">
+            <mat-label>{{ 'dashboard.filterCompetencies' | transloco }}</mat-label>
+            <mat-select
+              multiple
+              [disabled]="domainFilter() === null"
+              [value]="competencyFilter()"
+              [placeholder]="'dashboard.allCompetencies' | transloco"
+              (selectionChange)="competencyFilter.set($event.value)"
+            >
+              @for (competency of domainCompetencies(); track competency.id) {
+                <mat-option [value]="competency.id">{{ competency | competencyName }}</mat-option>
+              }
+            </mat-select>
+            @if (domainFilter() === null) {
+              <mat-hint>{{ 'dashboard.chooseDomainFirst' | transloco }}</mat-hint>
+            }
+          </mat-form-field>
+
+          <div class="filters__sessions">
+            <span class="filters__label" id="sessions-label">{{
+              'dashboard.filterSessions' | transloco
             }}</span>
             <mat-button-toggle-group
-              [value]="sessionFilter()"
-              (change)="sessionFilter.set($event.value)"
-              aria-labelledby="session-filter-label"
-              hideSingleSelectionIndicator
+              multiple
+              [value]="chosenSessions()"
+              (change)="setSessions($event.value)"
+              aria-labelledby="sessions-label"
             >
-              @for (option of sessionOptions; track option) {
-                <mat-button-toggle [value]="option">
-                  {{ option === 'latest' ? ('dashboard.sessionLatestShort' | transloco) : option }}
+              @for (n of sessionNumbers; track n) {
+                <mat-button-toggle [value]="n">
+                  <span aria-hidden="true">{{ n }}</span>
+                  <span class="visually-hidden">{{
+                    'assessment.sessionN' | transloco: { n }
+                  }}</span>
                 </mat-button-toggle>
               }
             </mat-button-toggle-group>
           </div>
-        </div>
-
-        <section class="chart surface-card" aria-labelledby="chart-title">
-          <div class="chart__head">
-            <div>
-              <h2 id="chart-title" class="chart__title">
-                {{ 'dashboard.chartTitle' | transloco }}
-              </h2>
-              <p class="chart__subtitle">
-                {{
-                  (sessionFilter() === 'latest'
-                    ? 'dashboard.chartLatest'
-                    : 'dashboard.chartSession'
-                  ) | transloco: { session: sessionLabel(sessionFilter()) }
-                }}
-              </p>
-            </div>
-            <button
-              mat-button
-              type="button"
-              class="chart__toggle"
-              (click)="showTable.set(!showTable())"
-            >
-              <mat-icon [svgIcon]="showTable() ? 'chart' : 'notes'" aria-hidden="true" />
-              {{ (showTable() ? 'dashboard.showChart' : 'dashboard.showTable') | transloco }}
-            </button>
-          </div>
-
-          <ul class="legend" [attr.aria-label]="'dashboard.legend' | transloco">
-            @for (level of levels; track level) {
-              <li>
-                <span
-                  class="legend__swatch"
-                  [style.background]="'var(--chart-level-' + level + ')'"
-                ></span
-                >{{ 'levels.' + level + '.label' | transloco }}
-              </li>
-            }
-            @if (hasOther()) {
-              <li>
-                <span class="legend__swatch" style="background: var(--chart-other)"></span
-                >{{ 'dashboard.otherResult' | transloco }}
-              </li>
-            }
-            <li>
-              <span class="legend__swatch" style="background: var(--chart-none)"></span
-              >{{ 'dashboard.notAssessed' | transloco }}
-            </li>
-          </ul>
-
-          @if (showTable()) {
-            <div class="table-wrap">
-              <table class="data-table">
-                <caption class="visually-hidden">
-                  {{
-                    'dashboard.chartTitle' | transloco
-                  }}
-                </caption>
-                <thead>
-                  <tr>
-                    <th scope="col">{{ 'dashboard.table.competency' | transloco }}</th>
-                    @for (level of levels; track level) {
-                      <th scope="col" class="num">
-                        {{ 'levels.' + level + '.label' | transloco }}
-                      </th>
-                    }
-                    @if (hasOther()) {
-                      <th scope="col" class="num">{{ 'dashboard.otherResult' | transloco }}</th>
-                    }
-                    <th scope="col" class="num">{{ 'dashboard.notAssessed' | transloco }}</th>
-                    <th scope="col" class="num">{{ 'dashboard.table.total' | transloco }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (row of rows(); track row.competency.id) {
-                    <tr>
-                      <th scope="row">{{ row.competency | competencyName }}</th>
-                      @for (level of levels; track level) {
-                        <td class="num">{{ row.counts[level] }}</td>
-                      }
-                      @if (hasOther()) {
-                        <td class="num">{{ row.other }}</td>
-                      }
-                      <td class="num">{{ row.notAssessed }}</td>
-                      <td class="num">{{ row.total }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          } @else {
-            @for (group of groups(); track group.domainId) {
-              <h3 class="group__title">
-                <span
-                  class="group__swatch"
-                  [style.background]="group.color"
-                  aria-hidden="true"
-                ></span>
-                {{ group.domain | domainName }}
-              </h3>
-              <ul class="rows">
-                @for (row of group.rows; track row.competency.id) {
-                  <li class="row">
-                    <button
-                      type="button"
-                      class="row__head"
-                      [attr.aria-expanded]="expanded() === row.competency.id"
-                      [attr.aria-controls]="
-                        expanded() === row.competency.id ? 'who-' + row.competency.id : null
-                      "
-                      (click)="toggle(row.competency.id)"
-                    >
-                      <span class="row__name">{{ row.competency | competencyName }}</span>
-                      <span class="row__meta">
-                        {{
-                          'dashboard.assessedOf'
-                            | transloco: { assessed: row.total - row.notAssessed, total: row.total }
-                        }}
-                      </span>
-                      <mat-icon
-                        [svgIcon]="expanded() === row.competency.id ? 'chevron-up' : 'chevron-down'"
-                        aria-hidden="true"
-                      />
-                    </button>
-                    <div class="bar" role="img" [attr.aria-label]="barLabel(row)">
-                      @for (segment of segments(row); track segment.key) {
-                        <span
-                          class="bar__segment"
-                          [style.flex-grow]="segment.count"
-                          [style.background]="segment.color"
-                          [matTooltip]="tooltip(segment, row)"
-                          matTooltipPosition="above"
-                        ></span>
-                      }
-                    </div>
-                    @if (expanded() === row.competency.id) {
-                      <div class="who" [id]="'who-' + row.competency.id">
-                        @for (level of levels; track level) {
-                          @let names = childrenAt(row, level);
-                          @if (names.length) {
-                            <div class="who__group">
-                              <app-level-badge [level]="level" />
-                              <span class="who__names">{{ names.join(', ') }}</span>
-                            </div>
-                          }
-                        }
-                        @let others = childrenAt(row, 'other');
-                        @if (others.length) {
-                          <div class="who__group">
-                            <span class="who__none">{{ 'dashboard.otherResult' | transloco }}</span>
-                            <span class="who__names">{{ others.join(', ') }}</span>
-                          </div>
-                        }
-                        @let pending = childrenAt(row, 'none');
-                        @if (pending.length) {
-                          <div class="who__group">
-                            <span class="who__none">{{ 'dashboard.notAssessed' | transloco }}</span>
-                            <span class="who__names">{{ pending.join(', ') }}</span>
-                          </div>
-                        }
-                      </div>
-                    }
-                  </li>
-                }
-              </ul>
-            }
-          }
         </section>
+
+        <ul class="legend" [attr.aria-label]="'dashboard.legend' | transloco">
+          @for (standing of legend(); track standing) {
+            <li>
+              <span class="legend__swatch" [style.background]="standingColor[standing]"></span>
+              <span class="legend__mark" aria-hidden="true">{{ standingMark[standing] }}</span>
+              {{ standingLabel(standing) | transloco }}
+            </li>
+          }
+        </ul>
+
+        <nav class="views-nav" #viewsNav [attr.aria-label]="'dashboard.views' | transloco">
+          <ul class="views-nav__list">
+            @for (tab of viewTabs; track tab.id; let i = $index) {
+              <li>
+                <button
+                  type="button"
+                  class="views-nav__item"
+                  [attr.aria-pressed]="viewIndex() === i"
+                  (click)="selectView(i)"
+                >
+                  <mat-icon [svgIcon]="tab.icon" aria-hidden="true" />
+                  <span>{{ tab.label | transloco }}</span>
+                  @if (tab.id === 'attention' && attention().length) {
+                    <span class="views-nav__count">{{ attention().length }}</span>
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+        </nav>
+
+        @switch (viewIndex()) {
+          @case (1) {
+            <app-dashboard-competencies [views]="competencyViews()" />
+          }
+          @case (2) {
+            <app-dashboard-students [students]="students()" [sessions]="chosenSessions()" />
+          }
+          @case (3) {
+            <app-dashboard-attention [attention]="attention()" />
+          }
+          @default {
+            <app-dashboard-overview
+              [summaries]="domainSummaries()"
+              [total]="overallSummary()"
+              (openDomain)="openDomain($event)"
+            />
+          }
+        }
       }
     </div>
   }

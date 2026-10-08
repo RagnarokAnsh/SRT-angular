@@ -6,7 +6,8 @@
     "skipToContent": "Skip to main content",
     "main": "Main",
     "home": "Home",
-    "competencies": "Competencies",
+    "domains": "School Readiness – Domains",
+    "domainsShort": "Domains",
     "children": "Students",
     "dashboard": "Dashboard",
     "overview": "Overview",
@@ -38,8 +39,6 @@
     "retry": "Try again",
     "refresh": "Refresh",
     "reload": "Reload",
-    "next": "Next",
-    "previous": "Previous",
     "center": "Centre",
     "pickCenter": "Choose a centre to continue.",
     "changeCenter": "Change centre",
@@ -116,25 +115,13 @@
     "titleBefore": "School",
     "titleHighlight": "Ready",
     "titleAfter": "Children",
-    "lead": "School readiness is a crucial phase in a child's development: the skills and competencies that prepare them for a smooth and successful move into grade 1.",
-    "signIn": "Sign in to get started",
-    "continue": "Go to my workspace",
-    "explore": "Explore the framework",
-    "aboutTitle": "What school readiness means",
-    "aboutSkills": "The skills and abilities a child needs include cognitive skills such as basic literacy and numeracy, and emotional and social competencies like self-regulation, cooperation and communication.",
-    "aboutChild": "A child who is school ready can follow instructions, interact positively with peers and teachers, and adapt to the structured environment of a classroom. Getting there is a shared effort by parents, educators and the community, who provide the enriching experiences and support that build these skills.",
-    "frameworkTitle": "The school readiness framework",
-    "frameworkIntro": "Children's development is observed across six domains, each made up of a few competencies.",
-    "closingFoundation": "School readiness lays the foundation for a child's lifelong learning and success. A good early childhood education programme offers an age-appropriate and developmentally suitable learning environment for all children, so that every 6-year-old is school ready when they enter primary school.",
-    "closingTool": "This tool helps ECE educators provide the early learning experiences each child needs, based on their individual developmental journey.",
+    "intro": "School readiness is a crucial phase in a child's development, encompassing a range of skills and competencies that prepare them for a smooth and successful transition into grade 1. The required sets of skills and abilities include cognitive skills such as basic literacy and numeracy, as well as emotional and social competencies like self-regulation, cooperation, and communication. A child who is school-ready can follow instructions, interact positively with peers and teachers, and adapt to the structured environment of a classroom. Ensuring school readiness involves a collaborative effort among parents, educators, and the community to provide enriching experiences and support that foster these essential skills.",
+    "closing": "School readiness lays the foundation for a child's lifelong learning and success. A good early childhood education program should offer an age-appropriate and developmentally suitable learning environment for all children, ensuring that every 6-year-old is school-ready when they enter primary school. This tool will assist ECE educators in providing necessary early learning experiences to children based on their individual developmental journeys.",
     "wheel": {
       "hub": "School\nReadiness",
       "summary": "School readiness framework: {{domains}} domains of development made up of {{competencies}} competencies.",
-      "panelLabel": "Domains and competencies",
       "listTitle": "Six domains of development",
-      "listHint": "Select a domain, on the wheel or below, to see its competencies.",
-      "allDomains": "All domains",
-      "domainOf": "Domain {{current}} of {{total}}",
+      "listHint": "Tap a domain or a competency to open it.",
       "competencyCount": {
         "one": "{{count}} competency",
         "other": "{{count}} competencies"
@@ -414,8 +401,8 @@
     "kg": "kg"
   },
   "competencies": {
-    "title": "Competencies",
-    "subtitle": "Choose a competency to see what to look for, watch activity ideas, and assess students.",
+    "title": "School Readiness – Domains",
+    "subtitle": "Choose a domain or a competency to see what to look for, watch activity ideas and assess students.",
     "search": "Search competencies",
     "count": {
       "one": "{{count}} competency",
@@ -424,9 +411,16 @@
     "empty": "No competencies yet",
     "noMatch": "Nothing matches “{{query}}”."
   },
+  "domainPage": {
+    "pageTitle": "Domain of development",
+    "previous": "Previous domain",
+    "next": "Next domain",
+    "otherDomains": "Other domains",
+    "notFoundTitle": "Domain not found",
+    "notFoundMessage": "This domain doesn’t exist. Choose one from School Readiness – Domains."
+  },
   "competencyDetail": {
     "pageTitle": "Competency",
-    "back": "All competencies",
     "assess": "Assess students",
     "prepare": "Get ready to assess",
     "levelsTitle": "Learning process",
@@ -459,7 +453,6 @@
     "noCenterTitle": "Your account isn't linked to a centre",
     "noCenterMessage": "Ask your administrator to link your account to your Anganwadi centre.",
     "pickCenterIntro": "Choose the centre whose students you want to assess.",
-    "center": "Centre",
     "noChildren": "No students in this centre yet",
     "noChildrenMessage": "Add students on the Students page, then come back to assess them.",
     "search": "Search students",
@@ -590,7 +583,12 @@
     "title": "Dashboard",
     "subtitle": "Progress of the students at your centre",
     "pickCenterIntro": "Choose the centre whose progress you want to see.",
-    "overview": "Overview",
+    "overview": {
+      "title": "Overview",
+      "subtitle": "Every domain at a glance. Each bar is one session and counts every student's result in every competency of the domain.",
+      "allTogether": "All domains together"
+    },
+    "notStartedAny": "Nobody has been assessed in the chosen sessions yet.",
     "children": "Students",
     "boys": "Boys",
     "girls": "Girls",
@@ -610,16 +608,12 @@
     "allDomains": "All domains",
     "filterSession": "Session",
     "sessionLatest": "Latest result",
-    "sessionLatestShort": "Latest",
     "chartTitle": "Students by level, per competency",
-    "chartLatest": "Each student's most recent result for each competency.",
-    "chartSession": "Results from {{session}} only.",
     "showTable": "Show as table",
     "showChart": "Show as chart",
     "legend": "Legend",
     "notAssessed": "Not assessed",
     "otherResult": "Other result",
-    "assessedOf": "{{assessed}} of {{total}} assessed",
     "segmentTooltip": "{{count}} ({{percent}}%) · {{level}}",
     "exporting": "Preparing…",
     "exported": "The Excel file was downloaded.",
@@ -627,7 +621,8 @@
     "table": {
       "competency": "Competency",
       "domain": "Domain",
-      "total": "Total"
+      "total": "Total",
+      "session": "Session"
     },
     "export": {
       "button": "Download Excel",
@@ -640,7 +635,73 @@
       "date": "date",
       "sheetSummary": "Summary",
       "sheetChildren": "Students",
-      "sheetAssessments": "Assessments"
+      "sheetAssessments": "Assessments",
+      "reason": "Why",
+      "before": "Before",
+      "latest": "Latest"
+    },
+    "needSupport": "Need attention",
+    "needSupportDetail": "Went down, no progress, or missed a session",
+    "filters": "Filters",
+    "filterCompetencies": "Competencies",
+    "allCompetencies": "All competencies",
+    "chooseDomainFirst": "Choose a domain first",
+    "filterSessions": "Sessions",
+    "tabs": {
+      "overview": "Overview",
+      "competencies": "Competencies",
+      "students": "Students",
+      "attention": "Needs attention"
+    },
+    "views": "Dashboard views",
+    "sessionShort": "S{{n}}",
+    "sessionCaption": "{{name}}, session {{n}}",
+    "change": {
+      "title": "Since the session before:",
+      "up": "{{count}} better",
+      "same": "{{count}} same",
+      "down": "{{count}} lower",
+      "none": "No student has two sessions to compare yet."
+    },
+    "competenciesView": {
+      "subtitle": "Each bar is one session, so you can compare them. Tap “Show names” to see who is at each level.",
+      "showNames": "Show names",
+      "hideNames": "Hide names",
+      "notStarted": "Nobody assessed yet in {{sessions}}.",
+      "noneYet": "Nobody has been assessed in this competency yet."
+    },
+    "studentsView": {
+      "subtitle": "Each student's level in every competency, session by session. Tap a student to see the details.",
+      "search": "Search students",
+      "assessedOf": "{{assessed}} of {{total}} competencies assessed",
+      "change": "Change since the session before",
+      "noMatch": "No students match your search.",
+      "trend": {
+        "up": "Better than the session before",
+        "same": "Same as the session before",
+        "down": "Lower than the session before"
+      }
+    },
+    "attention": {
+      "subtitle": "Students whose level went down or stayed the same since their session before, or who weren't assessed in the latest session the others had.",
+      "countDown": {
+        "one": "{{count}} went down",
+        "other": "{{count}} went down"
+      },
+      "countSame": {
+        "one": "{{count}} no progress",
+        "other": "{{count}} no progress"
+      },
+      "countNone": {
+        "one": "{{count}} not assessed",
+        "other": "{{count}} not assessed"
+      },
+      "reason": {
+        "down": "Went down",
+        "same": "No progress",
+        "none": "Not assessed"
+      },
+      "empty": "No student needs attention right now."
     }
   },
   "location": {
@@ -656,7 +717,7 @@
     "loadFailed": "Couldn't load the location lists."
   },
   "officials": {
-    "pageTitle": "Home",
+    "pageTitle": "Dashboard",
     "welcome": "Welcome, {{name}}",
     "yourArea": "Your area",
     "reportsTitle": "Reports for your area",

@@ -9,15 +9,16 @@
   }
 }
 
-// Stat tiles
+// Stat tiles: two by two on phones, one row on wide screens.
 
 .kpis {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-3);
   margin-bottom: var(--space-6);
 
-  @include up(sm) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  @include up(md) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -27,7 +28,26 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: var(--space-4) var(--space-5);
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  color: inherit;
+  font: inherit;
+  text-align: start;
+
+  @include up(sm) {
+    padding: var(--space-4) var(--space-5);
+  }
+}
+
+// "Need attention" opens the list of who and where.
+.kpi--action {
+  border-color: var(--color-danger-soft);
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+
+  &:hover {
+    box-shadow: var(--shadow-2);
+  }
 }
 
 .kpi__label {
@@ -38,9 +58,13 @@
 
 .kpi__value {
   color: var(--color-text-strong);
-  font-size: var(--text-3xl);
+  font-size: var(--text-2xl);
   font-weight: 700;
   line-height: 1.2;
+
+  @include up(sm) {
+    font-size: var(--text-3xl);
+  }
 }
 
 .kpi__detail {
@@ -64,27 +88,29 @@
   background: var(--color-secondary-strong);
 }
 
-// Filters: one row above the chart
+// Filters: one row above everything they scope.
 
 .filters {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-5);
-  margin-bottom: var(--space-3);
+  align-items: flex-start;
+  gap: 0 var(--space-4);
 }
 
-.filters__domain {
-  flex: 1 1 240px;
+.filters__domain,
+.filters__competencies {
+  flex: 1 1 220px;
+  min-width: 0;
   max-width: 360px;
 }
 
-.filters__session {
+.filters__sessions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2) var(--space-3);
-  padding-bottom: var(--space-3);
+  min-height: 56px;
+  margin-bottom: var(--space-4);
 
   mat-button-toggle-group {
     --mat-standard-button-toggle-height: 40px;
@@ -102,40 +128,13 @@
   font-weight: 600;
 }
 
-// Chart
-
-.chart {
-  padding: var(--space-4);
-
-  @include up(sm) {
-    padding: var(--space-6);
-  }
-}
-
-.chart__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-2) var(--space-4);
-}
-
-.chart__title {
-  margin: 0;
-  font-size: var(--text-lg);
-}
-
-.chart__subtitle {
-  margin: var(--space-1) 0 0;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
+// Legend: always shown, the level's number next to its colour.
 
 .legend {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
-  margin: var(--space-4) 0;
+  margin: 0 0 var(--space-2);
   padding: 0;
   color: var(--color-text);
   font-size: var(--text-sm);
@@ -144,7 +143,7 @@
   li {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-2);
+    gap: 6px;
   }
 }
 
@@ -154,163 +153,76 @@
   border-radius: 4px;
 }
 
-.group__title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin: var(--space-6) 0 var(--space-2);
-  color: var(--color-text-strong);
-  font-size: var(--text-base);
-}
-
-.group__swatch {
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-}
-
-.rows {
-  display: grid;
-  gap: var(--space-1);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.row {
-  padding: var(--space-2) 0;
-  border-bottom: 1px solid var(--color-border);
-
-  &:last-child {
-    border-bottom: 0;
-  }
-}
-
-.row__head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    'name icon'
-    'meta icon';
-  align-items: center;
-  width: 100%;
-  min-height: var(--touch-target);
-  padding: var(--space-1) 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  text-align: start;
-  cursor: pointer;
-
-  mat-icon {
-    grid-area: icon;
-    color: var(--color-text-muted);
-  }
-}
-
-.row__name {
-  grid-area: name;
-  color: var(--color-text-strong);
-  font-weight: 600;
-}
-
-.row__meta {
-  grid-area: meta;
+.legend__mark {
   color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
-
-// One 100% stacked bar per competency: thin, 2px gaps between segments, rounded ends.
-.bar {
-  display: flex;
-  gap: 2px;
-  height: 20px;
-  margin: var(--space-1) 0;
-  overflow: hidden;
-  border-radius: 4px;
-}
-
-.bar__segment {
-  flex-basis: 0;
-  min-width: 4px;
-  transition: filter 0.15s;
-
-  &:hover {
-    filter: brightness(1.12);
-  }
-}
-
-.who {
-  display: grid;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-muted);
-}
-
-.who__group {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-1) var(--space-2);
-}
-
-.who__names {
-  color: var(--color-text);
-  font-size: var(--text-sm);
-}
-
-.who__none {
-  padding: 2px var(--space-2);
-  border-radius: var(--radius-pill);
-  background: var(--chart-none);
-  color: var(--color-text-strong);
-  font-size: var(--text-xs);
   font-weight: 700;
 }
 
-// Table view
+// Views: a segmented switch, two by two on phones and one row on wider screens.
 
-.table-wrap {
-  overflow-x: auto;
+.views-nav {
+  margin: var(--space-4) 0;
 }
 
-.data-table {
+.views-nav__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include up(md) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.views-nav__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   width: 100%;
-  border-collapse: collapse;
-  font-size: var(--text-sm);
+  height: 100%;
+  min-height: 48px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
 
-  th,
-  td {
-    padding: var(--space-2) var(--space-3);
-    border-bottom: 1px solid var(--color-border);
-    text-align: start;
-    vertical-align: top;
+  &:hover {
+    background: var(--color-surface-muted);
   }
 
-  thead th {
-    color: var(--color-text-muted);
-    font-weight: 600;
+  &[aria-pressed='true'] {
+    border-color: var(--color-primary);
+    background: var(--color-primary-soft);
+    color: var(--color-on-primary-soft);
   }
 
-  tbody th {
-    color: var(--color-text-strong);
-    font-weight: 600;
+  mat-icon {
+    flex: none;
+    width: 20px;
+    height: 20px;
   }
+}
 
-  // On phones the table scrolls sideways; the competency names stay in view.
-  th:first-child {
-    position: sticky;
-    left: 0;
-    z-index: 1;
-    min-width: 9rem;
-    background: var(--color-surface);
-    box-shadow: inset -1px 0 0 var(--color-border);
-  }
-
-  .num {
-    font-variant-numeric: tabular-nums;
-    text-align: end;
-  }
+.views-nav__count {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding-inline: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-danger);
+  color: #fff;
+  font-size: var(--text-xs);
+  font-weight: 700;
 }

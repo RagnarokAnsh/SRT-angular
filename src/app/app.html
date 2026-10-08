@@ -29,9 +29,15 @@
             routerLinkActive="is-active"
             [routerLinkActiveOptions]="{ exact: !!item.exact }"
             ariaCurrentWhenActive="page"
+            [attr.aria-label]="item.shortLabelKey ? (item.labelKey | transloco) : null"
           >
             <mat-icon [svgIcon]="item.icon" aria-hidden="true" />
-            <span>{{ item.labelKey | transloco }}</span>
+            @if (item.shortLabelKey; as shortKey) {
+              <span class="label--short">{{ shortKey | transloco }}</span>
+              <span class="label--full">{{ item.labelKey | transloco }}</span>
+            } @else {
+              <span>{{ item.labelKey | transloco }}</span>
+            }
           </a>
         }
       </nav>
@@ -81,11 +87,12 @@
         routerLinkActive="is-active"
         [routerLinkActiveOptions]="{ exact: !!item.exact }"
         ariaCurrentWhenActive="page"
+        [attr.aria-label]="item.shortLabelKey ? (item.labelKey | transloco) : null"
       >
         <span class="bottom-nav__icon">
           <mat-icon [svgIcon]="item.icon" aria-hidden="true" />
         </span>
-        <span class="bottom-nav__label">{{ item.labelKey | transloco }}</span>
+        <span class="bottom-nav__label">{{ item.shortLabelKey ?? item.labelKey | transloco }}</span>
       </a>
     }
   </nav>

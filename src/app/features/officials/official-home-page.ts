@@ -8,17 +8,20 @@ import { ROLE_LOCATION_DEPTH } from '@core/auth/roles';
 import { SessionStore } from '@core/auth/session';
 import { PageHeader } from '@shared/ui/page-header';
 
-/** Home page for state, district, project and sector officials. */
+/** Dashboard for state, district, project and sector officials (reports come with the API). */
 @Component({
   selector: 'app-official-home-page',
   imports: [RouterLink, MatButtonModule, MatIconModule, TranslocoPipe, PageHeader],
   template: `
     <div class="page page--narrow">
       <app-page-header>
-        <span pageTitle>{{ 'officials.welcome' | transloco: { name: session.user()?.name } }}</span>
-        @if (session.primaryRole(); as role) {
-          <span pageSubtitle>{{ 'roles.' + role | transloco }}</span>
-        }
+        <span pageTitle>{{ 'dashboard.title' | transloco }}</span>
+        <span pageSubtitle>
+          {{ 'officials.welcome' | transloco: { name: session.user()?.name } }}
+          @if (session.primaryRole(); as role) {
+            · {{ 'roles.' + role | transloco }}
+          }
+        </span>
       </app-page-header>
 
       @if (area().length) {
