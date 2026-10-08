@@ -29,7 +29,9 @@ fills in the form):
 | Supervisor                  | `supervisor@demo.in`                                                                      |
 | CDPO / DPO / State official | `cdpo@demo.in` / `dpo@demo.in` / `state@demo.in`                                          |
 
-Changes are kept in this browser's localStorage. The yellow demo banner has **Reset demo data**,
+The sample domains and competencies are a copy of the real API's (ids, names and
+descriptions, word for word). Changes are kept in this browser's localStorage. The yellow demo
+banner has **Reset demo data**,
 and a **Simulate server down** switch for trying out the error screens.
 
 `npm start` runs the same app against the real API instead (`src/environments/environment.ts`).
@@ -70,6 +72,15 @@ Which centres each user may see is decided in `src/app/core/auth/access.ts`: eve
 admins, their own centre for workers (nothing if their account has no centre), and the centres
 in their area for supervisors. The API currently returns every centre's students, so the app
 filters them; the server must enforce the same rules (see `docs/SECURITY.md`).
+
+## The home page
+
+The client-approved text and the readiness wheel, nothing else. On wider screens the domains sit
+around the centre and a domain's competencies fan out while the pointer rests on it (or while it
+has keyboard focus); on phones, tapping a domain shows its competencies all around it, and
+tapping the centre goes back. Tapping a competency opens it; visitors log in first. The wheel
+uses the original app's labels: the full domain names and its short competency names
+(`catalog.*.wheel` in the translation files).
 
 ## The centre dashboard
 
