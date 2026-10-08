@@ -5,9 +5,6 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const root = new URL('..', import.meta.url).pathname;
-const legacy = JSON.parse(readFileSync(join(root, 'legacy-paths.json'), 'utf8')).map((p) =>
-  p.replace(/\/\*\*$/, ''),
-);
 
 function flatten(tree, prefix = '', out = new Set()) {
   for (const [key, value] of Object.entries(tree)) {
@@ -21,8 +18,6 @@ function flatten(tree, prefix = '', out = new Set()) {
 function* files(dir) {
   for (const name of readdirSync(dir)) {
     const path = join(dir, name);
-    const rel = relative(root, path);
-    if (legacy.some((l) => rel === l || rel.startsWith(`${l}/`))) continue;
     if (statSync(path).isDirectory()) yield* files(path);
     else if (/\.(ts|html)$/.test(name) && !name.endsWith('.spec.ts')) yield path;
   }

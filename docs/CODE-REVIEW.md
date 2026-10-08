@@ -211,7 +211,6 @@ Run them with `npm test` and `npm run e2e` (see the README).
 
 ## Still to do
 
-- **Delete the old app's files.** The commands are in the README. They aren't built or used.
 - **Have a Hindi speaker check the new text.** "Students" is विद्यार्थी. This review added
   messages for a failed language download, an already-deleted record, a duplicate found
   while editing, and server-rejected details.

@@ -153,24 +153,10 @@ what the latest review added, and section I of `docs/AUDIT.md` for optional impr
 `docs/DEPLOYMENT.md` has ready-made nginx and Apache configuration: routing for a single-page
 app, caching, HTTPS and the security headers, including the Content-Security-Policy.
 
-## Legacy files (please delete)
+## The old app
 
-The old app's source code is still in the repository. It is no longer built, linted, formatted or
-tested; only the new code under `core/` (apart from the folders below), `shared/`, `layout/` and
-`features/` is used. To remove it:
-
-```bash
-git rm -r src/app/AWW src/app/admin src/app/auth src/app/cdpo src/app/components \
-  src/app/dpo src/app/home src/app/login src/app/services src/app/state src/app/supervisor \
-  src/app/competency.service.ts src/app/app.component.ts src/app/app.component.html \
-  src/app/app.component.scss src/app/core/error src/app/core/http src/app/core/interceptors \
-  src/app/core/logger.service.ts src/app/core/performance src/app/core/security \
-  src/app/core/services src/app/core/state
-```
-
-Then delete `legacy-paths.json` and remove the places that skip these paths: `eslint.config.js`,
-`scripts/check-translations.mjs`, `.prettierignore`, and the `exclude` list in
-`tsconfig.app.json`.
+The previous version's source code has been removed. It is still in the git history if you
+ever need to look something up.
 
 ## Troubleshooting
 

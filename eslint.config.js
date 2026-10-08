@@ -4,11 +4,8 @@ const { defineConfig, globalIgnores } = require('eslint/config');
 const tseslint = require('typescript-eslint');
 const angular = require('angular-eslint');
 
-// Old code that is no longer built (see legacy-paths.json); pending deletion.
-const legacyPaths = require('./legacy-paths.json');
-
 module.exports = defineConfig([
-  globalIgnores(['dist/', '.angular/', 'src/index*.html', 'coverage/', 'public/', 'e2e/test-results/', 'e2e/report/', ...legacyPaths]),
+  globalIgnores(['dist/', '.angular/', 'src/index*.html', 'coverage/', 'public/', 'e2e/test-results/', 'e2e/report/']),
   {
     files: ['**/*.ts'],
     extends: [

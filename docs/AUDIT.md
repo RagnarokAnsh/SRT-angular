@@ -7,8 +7,8 @@ app was built and run, and every route was opened in a headless browser at phone
 desktop (1366 px) widths against a mocked API (as AWW and as admin). The bugs marked
 **verified** were reproduced with a script or in the browser, not just inferred from reading.
 
-Line numbers refer to the original files, which stay in the repository until they are deleted
-(see “Legacy files” in the README). Each item now ends with its status.
+Line numbers refer to the original files, which have since been deleted (they are still in the
+git history). Each item now ends with its status.
 
 **Severity**
 
@@ -39,7 +39,7 @@ Section I lists things only the backend can fix. Section J is the plan that was 
 
 | | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 53 | Fixed in the app (4 of these still have old files waiting to be deleted) |
+| ✅ Fixed | 53 | Fixed in the app (the old files have been deleted) |
 | ⚠️ Partly fixed | 10 | The app does what it can; the rest needs the backend or is a known limit |
 | 🔌 Needs backend | 2 | Only the server can fix it (HTTPS, and limiting `GET /children`) |
 
@@ -288,7 +288,7 @@ Content-Security-Policy.
 - A rate limiter that never runs.
 - Headers that are never actually sent: `HttpHeaders.set()` returns a new object, and the code throws it away (`security.service.ts:290`, `http.service.ts:266`).
 
-> **✅ Fixed.** None of this code is built any more, and `docs/SECURITY.md` lists the protections that are real. The old files are still in the repository until they are deleted (see the README).
+> **✅ Fixed.** None of this code is built any more, and `docs/SECURITY.md` lists the protections that are real. The old files have been deleted.
 
 **C6 🟡 The login token and profile are stored three times**
 `auth_token`, `user_data` and `appState` in localStorage all hold copies, readable by any injected
@@ -479,7 +479,7 @@ mapping, business rules, chart setup, export and UI state in one class.
 - `SecurityService` (392) is mostly the no-op code from C5.
 - `ErrorHandlerService` + `UXErrorService` (570) — while the places that need error handling (B1) have none.
 
-> **✅ Fixed.** None of these services are built or imported any more. The old files are still in the repository until they are deleted (see the README).
+> **✅ Fixed.** None of these services are built or imported any more. The old files have been deleted.
 
 **G3 🟡 Copy-paste instead of shared code**
 - 11 guard classes with near-identical bodies.
@@ -493,7 +493,7 @@ mapping, business rules, chart setup, export and UI state in one class.
 - Two different classes are both called `UserService`.
 - Models are duplicated: Anganwadi ×3, Country/State/District ×2, Role ×2, Student ×2, and `LevelDescription` declared twice in one file.
 
-> **✅ Fixed.** The new code lives in `core/`, `shared/`, `layout/` and `features/`, with one model per entity. The old files are still in the repository until they are deleted (see the README).
+> **✅ Fixed.** The new code lives in `core/`, `shared/`, `layout/` and `features/`, with one model per entity. The old files have been deleted.
 
 **G5 🟡 The "lazy-loaded" management sections aren't lazy**
 They use `loadChildren: () => ROUTES` with the routes imported eagerly, even though the old notes
@@ -532,7 +532,7 @@ default.
 - An unused `SkeletonLoaderModule`.
 - `ErrorHandlerService` injected but never used in 5 components.
 
-> **✅ Fixed.** The new code has no commented-out features, and the old files are excluded from the build and from lint. The old files are still in the repository until they are deleted (see the README).
+> **✅ Fixed.** The new code has no commented-out features, and the old files are excluded from the build and from lint. The old files have been deleted.
 
 **H3 🟡 Leftover notes from earlier AI sessions**
 Eight markdown files (`SESSION_COMPLETE.md`, `MEMORY_LEAK_FIXES.md`, …) contain outdated or wrong
