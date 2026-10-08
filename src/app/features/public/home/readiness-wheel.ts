@@ -12,8 +12,9 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
-import { TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import {
   FRAMEWORK,
@@ -37,8 +38,11 @@ type Layout = 'compact' | 'full';
 interface LayoutSpec {
   hub: number;
   domainRing: readonly [number, number];
-  /** Wider screens: the outer band where a domain's competencies fan out. */
-  fanRing: readonly [number, number] | null;
+  /**
+   * Wider screens: while a domain's competencies show, the domains move into `ring` (with
+   * labels up to `font`) and the competencies fan out in the band outside it, `fan`.
+   */
+  open: { ring: readonly [number, number]; fan: readonly [number, number]; font: number } | null;
   hubFont: number;
   domainFont: number;
   domainMinFont: number;
@@ -57,21 +61,21 @@ const LAYOUTS: Record<Layout, LayoutSpec> = {
   compact: {
     hub: 46,
     domainRing: [50, 248],
-    fanRing: null,
+    open: null,
     hubFont: 24,
     domainFont: 30,
     domainMinFont: 14,
     competencyFont: 32,
     competencyMinFont: 16,
   },
-  // Wider screens: the domains inside, and an outer ring where the competencies of the
-  // domain under the pointer fan out.
+  // Wider screens: the domains fill the wheel too. With the pointer on one, they draw in
+  // and its competencies fan out around it.
   full: {
     hub: 56,
-    domainRing: [60, 162],
-    fanRing: [166, 248],
+    domainRing: [60, 248],
+    open: { ring: [60, 162], fan: [166, 248], font: 17 },
     hubFont: 19,
-    domainFont: 17,
+    domainFont: 22,
     domainMinFont: 11,
     competencyFont: 16,
     competencyMinFont: 11,
@@ -87,10 +91,19 @@ const ZOOM_DISC = 112;
 const PADDING = 7;
 /** Canvas and SVG text widths can differ slightly; leave a little room. */
 const WIDTH_SAFETY = 1.04;
-/** How long the pointer rests on a domain before its competencies show, when another shows. */
+/**
+ * How long the pointer rests on a domain before its competencies show: a moment, so the
+ * wheel doesn't change as the pointer just crosses it; a little longer when another
+ * domain's are showing.
+ */
+const HOVER_OPEN_MS = 90;
 const HOVER_SWITCH_MS = 140;
 /** How long the competencies stay after the pointer leaves the wheel. */
 const LEAVE_MS = 300;
+/** After Escape the domains grow back under a still pointer: that's not a new hover. */
+const QUIET_AFTER_ESCAPE_MS = 450;
+/** A little longer than the domains take to draw in (see the styles). */
+const OPENING_MS = 400;
 
 interface TextLine {
   text: string;
@@ -124,7 +137,9 @@ interface DomainView {
   color: string;
   tint: string;
   path: string;
-  /** The light band outside the domain, under its competencies. */
+  /** Wider screens: the domain while competencies show, and where its label moves. */
+  open: { path: string; labelFrom: string; labelTo: string } | null;
+  /** Wider screens: the band outside the domain, so the pointer there still points at it. */
   track: string | null;
   label: Label;
 }
@@ -138,13 +153,15 @@ interface CompetencyView {
 
 /**
  * The school readiness framework as a wheel: the six domains around the centre. On wider
- * screens a domain's competencies fan out around it while the pointer is on it; on phones,
- * tapping a domain shows its competencies all around it (tap the middle to go back). Tapping
- * a competency opens it (visitors sign in first). Every part can be reached with the
- * keyboard, and the labels are sized to fit their segment in every language.
+ * screens, with the pointer on a domain the domains draw in and its competencies fan out
+ * around it (a line under the wheel says so); on phones, tapping a domain shows its
+ * competencies all around it (tap the middle to go back). Tapping a competency opens it
+ * (visitors sign in first). Every part can be reached with the keyboard, and the labels are
+ * sized to fit their segment in every language.
  */
 @Component({
   selector: 'app-readiness-wheel',
+  imports: [MatIconModule, TranslocoPipe],
   templateUrl: './readiness-wheel.html',
   styleUrl: './readiness-wheel.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -182,16 +199,29 @@ export class ReadinessWheel {
   );
   /** The domain whose competencies are showing. */
   protected readonly expanded = signal<number | null>(null);
+  /** The domains are drawing in: the competencies wait until there's room for them. */
+  protected readonly opening = signal(false);
   /** Bumped when web fonts finish loading, so labels are re-measured with the real font. */
   private readonly fontsVersion = signal(0);
+  /** Touch screens are told to tap, not to point. Follows the last pointer used. */
+  private readonly touch = signal(
+    this.document.defaultView?.matchMedia?.('(hover: none)').matches ?? false,
+  );
+  /** Browsers that can't animate a shape change (Safari) move the labels at once too. */
+  protected readonly morphs =
+    typeof CSS === 'undefined' || !CSS.supports || CSS.supports('d', 'path("M 0 0")');
 
   private hoverTimer: ReturnType<typeof setTimeout> | null = null;
   private leaveTimer: ReturnType<typeof setTimeout> | null = null;
+  private openingTimer: ReturnType<typeof setTimeout> | null = null;
   private lastPointer = 'mouse';
   /** Focus moved back by the wheel itself (after Escape): don't open that domain again. */
   private quietFocus = false;
+  private quietPointerUntil = 0;
 
   protected readonly spec = computed(() => LAYOUTS[this.layout()]);
+  /** Wider screens, while a domain's competencies show. */
+  protected readonly isOpen = computed(() => this.expanded() !== null && !!this.spec().open);
 
   protected readonly model = computed(() => {
     this.language.current();
@@ -202,7 +232,7 @@ export class ReadinessWheel {
   /** Wider screens: the expanded domain's competencies, fanned out around it. */
   protected readonly fan = computed(() => {
     const index = this.expanded();
-    const ring = this.spec().fanRing;
+    const ring = this.spec().open?.fan;
     if (index === null || !ring) return null;
     this.language.current();
     this.fontsVersion();
@@ -221,7 +251,7 @@ export class ReadinessWheel {
   /** Phones: the expanded domain, zoomed in. */
   protected readonly zoom = computed(() => {
     const index = this.expanded();
-    if (index === null || this.spec().fanRing) return null;
+    if (index === null || this.spec().open) return null;
     this.language.current();
     this.fontsVersion();
     const domain = FRAMEWORK[index];
@@ -264,20 +294,40 @@ export class ReadinessWheel {
     });
   });
 
+  /** Wider screens: what to do next, under the wheel. Phones need no telling. */
+  protected readonly hint = computed(() => {
+    if (!this.spec().open) return null;
+    const touch = this.touch();
+    if (this.expanded() !== null && this.linked()) {
+      return touch
+        ? { key: 'home.wheel.hintCompetencyTap', icon: 'tap' }
+        : { key: 'home.wheel.hintCompetencyClick', icon: 'click' };
+    }
+    return touch
+      ? { key: 'home.wheel.hintDomainTap', icon: 'tap' }
+      : { key: 'home.wheel.hintDomainHover', icon: 'pointer' };
+  });
+
   constructor() {
     afterNextRender(() => this.observe());
-    inject(DestroyRef).onDestroy(() => this.cancelTimers());
+    inject(DestroyRef).onDestroy(() => {
+      this.cancelTimers();
+      if (this.openingTimer) clearTimeout(this.openingTimer);
+    });
   }
 
   // Pointer
 
   protected onPointerDown(event: PointerEvent): void {
     this.lastPointer = event.pointerType;
+    this.touch.set(event.pointerType !== 'mouse');
   }
 
   /** Mouse only: resting on a domain shows its competencies. */
   protected onPointerOver(event: PointerEvent): void {
-    if (event.pointerType !== 'mouse' || !this.spec().fanRing) return;
+    if (event.pointerType !== 'mouse' || !this.spec().open) return;
+    this.touch.set(false);
+    if (performance.now() < this.quietPointerUntil) return;
     this.clearLeave();
     const target = event.target as Element | null;
     if (target?.closest('[data-competency]')) {
@@ -293,13 +343,13 @@ export class ReadinessWheel {
     this.clearHover();
     // Moving across the wheel towards a competency shouldn't switch to the domains passed.
     this.hoverTimer = setTimeout(
-      () => this.expanded.set(index),
-      this.expanded() === null ? 0 : HOVER_SWITCH_MS,
+      () => this.show(index),
+      this.expanded() === null ? HOVER_OPEN_MS : HOVER_SWITCH_MS,
     );
   }
 
   protected onPointerLeave(event: PointerEvent): void {
-    if (event.pointerType !== 'mouse' || !this.spec().fanRing) return;
+    if (event.pointerType !== 'mouse' || !this.spec().open) return;
     this.clearHover();
     this.clearLeave();
     this.leaveTimer = setTimeout(() => this.expanded.set(null), LEAVE_MS);
@@ -319,9 +369,10 @@ export class ReadinessWheel {
     const index = this.domainOf(target);
     if (index !== null) {
       this.clearHover();
-      const mouse = this.lastPointer === 'mouse' && this.spec().fanRing;
+      const mouse = this.lastPointer === 'mouse' && this.spec().open;
       // A tap shows a domain's competencies, or hides them again; a click keeps them.
-      this.expanded.set(!mouse && this.expanded() === index ? null : index);
+      if (!mouse && this.expanded() === index) this.collapse();
+      else this.show(index);
       return;
     }
     if (this.lastPointer !== 'mouse') this.collapse();
@@ -336,19 +387,23 @@ export class ReadinessWheel {
 
   // Keyboard
 
-  protected onDomainFocus(index: number): void {
+  /**
+   * Tabbing to a domain shows its competencies. A tap or click focuses it too, but then the
+   * click decides (otherwise a tap would show them and at once hide them again).
+   */
+  protected onDomainFocus(event: FocusEvent, index: number): void {
     if (this.quietFocus) {
       this.quietFocus = false;
       return;
     }
-    if (this.spec().fanRing) this.expanded.set(index);
+    if (this.spec().open && isFocusVisible(event.target as Element)) this.show(index);
   }
 
   /** Enter or Space shows the domain's competencies and moves to the first of them. */
   protected onDomainKey(event: KeyboardEvent, index: number): void {
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
-    this.expanded.set(index);
+    this.show(index);
     this.focusLater('.competency[tabindex], [data-back]');
   }
 
@@ -369,6 +424,7 @@ export class ReadinessWheel {
     const index = this.expanded();
     if (index === null) return;
     this.collapse();
+    this.quietPointerUntil = performance.now() + QUIET_AFTER_ESCAPE_MS;
     this.quietFocus = true;
     this.focusLater(`[data-domain="${index}"][tabindex]`);
   }
@@ -376,6 +432,16 @@ export class ReadinessWheel {
   private open(slug: string): void {
     if (!this.linked()) return;
     void this.router.navigate(['/competencies/find', slug]);
+  }
+
+  /** Shows a domain's competencies. */
+  private show(index: number): void {
+    if (this.expanded() === null && this.spec().open) {
+      this.opening.set(true);
+      if (this.openingTimer) clearTimeout(this.openingTimer);
+      this.openingTimer = setTimeout(() => this.opening.set(false), OPENING_MS);
+    }
+    this.expanded.set(index);
   }
 
   private collapse(): void {
@@ -450,43 +516,78 @@ export class ReadinessWheel {
       (text, size) => this.measurer.measure(text, size, 700),
     );
 
-    const [d1, d2] = spec.domainRing;
-    const sectors = FRAMEWORK.map((_, index) => ({
-      r1: d1,
-      r2: d2,
-      a1: index * DOMAIN_SPAN - DOMAIN_SPAN / 2,
-      a2: index * DOMAIN_SPAN + DOMAIN_SPAN / 2,
-    }));
     const blocks = FRAMEWORK.map((domain) =>
       this.block(labelLines(t(`catalog.domains.${domain.slug}.wheel`), 3)),
     );
-    const fit = this.fitBlocks(blocks, sectors, spec.domainFont, spec.domainMinFont);
+    const rest = this.domainRing(blocks, spec.domainRing, spec.domainFont, spec.domainMinFont);
+    const open = spec.open
+      ? this.domainRing(blocks, spec.open.ring, spec.open.font, spec.domainMinFont)
+      : null;
 
     const domains: DomainView[] = FRAMEWORK.map((domain, index) => {
-      const { a1, a2 } = sectors[index];
-      const point = fit.points[index] ?? polar(0, 0, (d1 + d2) / 2, index * DOMAIN_SPAN);
+      const at = rest.centers[index];
+      // The label is drawn where it sits at rest; while competencies show, it moves to its
+      // place in the smaller ring, scaled down to that ring's font size.
+      const to = (place: Point, scale: number) =>
+        `translate(${place.x}px, ${place.y}px) scale(${scale}) translate(${-at.x}px, ${-at.y}px)`;
       return {
         index,
         slug: domain.slug,
         name: t(`catalog.domains.${domain.slug}.name`),
         color: domain.color,
         tint: domain.tint,
-        path: ringSegmentPath(CENTER, CENTER, d1, d2, a1, a2),
-        track: spec.fanRing
-          ? ringSegmentPath(CENTER, CENTER, spec.fanRing[0], spec.fanRing[1], a1, a2)
-          : null,
-        label: {
-          x: round(CENTER + point.x),
-          lines: this.flatLines(blocks[index], fit.font, CENTER + point.y),
+        path: rest.paths[index],
+        open: open && {
+          path: open.paths[index],
+          labelFrom: to(at, 1),
+          labelTo: to(open.centers[index], round(open.font / rest.font)),
         },
+        track: spec.open
+          ? ringSegmentPath(
+              CENTER,
+              CENTER,
+              spec.open.ring[1],
+              spec.open.fan[1],
+              index * DOMAIN_SPAN - DOMAIN_SPAN / 2,
+              index * DOMAIN_SPAN + DOMAIN_SPAN / 2,
+            )
+          : null,
+        label: { x: at.x, lines: this.flatLines(blocks[index], rest.font, at.y) },
       };
     });
 
     return {
       hub: this.stackLines(hubLines, hubFont, CENTER),
       hubFont,
-      domainFont: fit.font,
+      domainFont: rest.font,
       domains,
+    };
+  }
+
+  /**
+   * The domains as a ring from r1 to r2, and where each label is centred at the largest size
+   * they all fit.
+   */
+  private domainRing(
+    blocks: Block[],
+    [r1, r2]: readonly [number, number],
+    max: number,
+    min: number,
+  ) {
+    const sectors = FRAMEWORK.map((_, index) => ({
+      r1,
+      r2,
+      a1: index * DOMAIN_SPAN - DOMAIN_SPAN / 2,
+      a2: index * DOMAIN_SPAN + DOMAIN_SPAN / 2,
+    }));
+    const fit = this.fitBlocks(blocks, sectors, max, min);
+    return {
+      font: fit.font,
+      paths: sectors.map(({ a1, a2 }) => ringSegmentPath(CENTER, CENTER, r1, r2, a1, a2)),
+      centers: sectors.map((_, index) => {
+        const point = fit.points[index] ?? polar(0, 0, (r1 + r2) / 2, index * DOMAIN_SPAN);
+        return { x: round(CENTER + point.x), y: round(CENTER + point.y) };
+      }),
     };
   }
 
@@ -597,6 +698,15 @@ export class ReadinessWheel {
       text,
       y: round(center + (i - (lines.length - 1) / 2) * lineHeight + font * 0.35),
     }));
+  }
+}
+
+/** Focus from the keyboard, not from a pointer. */
+function isFocusVisible(element: Element): boolean {
+  try {
+    return element.matches(':focus-visible');
+  } catch {
+    return true;
   }
 }
 

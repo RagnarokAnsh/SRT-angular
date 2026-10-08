@@ -72,7 +72,8 @@ export interface ChildInput {
 
 /** Validation limits (the same as the previous version's child form). */
 export const CHILD_LIMITS = {
-  nameMax: 100,
+  firstNameMax: 50,
+  lastNameMax: 50,
   symbolMax: 20,
   languageMax: 30,
   /** New children must be at least `ageMin` and younger than `ageMax` years. */

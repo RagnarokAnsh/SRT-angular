@@ -11,16 +11,21 @@ test.describe('public pages', () => {
     await expect(
       page.getByRole('group', { name: /School readiness framework: 6 domains/ }),
     ).toBeVisible();
-    // No lists or hints under the wheel.
-    await expect(page.locator('app-readiness-wheel :is(nav, ul, p)')).toHaveCount(0);
+    // No lists under the wheel; on wider screens, one line saying what to do.
+    const wide = (page.viewportSize()?.width ?? 0) >= 1024;
+    const wheel = page.locator('app-readiness-wheel');
+    const hint = wheel.locator('.wheel__hint');
+    await expect(wheel.locator(':is(nav, ul)')).toHaveCount(0);
+    if (wide) await expect(hint).toHaveText('Hover over a domain to see its competencies');
+    else await expect(hint).toHaveCount(0);
     await expectNoHorizontalScroll(page);
     await expectAccessible(page);
 
     // Competencies show once a domain is chosen (the pointer on it, or a tap on phones).
-    const wheel = page.locator('app-readiness-wheel');
     await expect(wheel.locator('.competency')).toHaveCount(0);
     await page.getByRole('button', { name: 'Language and Literacy Development' }).click();
     await expect(wheel.locator('.competency')).toHaveCount(4);
+    if (wide) await expect(hint).toHaveText('Click a competency to learn more');
     await expectAccessible(page);
 
     // Visitors log in first, then the competency opens.
@@ -49,6 +54,39 @@ test.describe('public pages', () => {
     await expect(page).toHaveURL(/\/competencies\/domain\/cognitive-development$/);
     await page.getByRole('link', { name: 'School Readiness – Domains' }).first().click();
     await expect(page).toHaveURL(/\/competencies$/);
+  });
+
+  test('on wider screens, the domains make room for the competencies of the one pointed at', async ({
+    page,
+  }) => {
+    test.skip((page.viewportSize()?.width ?? 0) < 1024, 'Wider screens only');
+    await page.goto('/home');
+    const wheel = page.locator('app-readiness-wheel');
+    const hint = wheel.locator('.wheel__hint');
+    const domain = wheel.getByRole('button', { name: 'Socio-Emotional Development' });
+    const outerEdge = () =>
+      domain.locator('.segment').evaluate((path) => {
+        const svg = path.ownerSVGElement!;
+        const box = (path as SVGGraphicsElement).getBBox();
+        // The segment points down: how far its far edge is from the centre of the wheel.
+        return box.y + box.height - svg.viewBox.baseVal.height / 2;
+      });
+
+    // At rest the domains fill the wheel, with nothing faded around them.
+    await expect(hint).toHaveText('Hover over a domain to see its competencies');
+    await expect(wheel.locator('.track').first()).toHaveCSS('fill', 'rgba(0, 0, 0, 0)');
+    expect(await outerEdge()).toBeGreaterThan(240);
+
+    await domain.hover();
+    await expect(wheel.getByRole('link', { name: 'Sharing with others' })).toBeVisible();
+    await expect(hint).toHaveText('Click a competency to learn more');
+    await expect.poll(outerEdge).toBeLessThan(170);
+
+    // Moving away closes it again.
+    await page.mouse.move(5, 5);
+    await expect(wheel.locator('.competency')).toHaveCount(0);
+    await expect(hint).toHaveText('Hover over a domain to see its competencies');
+    await expect.poll(outerEdge).toBeGreaterThan(240);
   });
 
   test('the wheel works with the keyboard', async ({ page }) => {

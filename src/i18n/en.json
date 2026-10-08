@@ -120,7 +120,11 @@
     "closing": "School readiness lays the foundation for a child's lifelong learning and success. A good early childhood education program should offer an age-appropriate and developmentally suitable learning environment for all children, ensuring that every 6-year-old is school-ready when they enter primary school. This tool will assist ECE educators in providing necessary early learning experiences to children based on their individual developmental journeys.",
     "wheel": {
       "hub": "School\nReadiness",
-      "summary": "School readiness framework: {{domains}} domains of development made up of {{competencies}} competencies."
+      "summary": "School readiness framework: {{domains}} domains of development made up of {{competencies}} competencies.",
+      "hintDomainHover": "Hover over a domain to see its competencies",
+      "hintDomainTap": "Tap a domain to see its competencies",
+      "hintCompetencyClick": "Click a competency to learn more",
+      "hintCompetencyTap": "Tap a competency to learn more"
     }
   },
   "login": {
@@ -537,7 +541,8 @@
     "addTitle": "Add Student",
     "editTitle": "Edit Student",
     "back": "Students",
-    "name": "Name",
+    "firstName": "First Name",
+    "lastName": "Last Name",
     "dateOfBirth": "Date of Birth",
     "ageToday": "Age today: {{age}}",
     "gender": "Gender",
@@ -564,7 +569,9 @@
     "languagePlaceholder": "Enter home language",
     "symbolPlaceholder": "Enter symbol",
     "heightPlaceholder": "Enter height",
-    "weightPlaceholder": "Enter weight"
+    "weightPlaceholder": "Enter weight",
+    "firstNamePlaceholder": "Enter first name",
+    "lastNamePlaceholder": "Enter last name"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -616,6 +623,7 @@
       "title": "School readiness dashboard",
       "generated": "Generated on",
       "center": "Center",
+      "studentName": "Student Name",
       "sessionsDone": "Sessions recorded",
       "sessionsPossible": "Sessions possible",
       "age": "Age",

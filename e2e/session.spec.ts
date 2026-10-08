@@ -41,7 +41,7 @@ test.describe('sessions across tabs', () => {
 
     await signIn(page, 'aww@demo.in');
     await page.goto('/students/new');
-    await page.getByLabel('Name').fill('Half-typed name');
+    await page.getByLabel('First Name').fill('Half-typed');
 
     // What a tab in the background sees at once when, meanwhile, someone signed out and the
     // second worker signed in.

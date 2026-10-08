@@ -42,15 +42,27 @@
 
       <div class="group">
         <div class="form-grid">
-          <mat-form-field class="span-all">
-            <mat-label>{{ 'childForm.name' | transloco }}</mat-label>
+          <mat-form-field>
+            <mat-label>{{ 'childForm.firstName' | transloco }}</mat-label>
             <input
               matInput
-              formControlName="name"
+              formControlName="firstName"
               autocomplete="off"
-              [maxlength]="limits.nameMax"
+              [placeholder]="'childForm.firstNamePlaceholder' | transloco"
+              [maxlength]="limits.firstNameMax"
             />
-            <mat-error>{{ form.controls.name.errors | validationMessage }}</mat-error>
+            <mat-error>{{ form.controls.firstName.errors | validationMessage }}</mat-error>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>{{ 'childForm.lastName' | transloco }}</mat-label>
+            <input
+              matInput
+              formControlName="lastName"
+              autocomplete="off"
+              [placeholder]="'childForm.lastNamePlaceholder' | transloco"
+              [maxlength]="limits.lastNameMax"
+            />
+            <mat-error>{{ form.controls.lastName.errors | validationMessage }}</mat-error>
           </mat-form-field>
 
           <mat-form-field>
