@@ -5,7 +5,13 @@ test.describe('Anganwadi worker', () => {
     await signIn(page, 'aww@demo.in');
   });
 
-  test('lands on the competencies and can open one', async ({ page }) => {
+  test('lands on the home page, and opens a competency from the domains', async ({ page }) => {
+    await expect(page).toHaveURL(/\/home$/);
+    await page
+      .getByRole('navigation')
+      .getByRole('link', { name: /School Readiness – Domains|^Domains$/ })
+      .first()
+      .click();
     await expect(page).toHaveURL(/\/competencies$/);
     await expect(page.getByRole('heading', { name: 'Cognitive Development' })).toBeVisible();
     await page.getByRole('link', { name: /Classification/ }).click();

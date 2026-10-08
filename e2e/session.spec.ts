@@ -20,7 +20,7 @@ test.describe('sessions across tabs', () => {
     await page.goto('/login');
     const other = await page.context().newPage();
     await signIn(other, 'aww@demo.in');
-    await expect(page).toHaveURL(/\/competencies$/);
+    await expect(page).toHaveURL(/\/home$/);
 
     await signOut(other);
     await expect(page).toHaveURL(/\/login/);
@@ -52,7 +52,7 @@ test.describe('sessions across tabs', () => {
       localStorage.setItem('auth_token', token);
     }, stored);
 
-    await expect(page).toHaveURL(/\/competencies$/);
+    await expect(page).toHaveURL(/\/home$/);
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await page.goto('/students');
     await expect(page.getByText('Saanvi Gupta')).toBeVisible();
@@ -65,7 +65,7 @@ test.describe('sessions across tabs', () => {
     // The page was left by user 3 (the second worker); user 2 signs in.
     await page.goto('/login?reason=expired&returnUrl=%2Fstudents&uid=3');
     await fillLogin(page, 'aww@demo.in');
-    await expect(page).toHaveURL(/\/competencies$/);
+    await expect(page).toHaveURL(/\/home$/);
 
     await signOut(page);
     await page.goto('/login?reason=expired&returnUrl=%2Fstudents&uid=2');

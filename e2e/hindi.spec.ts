@@ -18,6 +18,11 @@ test.describe('in Hindi', () => {
 
   test('worker screens', async ({ page }) => {
     await signIn(page, 'aww@demo.in');
+    await expect(page).toHaveURL(/\/home$/);
+    await expect(page.getByRole('heading', { name: 'विकास के छह क्षेत्र' })).toBeVisible();
+    await expectNoHorizontalScroll(page);
+
+    await page.goto('/competencies');
     await expect(page.getByRole('heading', { name: 'संज्ञानात्मक विकास' })).toBeVisible();
     await expectNoHorizontalScroll(page);
 
@@ -32,9 +37,7 @@ test.describe('in Hindi', () => {
     await expectAccessible(page);
 
     await page.goto('/dashboard');
-    await expect(
-      page.getByRole('heading', { name: 'हर दक्षता में विद्यार्थी, स्तर के अनुसार' }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'सभी क्षेत्र एक साथ' })).toBeVisible();
     await expectNoHorizontalScroll(page);
     await expectAccessible(page);
 

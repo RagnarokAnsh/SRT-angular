@@ -15,6 +15,7 @@
     "format:check": "prettier --check \"src/**/*.{ts,html,scss,json}\" \"e2e/**/*.ts\"",
     "build:demo": "ng build --configuration demo",
     "i18n:check": "node scripts/check-translations.mjs",
+    "i18n:sheet": "node scripts/translation-sheet.mjs",
     "e2e": "playwright test -c e2e/playwright.config.ts"
   },
   "private": true,

@@ -52,9 +52,11 @@
 
   // Chart marks for the levels: the same hue families, stepped from light to dark so the
   // order shows and colour-blind readers can still tell neighbours apart (checked with the
-  // dataviz palette validator: CVD ΔE 7.3 with gaps, legend and table view as backup).
+  // dataviz palette validator: worst CVD ΔE 10.3, normal vision 21.6). Numbers inside a
+  // segment: dark on beginning, white on the others (all at least 4.5:1). Beginning is
+  // below 3:1 against white, so charts always carry a legend, labels and a table view.
   --chart-level-beginning: #e5a50a;
-  --chart-level-progressing: #e3611a;
+  --chart-level-progressing: #c2410c;
   --chart-level-advancing: #0e7f5a;
   --chart-level-schoolReady: #3b4fa8;
   --chart-other: #a8a29e;

@@ -1,189 +1,124 @@
-import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 
-import { AuthService } from '@core/auth/auth';
+import { ROUTE_ROLES } from '@core/auth/roles';
 import { SessionStore } from '@core/auth/session';
-import { scrollToElement } from '@shared/scroll';
 
 import { ReadinessWheel } from './readiness-wheel';
 
+/**
+ * The School Readiness home page: the client-approved overview (word for word) and a large
+ * readiness wheel that leads into "School Readiness – Domains". Anganwadi workers land here
+ * after signing in.
+ */
 @Component({
   selector: 'app-home-page',
-  imports: [RouterLink, MatButtonModule, MatIconModule, TranslocoPipe, ReadinessWheel],
+  imports: [TranslocoPipe, ReadinessWheel],
   template: `
-    <section class="hero">
-      <div class="page hero__inner">
-        <h1 class="hero__title">
+    <div class="page home">
+      <section class="home__intro">
+        <h1 class="home__title">
           {{ 'home.titleBefore' | transloco }}
           <span class="title-highlight">{{ 'home.titleHighlight' | transloco }}</span>
           {{ 'home.titleAfter' | transloco }}
         </h1>
-        <p class="hero__lead">{{ 'home.lead' | transloco }}</p>
-        <div class="hero__actions">
-          @if (session.isAuthenticated()) {
-            <a mat-flat-button [routerLink]="homeUrl()">
-              {{ 'home.continue' | transloco }}
-              <mat-icon svgIcon="arrow-right" iconPositionEnd aria-hidden="true" />
-            </a>
-          } @else {
-            <a mat-flat-button routerLink="/login">
-              <mat-icon svgIcon="login" aria-hidden="true" />
-              {{ 'home.signIn' | transloco }}
-            </a>
-          }
-          <a mat-stroked-button href="#framework" (click)="scrollTo($event, 'framework')">
-            {{ 'home.explore' | transloco }}
-            <mat-icon svgIcon="arrow-down" iconPositionEnd aria-hidden="true" />
-          </a>
-        </div>
-      </div>
-    </section>
+        <p class="home__lead">{{ 'home.intro' | transloco }}</p>
+      </section>
 
-    <section class="page about" aria-labelledby="about-title">
-      <h2 id="about-title">{{ 'home.aboutTitle' | transloco }}</h2>
-      <div class="about__grid">
-        <p>{{ 'home.aboutSkills' | transloco }}</p>
-        <p>{{ 'home.aboutChild' | transloco }}</p>
-      </div>
-    </section>
+      <section class="home__visual" [attr.aria-label]="'home.wheel.listTitle' | transloco">
+        <app-readiness-wheel [linked]="linked()" />
+      </section>
 
-    <section id="framework" class="page framework" aria-labelledby="framework-title" tabindex="-1">
-      <h2 id="framework-title">{{ 'home.frameworkTitle' | transloco }}</h2>
-      <p class="framework__intro">{{ 'home.frameworkIntro' | transloco }}</p>
-      <app-readiness-wheel />
-    </section>
-
-    <section class="page closing">
-      <div class="closing__card">
-        <mat-icon svgIcon="school" aria-hidden="true" />
-        <div>
-          <p>{{ 'home.closingFoundation' | transloco }}</p>
-          <p>{{ 'home.closingTool' | transloco }}</p>
-        </div>
-      </div>
-    </section>
+      <section class="home__closing">
+        <p>{{ 'home.closing' | transloco }}</p>
+      </section>
+    </div>
   `,
   styles: `
     @use 'mixins' as *;
 
     :host {
       display: block;
-    }
-
-    .hero {
       background:
-        radial-gradient(120% 90% at 100% 0%, var(--color-primary-softer) 0%, transparent 60%),
-        radial-gradient(90% 80% at 0% 100%, var(--color-secondary-soft) 0%, transparent 55%);
+        radial-gradient(90% 60% at 100% 0%, var(--color-primary-softer) 0%, transparent 60%),
+        radial-gradient(70% 50% at 0% 40%, var(--color-secondary-soft) 0%, transparent 55%);
     }
 
-    .hero__inner {
-      padding-block: var(--space-8) var(--space-10);
+    // Phones and tablets: overview, wheel, closing words. Wide screens: the text beside the
+    // wheel, as on the approved page.
+    .home {
+      display: grid;
+      grid-template-areas:
+        'intro'
+        'visual'
+        'closing';
+      gap: var(--space-6);
+      padding-block: var(--space-6) var(--space-10);
 
-      @include up(md) {
-        padding-block: var(--space-12);
+      @include up(lg) {
+        grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+        grid-template-rows: auto 1fr;
+        grid-template-areas:
+          'intro visual'
+          'closing visual';
+        column-gap: var(--space-10);
+        row-gap: var(--space-4);
+        padding-block: var(--space-10);
       }
     }
 
-    .hero__title {
-      max-width: 18ch;
+    .home__intro {
+      grid-area: intro;
+    }
+
+    .home__visual {
+      grid-area: visual;
+    }
+
+    .home__closing {
+      grid-area: closing;
+    }
+
+    .home__title {
       margin-bottom: var(--space-4);
       font-size: clamp(2rem, 1.4rem + 3vw, 3.25rem);
       line-height: 1.15;
     }
 
-    .hero__lead {
-      max-width: 62ch;
-      margin-bottom: var(--space-6);
-      font-size: var(--text-lg);
+    .home__lead,
+    .home__closing p {
+      max-width: 65ch;
+      color: var(--color-text);
+      line-height: 1.7;
     }
 
-    .hero__actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-3);
-
-      a {
-        min-height: var(--touch-target);
-      }
+    .home__lead {
+      margin: 0;
+      font-size: var(--text-base);
     }
 
-    .about {
-      padding-top: var(--space-6);
-    }
-
-    .about__grid {
-      display: grid;
-      gap: var(--space-2) var(--space-8);
-
-      @include up(md) {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      p {
-        max-width: 65ch;
-      }
-    }
-
-    .framework {
-      padding-top: var(--space-6);
-      outline: none;
-      scroll-margin-top: calc(var(--top-bar-height) + var(--space-4));
-    }
-
-    .framework__intro {
-      max-width: 62ch;
-      margin-bottom: var(--space-6);
-      color: var(--color-text-muted);
-    }
-
-    .closing__card {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-4);
-      padding: var(--space-6);
+    .home__closing p {
+      margin: 0;
+      padding: var(--space-5);
       border-radius: var(--radius-xl);
       background: var(--color-secondary-soft);
       color: #1e1b4b;
 
       @include up(sm) {
-        flex-direction: row;
-        padding: var(--space-8);
-      }
-
-      mat-icon {
-        flex: none;
-        width: 40px;
-        height: 40px;
-        color: var(--color-secondary-strong);
-      }
-
-      p {
-        max-width: 70ch;
-      }
-
-      p:last-child {
-        margin-bottom: 0;
+        padding: var(--space-6);
       }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePage {
-  protected readonly session = inject(SessionStore);
-  private readonly auth = inject(AuthService);
-  private readonly document = inject(DOCUMENT);
-  protected readonly homeUrl = computed(() => this.auth.homeUrl());
+  private readonly session = inject(SessionStore);
 
-  /** In-page link (a plain `#id` href would resolve against `<base href>`). */
-  protected scrollTo(event: Event, id: string): void {
-    event.preventDefault();
-    const target = this.document.getElementById(id);
-    if (!target) return;
-    scrollToElement(target);
-    target.focus({ preventScroll: true });
-  }
+  /**
+   * The wheel opens domain and competency pages for workers and admins, and for visitors (who
+   * sign in first). Other roles can't open those pages, so for them it only explains.
+   */
+  protected readonly linked = computed(
+    () => !this.session.isAuthenticated() || this.session.hasAnyRole(...ROUTE_ROLES.competencies),
+  );
 }

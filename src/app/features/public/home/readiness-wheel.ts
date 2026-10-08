@@ -8,18 +8,17 @@ import {
   afterNextRender,
   computed,
   inject,
+  input,
   signal,
   viewChild,
-  viewChildren,
 } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import { FRAMEWORK, FRAMEWORK_COMPETENCY_COUNT } from '@core/catalog/framework';
 import { LanguageService } from '@core/i18n/language';
 import { PluralPipe } from '@shared/pipes/plural-pipe';
-import { scrollToElement } from '@shared/scroll';
 import { TextMeasurer } from '@shared/text-measurer';
 
 import {
@@ -40,7 +39,7 @@ type Layout = 'compact' | 'full';
 interface LayoutSpec {
   hub: number;
   domainRing: readonly [number, number];
-  /** null: no competency ring (competencies are named in the panel instead). */
+  /** null: no competency ring (competencies are listed on the domain's page instead). */
   competencyRing: readonly [number, number] | null;
   hubFont: number;
   /** `flat`: upright labels inside each segment, easiest to read; `curved`: along the ring. */
@@ -54,12 +53,12 @@ interface LayoutSpec {
 
 const SIZE = 500;
 const CENTER = SIZE / 2;
-/** Below this rendered width, competency names move out of the wheel into the panel. */
+/** Below this rendered width, only the domains are drawn (with larger labels). */
 const FULL_LAYOUT_MIN_PX = 470;
 
 const LAYOUTS: Record<Layout, LayoutSpec> = {
   // Phones: the domain ring fills the wheel and its labels stay upright and large;
-  // competencies are named in the panel when a domain is chosen.
+  // a domain's page lists its competencies.
   compact: {
     hub: 74,
     domainRing: [79, 246],
@@ -138,12 +137,14 @@ let nextId = 0;
 
 /**
  * The school readiness framework as a wheel: six domains around the centre, their
- * competencies on the outer ring. Tapping a domain (or using the list beside the wheel)
- * shows its competencies. Labels are sized to fit their segment in every language.
+ * competencies on the outer ring. Tapping a domain opens its page in "School Readiness –
+ * Domains", tapping a competency opens the competency (signed-out visitors sign in first).
+ * The list of domains under the wheel does the same for keyboard and screen reader users.
+ * Labels are sized to fit their segment in every language.
  */
 @Component({
   selector: 'app-readiness-wheel',
-  imports: [MatButtonModule, MatIconModule, TranslocoPipe, PluralPipe],
+  imports: [RouterLink, MatIconModule, TranslocoPipe, PluralPipe],
   templateUrl: './readiness-wheel.html',
   styleUrl: './readiness-wheel.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -154,12 +155,16 @@ export class ReadinessWheel {
   private readonly measurer = inject(TextMeasurer);
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
-  private readonly idPrefix = `wheel-${nextId++}`;
+  private readonly router = inject(Router);
+  protected readonly idPrefix = `wheel-${nextId++}`;
+
+  /**
+   * Whether domains and competencies open their pages. Off for signed-in users whose role
+   * can't open them (the wheel then only explains the framework).
+   */
+  readonly linked = input(true);
 
   private readonly wheel = viewChild.required<ElementRef<HTMLElement>>('wheel');
-  private readonly panel = viewChild.required<ElementRef<HTMLElement>>('panel');
-  private readonly panelTitle = viewChild<ElementRef<HTMLElement>>('panelTitle');
-  private readonly domainButtons = viewChildren<ElementRef<HTMLButtonElement>>('domainButton');
 
   protected readonly size = SIZE;
   protected readonly center = CENTER;
@@ -170,9 +175,8 @@ export class ReadinessWheel {
   protected readonly layout = signal<Layout>(
     (this.document.defaultView?.innerWidth ?? 0) >= 600 ? 'full' : 'compact',
   );
-  protected readonly selected = signal<number | null>(null);
-  /** Read out by screen readers when Previous / Next changes the domain. */
-  protected readonly announcement = signal('');
+  /** The domain under the pointer (or focused in the list): the others fade. */
+  protected readonly highlighted = signal<number | null>(null);
   /** Bumped when web fonts finish loading, so labels are re-measured with the real font. */
   private readonly fontsVersion = signal(0);
 
@@ -187,11 +191,6 @@ export class ReadinessWheel {
     return this.buildModel(this.spec());
   });
 
-  protected readonly selectedDomain = computed(() => {
-    const index = this.selected();
-    return index === null ? null : (this.model().domains[index] ?? null);
-  });
-
   protected readonly summary = computed(() => {
     this.language.current();
     return this.transloco.translate('home.wheel.summary', {
@@ -204,50 +203,28 @@ export class ReadinessWheel {
     afterNextRender(() => this.observe());
   }
 
-  protected select(index: number | null): void {
-    const previous = this.selected();
-    this.selected.set(index);
-    this.announcement.set('');
-    // The panel's content is replaced, so move focus to its new heading (or back to the
-    // domain that was open) and bring the panel into view on phones, where it sits below.
-    afterNextRender(
-      {
-        write: () => {
-          const target =
-            index !== null
-              ? this.panelTitle()?.nativeElement
-              : previous !== null
-                ? this.domainButtons()[previous]?.nativeElement
-                : undefined;
-          target?.focus({ preventScroll: true });
-          scrollToElement(this.panel().nativeElement, 'nearest');
-        },
-      },
-      { injector: this.injector },
-    );
+  protected highlight(index: number | null): void {
+    this.highlighted.set(index);
   }
 
-  /**
-   * Previous / Next: focus stays on the button, so it can be pressed again, and the new
-   * domain is announced instead.
-   */
-  protected step(delta: number): void {
-    const current = this.selected() ?? 0;
-    const count = FRAMEWORK.length;
-    const next = (current + delta + count) % count;
-    this.selected.set(next);
-    const domain = this.model().domains[next];
-    this.announcement.set(
-      `${domain.name}. ${this.transloco.translate('home.wheel.domainOf', { current: next + 1, total: count })}`,
-    );
+  protected onPointerOver(event: PointerEvent): void {
+    if (event.pointerType !== 'mouse') return;
+    const domain = (event.target as Element | null)?.closest('[data-domain]');
+    this.highlighted.set(domain ? Number(domain.getAttribute('data-domain')) : null);
   }
 
-  /** Pointer shortcut; keyboard and screen reader users use the domain list instead. */
+  /** Pointer shortcut; keyboard and screen reader users use the list of domains instead. */
   protected onWheelClick(event: MouseEvent): void {
-    const target = (event.target as Element | null)?.closest('[data-domain]');
-    if (!target) return;
-    const index = Number(target.getAttribute('data-domain'));
-    this.select(this.selected() === index ? null : index);
+    if (!this.linked()) return;
+    const target = event.target as Element | null;
+    const competency = target?.closest('[data-competency]')?.getAttribute('data-competency');
+    if (competency) {
+      void this.router.navigate(['/competencies/find', competency]);
+      return;
+    }
+    const domain = target?.closest('[data-domain]')?.getAttribute('data-domain');
+    const slug = domain === null || domain === undefined ? null : FRAMEWORK[Number(domain)]?.slug;
+    if (slug) void this.router.navigate(['/competencies/domain', slug]);
   }
 
   private observe(): void {

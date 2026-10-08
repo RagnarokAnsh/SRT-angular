@@ -8,19 +8,16 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { CompetencyApi } from '@core/api/competency-api';
 import { CatalogText } from '@core/catalog/catalog-text';
 import { domainColors } from '@core/catalog/framework';
-import { competencyThumbnail } from '@core/catalog/media';
 import { LanguageService } from '@core/i18n/language';
 import { createLoader } from '@shared/loader';
-import {
-  CompetencyDescriptionPipe,
-  CompetencyNamePipe,
-  DomainNamePipe,
-} from '@shared/pipes/catalog-pipes';
+import { DomainNamePipe } from '@shared/pipes/catalog-pipes';
 import { PluralPipe } from '@shared/pipes/plural-pipe';
 import { ErrorState } from '@shared/ui/error-state';
 import { PageHeader } from '@shared/ui/page-header';
 import { Skeleton } from '@shared/ui/skeleton';
 import { StateMessage } from '@shared/ui/state-message';
+
+import { CompetencyCard } from './competency-card';
 
 @Component({
   selector: 'app-competency-list-page',
@@ -31,9 +28,8 @@ import { StateMessage } from '@shared/ui/state-message';
     MatInputModule,
     TranslocoPipe,
     DomainNamePipe,
-    CompetencyNamePipe,
-    CompetencyDescriptionPipe,
     PluralPipe,
+    CompetencyCard,
     PageHeader,
     Skeleton,
     ErrorState,
@@ -41,7 +37,7 @@ import { StateMessage } from '@shared/ui/state-message';
   ],
   template: `
     <div class="page">
-      <app-page-header>
+      <app-page-header backLink="/home" [backLabel]="'nav.home' | transloco">
         <span pageTitle>{{ 'competencies.title' | transloco }}</span>
         <span pageSubtitle>{{ 'competencies.subtitle' | transloco }}</span>
       </app-page-header>
@@ -65,34 +61,24 @@ import { StateMessage } from '@shared/ui/state-message';
         </mat-form-field>
 
         @for (domain of domains(); track domain.id) {
-          <section class="domain" [attr.aria-labelledby]="'domain-' + domain.id">
+          <section
+            class="domain"
+            [style.--domain-color]="domain.color"
+            [attr.aria-labelledby]="'domain-' + domain.id"
+          >
             <h2 class="domain__title" [id]="'domain-' + domain.id">
-              <span class="swatch" [style.background]="domain.color" aria-hidden="true"></span>
-              {{ domain | domainName }}
-              <span class="domain__count">{{
-                'competencies.count' | plural: domain.competencies.length
-              }}</span>
+              <a class="domain__link" [routerLink]="['/competencies/domain', domain.slug]">
+                <span class="swatch" aria-hidden="true"></span>
+                <span class="domain__name">{{ domain | domainName }}</span>
+                <span class="domain__count">{{
+                  'competencies.count' | plural: domain.competencies.length
+                }}</span>
+                <mat-icon svgIcon="chevron-right" aria-hidden="true" />
+              </a>
             </h2>
             <ul class="grid">
               @for (competency of domain.competencies; track competency.id) {
-                <li>
-                  <a class="card" [routerLink]="['/competencies', competency.id]">
-                    <span class="card__media" [style.background]="domain.tint">
-                      @if (competency.thumbnail; as src) {
-                        <img [src]="src" width="128" height="128" alt="" loading="lazy" />
-                      } @else {
-                        <mat-icon svgIcon="domains" aria-hidden="true" />
-                      }
-                    </span>
-                    <span class="card__text">
-                      <span class="card__name">{{ competency | competencyName }}</span>
-                      <span class="card__description">{{
-                        competency | competencyDescription
-                      }}</span>
-                    </span>
-                    <mat-icon class="card__chevron" svgIcon="chevron-right" aria-hidden="true" />
-                  </a>
-                </li>
+                <li><app-competency-card [competency]="competency" [tint]="domain.tint" /></li>
               }
             </ul>
           </section>
@@ -116,12 +102,31 @@ import { StateMessage } from '@shared/ui/state-message';
       margin-top: var(--space-6);
     }
     .domain__title {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: var(--space-2) var(--space-3);
       margin-bottom: var(--space-3);
       font-size: var(--text-lg);
+    }
+    // The heading opens the domain's own page; its colour matches the wheel.
+    .domain__link {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-1) var(--space-3);
+      min-height: var(--touch-target);
+      padding: var(--space-1) var(--space-3) var(--space-1) 0;
+      border-radius: var(--radius-md);
+      color: var(--color-text-strong);
+      text-decoration: none;
+
+      &:hover .domain__name {
+        text-decoration: underline;
+        text-decoration-color: var(--domain-color);
+        text-decoration-thickness: 2px;
+        text-underline-offset: 4px;
+      }
+
+      mat-icon {
+        color: var(--color-text-muted);
+      }
     }
     .domain__count {
       color: var(--color-text-muted);
@@ -132,9 +137,11 @@ import { StateMessage } from '@shared/ui/state-message';
       width: 14px;
       height: 14px;
       border-radius: 4px;
+      background: var(--domain-color);
     }
     .grid {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: var(--space-3);
       margin: 0;
       padding: 0;
@@ -147,68 +154,6 @@ import { StateMessage } from '@shared/ui/state-message';
       @include up(lg) {
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }
-    }
-    .card {
-      @include card;
-
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      height: 100%;
-      min-height: 88px;
-      padding: var(--space-3);
-      color: inherit;
-      text-decoration: none;
-      transition:
-        border-color 0.15s,
-        box-shadow 0.15s,
-        transform 0.15s;
-
-      &:hover {
-        border-color: var(--color-border-strong);
-        box-shadow: var(--shadow-2);
-      }
-
-      &:active {
-        transform: scale(0.99);
-      }
-    }
-    .card__media {
-      display: grid;
-      flex: none;
-      place-items: center;
-      width: 64px;
-      height: 64px;
-      overflow: hidden;
-      border-radius: var(--radius-md);
-
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-    }
-    .card__text {
-      display: flex;
-      flex: 1;
-      flex-direction: column;
-      gap: 2px;
-      min-width: 0;
-    }
-    .card__name {
-      color: var(--color-text-strong);
-      font-weight: 700;
-      line-height: 1.3;
-    }
-    .card__description {
-      @include line-clamp(2);
-
-      color: var(--color-text-muted);
-      font-size: var(--text-sm);
-    }
-    .card__chevron {
-      flex: none;
-      color: var(--color-text-muted);
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -229,14 +174,12 @@ export class CompetencyListPage {
       .map((domain) => ({
         ...domain,
         ...domainColors(domain.slug),
-        competencies: domain.competencies
-          .map((competency) => ({ ...competency, thumbnail: competencyThumbnail(competency.slug) }))
-          .filter(
-            (competency) =>
-              !needle ||
-              competency.name.toLocaleLowerCase().includes(needle) ||
-              this.text.competencyName(competency).toLocaleLowerCase().includes(needle),
-          ),
+        competencies: domain.competencies.filter(
+          (competency) =>
+            !needle ||
+            competency.name.toLocaleLowerCase().includes(needle) ||
+            this.text.competencyName(competency).toLocaleLowerCase().includes(needle),
+        ),
       }))
       .filter((domain) => domain.competencies.length > 0);
   });

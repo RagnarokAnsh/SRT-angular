@@ -9,7 +9,7 @@ import { normalizeUser } from '../api/user-api';
 import type { ApiUser, LoginResponse } from '../models/user';
 import { clockSkewMs, isTokenUsable } from './jwt';
 import { safeReturnUrl } from './return-url';
-import { ROLE_HOME } from './roles';
+import { ROLE_HOME, canOpen } from './roles';
 import { SessionStore } from './session';
 
 export type LogoutReason = 'manual' | 'expired' | 'idle';
@@ -90,8 +90,11 @@ export class AuthService {
   }
 
   /**
-   * After login: the requested page if it is a safe in-app path, otherwise home. A page left
-   * behind by someone else's expired session (`uid` of another user) is ignored.
+   * After login: the requested page if it is a safe in-app path the user may open, otherwise
+   * their own landing page. A page left behind by someone else's expired session (`uid` of
+   * another user) is ignored. A page their role can't open (say, a competency tapped on the
+   * home page before signing in as a supervisor) also leads to their landing page, not to
+   * "unauthorized".
    */
   navigateAfterLogin(returnUrl: unknown, uid?: unknown): Promise<boolean> {
     const sameUser =
@@ -99,7 +102,8 @@ export class AuthService {
       uid === null ||
       uid === '' ||
       String(uid) === String(this.session.user()?.id);
-    const target = sameUser ? safeReturnUrl(returnUrl) : null;
+    const requested = sameUser ? safeReturnUrl(returnUrl) : null;
+    const target = requested && canOpen(requested, this.session.roles()) ? requested : null;
     return this.router.navigateByUrl(target ?? this.homeUrl(), { replaceUrl: true });
   }
 }

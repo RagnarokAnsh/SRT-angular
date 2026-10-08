@@ -8,7 +8,9 @@ const PAGES: { account: string | null; paths: string[] }[] = [
   {
     account: 'aww@demo.in',
     paths: [
+      '/home',
       '/competencies',
+      '/competencies/domain/language--literacy-development',
       '/competencies/1',
       '/competencies/1/assess',
       '/competencies/10/assess',
@@ -16,6 +18,9 @@ const PAGES: { account: string | null; paths: string[] }[] = [
       '/students/new',
       '/students/1/edit',
       '/dashboard',
+      '/dashboard?view=competencies',
+      '/dashboard?view=students',
+      '/dashboard?view=attention',
       '/admin',
     ],
   },

@@ -3,7 +3,7 @@ import type { Child } from '@core/models/child';
 import type { Competency, Domain } from '@core/models/competency';
 
 import { buildSheets, fileSafe } from './dashboard-export';
-import { competencyRow, summarize } from './dashboard-model';
+import { competencyRow, needsAttention, studentViews, summarize } from './dashboard-model';
 
 const child = (id: number, name: string): Child => ({
   id,
@@ -52,6 +52,37 @@ describe('dashboard export', () => {
     ],
     'latest',
   );
+  const attention = needsAttention(
+    studentViews(
+      {
+        domains: [domain],
+        children,
+        records: new Map([
+          [
+            1,
+            [
+              {
+                childId: 1,
+                name: '',
+                remarks: '',
+                sessions: [
+                  result('advancing', 'Advancing'),
+                  { ...result('beginning', 'Beginning'), session: 2 },
+                ],
+              },
+              {
+                childId: 2,
+                name: '',
+                remarks: '',
+                sessions: [result('progressing', 'Progressing')],
+              },
+            ],
+          ],
+        ]),
+      },
+      { domainId: null, competencyIds: [], sessions: [1, 2] },
+    ),
+  );
   const sheets = buildSheets(
     {
       centerName: 'Shivaji Nagar',
@@ -59,12 +90,13 @@ describe('dashboard export', () => {
       summary: summarize(children, [row]),
       rows: [row],
       children,
+      attention,
       today: '2026-07-10',
     },
     {
-      t: (key) => key,
-      competencyName: (r) => r.competency.name,
-      domainName: (r) => r.domain.name,
+      t: (key, params) => (params ? `${key} ${JSON.stringify(params)}` : key),
+      competencyName: (c) => c.name,
+      domainName: (d) => d.name,
       formatDate: (iso) => iso ?? '',
     },
   );
@@ -90,6 +122,36 @@ describe('dashboard export', () => {
   it('keeps the stored value of a result that is not a level', () => {
     const ravi = sheets[2].find((r) => values(r)[0] === 'Ravi');
     expect(values(ravi ?? [])[3]).toBe('Excellent');
+  });
+
+  it('lists who needs attention, why, and the results behind it', () => {
+    const rows = sheets[3].slice(1).map(values);
+    expect(rows).toEqual([
+      [
+        'Asha Devi',
+        'Seriation',
+        'Cognitive',
+        'dashboard.attention.reason.down',
+        'assessment.sessionN {"n":1}: levels.advancing.label',
+        'assessment.sessionN {"n":2}: levels.beginning.label',
+      ],
+      [
+        'Meena',
+        'Seriation',
+        'Cognitive',
+        'dashboard.attention.reason.none',
+        '',
+        'assessment.sessionN {"n":2}: dashboard.notAssessed',
+      ],
+      [
+        'Ravi',
+        'Seriation',
+        'Cognitive',
+        'dashboard.attention.reason.none',
+        '',
+        'assessment.sessionN {"n":2}: dashboard.notAssessed',
+      ],
+    ]);
   });
 });
 

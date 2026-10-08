@@ -135,6 +135,21 @@
     width: 20px;
     height: 20px;
   }
+
+  // A long label ("School Readiness – Domains") only where there is room for it.
+  .label--full {
+    display: none;
+  }
+
+  @include up(lg) {
+    .label--short {
+      display: none;
+    }
+
+    .label--full {
+      display: inline;
+    }
+  }
 }
 
 .top-bar__actions {

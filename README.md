@@ -3,7 +3,8 @@
 The web app for the School Readiness Tool. Anganwadi workers record how their students (children aged 2–6) are
 doing on 17 competencies in 6 domains, four sessions each, and follow their centre's progress on
 a dashboard. Admins manage users and Anganwadi centres. The app is built for phones first and
-works in English and Hindi.
+works in English and Hindi; an Assamese translation is being prepared (see
+[Translations](#translations)).
 
 Built with Angular 21 (standalone components, signals, zoneless), Angular Material 3 and
 Transloco.
@@ -48,21 +49,51 @@ and a **Simulate server down** switch for trying out the error screens.
 | `npm run lint`                            | ESLint for TypeScript and templates                                                                        |
 | `npm run format` / `npm run format:check` | Prettier                                                                                                   |
 | `npm run i18n:check`                      | Fails if the code uses a translation key that isn't in `en.json`                                           |
+| `npm run i18n:sheet`                      | Writes every English text to `docs/translations/translations-assamese.xlsx` for the translators            |
 
 ## Who sees what
 
-| Role                      | Screens                                                                                 |
-| ------------------------- | --------------------------------------------------------------------------------------- |
-| Anganwadi worker          | Competencies and assessments, the students of their centre, the centre dashboard        |
-| Admin                     | Overview, users, centres and students                                                   |
-| Supervisor                | Home page, and the students of the centres in their sector                              |
-| CDPO, DPO, State official | A home page for their area (reports for these roles need summary data from the backend) |
+| Role                      | Screens                                                                  |
+| ------------------------- | ------------------------------------------------------------------------ |
+| Anganwadi worker          | Home page, domains and assessments, their students, the centre dashboard |
+| Admin                     | Overview, users, centres and students                                    |
+| Supervisor                | A dashboard page, and the students of the centres in their sector        |
+| CDPO, DPO, State official | A dashboard page for their area                                          |
+
+Workers land on the home page after signing in, admins on their overview and officials on their
+dashboard page. The dashboards of supervisors, CDPOs, DPOs and state officials need summary data
+from the backend, so for now their page only welcomes them. A page opened before signing in (for example a competency tapped
+on the wheel) opens after sign-in when the user's role may see it, and their home page otherwise.
 
 Roles, navigation and home pages are configured in one place: `src/app/core/auth/roles.ts`.
 Which centres each user may see is decided in `src/app/core/auth/access.ts`: everything for
 admins, their own centre for workers (nothing if their account has no centre), and the centres
 in their area for supervisors. The API currently returns every centre's students, so the app
 filters them; the server must enforce the same rules (see `docs/SECURITY.md`).
+
+## The centre dashboard
+
+Workers see their own centre; admins choose a centre first.
+
+- **Tiles**: students, sessions recorded, the share of latest results that are School Ready, and
+  how many students need attention (tapping it opens the list).
+- **Filters**: a domain, competencies within it, and the sessions to compare. They apply to the
+  four views below.
+- **Overview**: every domain at a glance, a bar per session with the students at each level (and
+  those not assessed), and how many results went up, stayed or went down. Tapping a domain opens
+  its competencies.
+- **Competencies**: the same for each competency, the names of the students at each level, and a
+  table view.
+- **Students**: each student's level in every competency, session by session, with the change
+  since the session before.
+- **Needs attention**: students whose level went down, or stayed the same below School Ready,
+  since their session before, and students who weren't assessed in the latest session the
+  others had.
+
+Every comparison uses each student's last two results within the chosen sessions, so choosing
+sessions 1 and 2 compares S1 with S2. Levels keep their colours everywhere, with their number
+(1–4) next to the colour so they never depend on colour alone. The Excel download has the
+summary, the students, every result per session, and the needs-attention list.
 
 ## Project structure
 
@@ -87,8 +118,8 @@ src/
   testing/         helpers for the unit tests
 public/assets/     images and video
 e2e/               Playwright tests
-docs/              AUDIT.md, CODE-REVIEW.md, SECURITY.md, DEPLOYMENT.md
-scripts/           check-translations.mjs
+docs/              AUDIT.md, CODE-REVIEW.md, SECURITY.md, DEPLOYMENT.md, translations/
+scripts/           check-translations.mjs, translation-sheet.mjs
 ```
 
 ## Translations
@@ -103,6 +134,13 @@ numbers follow the language.
   languages take them from the `catalog` section of their file, falling back to the API text.
 - **Assessment levels** are still saved with the same English labels the backend already stores.
   Translated labels are only for display.
+
+**Assamese.** `docs/translations/translations-assamese.xlsx` lists every English text with its
+key, an empty Assamese column, where the text appears and what to keep (placeholders, line
+breaks, singular and plural). Send it to the translators; `npm run i18n:sheet` writes it again
+after texts change. When it comes back, the Assamese column becomes `src/i18n/as.json` (same
+keys), and Assamese is added like any other language below, with `locale: 'as-IN'` and a font for
+the Assamese script (for example `@fontsource/noto-sans-bengali`).
 
 To add a language, for example Tamil:
 
